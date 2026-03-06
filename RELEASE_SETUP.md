@@ -54,12 +54,15 @@ Examples:
 The workflow `.github/workflows/mobile-ci.yml` builds both apps for:
 
 - Android release APK
+- Android signed AAB when signing secrets are configured
 - iOS release build without code signing
 
 Repository secrets/variables needed:
 
 - `YANDEX_MAPS_KEY`
 - `API_BASE_URL` as a repository variable
+
+Exact secret names are documented in `GITHUB_ACTIONS_SECRETS.md`.
 
 ## Still required before store release
 
@@ -86,6 +89,6 @@ Repository secrets/variables needed:
 1. Create the GitHub repository and push this workspace.
 2. Add `YANDEX_MAPS_KEY` and `API_BASE_URL` in GitHub settings.
 3. Confirm the final production API domain with HTTPS.
-4. Generate Android release keystores.
+4. Generate Android release keystores and upload the GitHub secrets.
 5. Create the two apps in App Store Connect and Google Play Console.
-6. Add signing credentials and distribution automation.
+6. Add iOS signing credentials and distribution automation.

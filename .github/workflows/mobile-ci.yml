@@ -53,15 +53,63 @@ jobs:
         run: |
           printf 'YANDEX_MAPS_KEY=%s\n' "${{ secrets.YANDEX_MAPS_KEY }}" > "${{ matrix.app_path }}/android/secrets.properties"
 
+      - name: Prepare Android signing files
+        shell: bash
+        env:
+          ANDROID_CLIENT_KEYSTORE_BASE64: ${{ secrets.ANDROID_CLIENT_KEYSTORE_BASE64 }}
+          ANDROID_CLIENT_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_CLIENT_KEYSTORE_PASSWORD }}
+          ANDROID_CLIENT_KEY_ALIAS: ${{ secrets.ANDROID_CLIENT_KEY_ALIAS }}
+          ANDROID_CLIENT_KEY_PASSWORD: ${{ secrets.ANDROID_CLIENT_KEY_PASSWORD }}
+          ANDROID_DRIVER_KEYSTORE_BASE64: ${{ secrets.ANDROID_DRIVER_KEYSTORE_BASE64 }}
+          ANDROID_DRIVER_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_DRIVER_KEYSTORE_PASSWORD }}
+          ANDROID_DRIVER_KEY_ALIAS: ${{ secrets.ANDROID_DRIVER_KEY_ALIAS }}
+          ANDROID_DRIVER_KEY_PASSWORD: ${{ secrets.ANDROID_DRIVER_KEY_PASSWORD }}
+        run: |
+          if [ "${{ matrix.label }}" = "client" ]; then
+            KEYSTORE_BASE64="$ANDROID_CLIENT_KEYSTORE_BASE64"
+            KEYSTORE_PASSWORD="$ANDROID_CLIENT_KEYSTORE_PASSWORD"
+            KEY_ALIAS="$ANDROID_CLIENT_KEY_ALIAS"
+            KEY_PASSWORD="$ANDROID_CLIENT_KEY_PASSWORD"
+          else
+            KEYSTORE_BASE64="$ANDROID_DRIVER_KEYSTORE_BASE64"
+            KEYSTORE_PASSWORD="$ANDROID_DRIVER_KEYSTORE_PASSWORD"
+            KEY_ALIAS="$ANDROID_DRIVER_KEY_ALIAS"
+            KEY_PASSWORD="$ANDROID_DRIVER_KEY_PASSWORD"
+          fi
+
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "${{ matrix.app_path }}/android/release-keystore.jks"
+            printf 'storeFile=release-keystore.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+              "$KEYSTORE_PASSWORD" \
+              "$KEY_ALIAS" \
+              "$KEY_PASSWORD" \
+              > "${{ matrix.app_path }}/android/key.properties"
+            echo "ANDROID_SIGNING_READY=true" >> "$GITHUB_ENV"
+          else
+            echo "ANDROID_SIGNING_READY=false" >> "$GITHUB_ENV"
+          fi
+
       - name: Build Android release APK
         working-directory: ${{ matrix.app_path }}
         run: flutter build apk --release --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+
+      - name: Build Android release AAB
+        if: env.ANDROID_SIGNING_READY == 'true'
+        working-directory: ${{ matrix.app_path }}
+        run: flutter build appbundle --release --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ matrix.label }}-release
           path: ${{ matrix.app_path }}/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload Android app bundle
+        if: env.ANDROID_SIGNING_READY == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.label }}-aab
+          path: ${{ matrix.app_path }}/build/app/outputs/bundle/release/app-release.aab
 
   build-ios:
     name: iOS ${{ matrix.label }}
