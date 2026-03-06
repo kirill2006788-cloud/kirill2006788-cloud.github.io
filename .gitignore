@@ -1,0 +1,45 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+**/secrets.properties
+**/Secrets.xcconfig
+**/google-services.json
+**/GoogleService-Info.plist
+**/key.properties
+**/*.jks
+**/*.keystore
+**/*.p12
+**/*.cer
+**/*.mobileprovision
+
+# Flutter and Dart
+/flutter/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.last_build_id
+**/.pub/
+**/.pub-cache/
+**/.gradle/
+**/local.properties
+**/build/
+**/coverage/
+
+# Native build outputs
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# Backend dependencies and build output
+backend_vps/api/node_modules/
+backend_vps/api/dist/
+
+# Logs
+*.log

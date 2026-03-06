@@ -1,0 +1,102 @@
+name: Mobile CI
+
+on:
+  push:
+    paths:
+      - ".github/workflows/mobile-ci.yml"
+      - "app/**"
+      - "prosto_taxi_driver/**"
+  pull_request:
+    paths:
+      - ".github/workflows/mobile-ci.yml"
+      - "app/**"
+      - "prosto_taxi_driver/**"
+  workflow_dispatch:
+
+env:
+  API_BASE_URL: ${{ vars.API_BASE_URL || 'http://194.67.84.155' }}
+
+jobs:
+  build-android:
+    name: Android ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: client
+            app_path: app
+          - label: driver
+            app_path: prosto_taxi_driver
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Restore packages
+        working-directory: ${{ matrix.app_path }}
+        run: flutter pub get
+
+      - name: Prepare Android secrets
+        shell: bash
+        run: |
+          printf 'YANDEX_MAPS_KEY=%s\n' "${{ secrets.YANDEX_MAPS_KEY }}" > "${{ matrix.app_path }}/android/secrets.properties"
+
+      - name: Build Android release APK
+        working-directory: ${{ matrix.app_path }}
+        run: flutter build apk --release --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.label }}-release
+          path: ${{ matrix.app_path }}/build/app/outputs/flutter-apk/app-release.apk
+
+  build-ios:
+    name: iOS ${{ matrix.label }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: client
+            app_path: app
+          - label: driver
+            app_path: prosto_taxi_driver
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Restore packages
+        working-directory: ${{ matrix.app_path }}
+        run: flutter pub get
+
+      - name: Prepare iOS secrets
+        shell: bash
+        run: |
+          printf 'YANDEX_MAPS_KEY=%s\n' "${{ secrets.YANDEX_MAPS_KEY }}" > "${{ matrix.app_path }}/ios/Flutter/Secrets.xcconfig"
+
+      - name: Install CocoaPods
+        working-directory: ${{ matrix.app_path }}/ios
+        run: pod install
+
+      - name: Build iOS without codesign
+        working-directory: ${{ matrix.app_path }}
+        run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
