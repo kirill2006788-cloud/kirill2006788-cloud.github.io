@@ -2569,7 +2569,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Просто Такси • Водитель',
+      title: 'Ноль промилле',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -3002,7 +3002,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               distanceFilter: 50,
               intervalDuration: Duration(seconds: 15),
               foregroundNotificationConfig: ForegroundNotificationConfig(
-                notificationTitle: 'Просто Такси • Водитель',
+                notificationTitle: 'Ноль промилле',
                 notificationText: 'Приложение определяет местоположение',
                 enableWakeLock: true,
                 setOngoing: true,

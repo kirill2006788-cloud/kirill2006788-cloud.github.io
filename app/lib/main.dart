@@ -590,7 +590,7 @@ class _OrderSearchingSheet extends StatelessWidget {
     this.showCallSupport = false,
   });
 
-  static const _supportPhone = '+79001234567';
+  static const _supportPhone = '+79060424241';
 
   final String timeText;
   final VoidCallback onCancel;
@@ -3667,14 +3667,14 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Просто Такси',
+      title: 'Трезвый водитель',
       theme: _lightTheme,
       darkTheme: _darkTheme,
       themeMode: _themeMode,
       home: _AuthGate(
         onThemeModeChanged: _setThemeMode,
         childBuilder: (token, onLogout, onThemeModeChanged) => MyHomePage(
-          title: 'Просто Такси',
+          title: 'Трезвый водитель',
           token: token,
           onLogout: onLogout,
           onThemeModeChanged: onThemeModeChanged,
@@ -3979,7 +3979,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     isAntiAlias: true,
                                     errorBuilder: (context, error, stackTrace) {
                                       return const Text(
-                                        'Просто Такси',
+                                        'Трезвый водитель',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
