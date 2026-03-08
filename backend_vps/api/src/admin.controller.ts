@@ -211,6 +211,7 @@ export class AdminController {
     const pipeline = this.redis.client.pipeline();
     ids.forEach((id) => pipeline.get(this.clientProfileKey(id)));
     ids.forEach((id) => pipeline.exists(this.clientBlockKey(id)));
+    ids.forEach((id) => pipeline.llen(`client:orders:${id}`));
     const res = await pipeline.exec();
     const split = ids.length;
     const clients = ids.map((id, idx) => {
@@ -218,7 +219,9 @@ export class AdminController {
       let profile: any = { id };
       try { if (raw) profile = JSON.parse(raw) as ClientProfile; } catch { /* skip corrupted */ }
       const blocked = res?.[split + idx]?.[1] === 1;
-      return { ...profile, blocked };
+      const orderCountRaw = res?.[split * 2 + idx]?.[1];
+      const orderCount = Number(orderCountRaw) || 0;
+      return { ...profile, blocked, orderCount };
     });
     return { ok: true, clients };
   }
@@ -332,6 +335,13 @@ export class AdminController {
     const raw = await this.redis.client.get('tariffs:list');
     let tariffs: any[] = [];
     try { if (raw) tariffs = JSON.parse(raw); } catch { /* corrupted tariffs */ }
+    if (!tariffs.length) {
+      tariffs = [
+        { name: 'Трезвый водитель', mode: 'system', base: 2500, perMin: 25, perKm: 50, includedMin: 60, commission: 0, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
+        { name: 'Личный водитель', mode: 'system', base: 9000, perMin: 25, includedMin: 300, commission: 0, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
+        { name: 'Перегон автомобиля', mode: 'system', base: 2500, perMin: 25, perKm: 50, includedMin: 60, commission: 0, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
+      ];
+    }
     return { ok: true, tariffs };
   }
 

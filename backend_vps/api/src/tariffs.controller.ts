@@ -19,6 +19,8 @@ export class TariffsController {
         perMin: 25,
         perKm: 50,
         includedMin: 60,
+        saturdayMarkupPercent: 0,
+        sundayMarkupPercent: 0,
       },
       {
         name: 'Личный водитель',
@@ -26,6 +28,8 @@ export class TariffsController {
         base: 9000,
         perMin: 25,
         includedMin: 300,
+        saturdayMarkupPercent: 0,
+        sundayMarkupPercent: 0,
       },
       {
         name: 'Перегон автомобиля',
@@ -34,6 +38,8 @@ export class TariffsController {
         perMin: 25,
         perKm: 50,
         includedMin: 60,
+        saturdayMarkupPercent: 0,
+        sundayMarkupPercent: 0,
       },
     ];
     return { ok: true, tariffs };

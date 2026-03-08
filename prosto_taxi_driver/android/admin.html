@@ -265,6 +265,29 @@
       overflow-x:hidden;
     }
 
+    #pagePrices{
+      overflow: visible;
+    }
+
+    #pricesTariffCards .priceCard:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+
+    #pricesTariffCards .priceCard:active{
+      transform: scale(.98);
+    }
+
+    #pricesTariffsWrap{
+      overflow: visible;
+    }
+
+    @media(max-width:480px){
+      #pricesTariffsWrap > div {
+        padding: 16px;
+      }
+    }
+
     /* ─── Orders toolbar ─── */
     .ordersToolbar{
       display:flex;
@@ -1186,6 +1209,30 @@
           <span>Управление водителями</span>
         </div>
 
+        <div class="navBtn" data-page="clients">
+          <div class="icoWrap">
+            <!-- люди / клиенты -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z" fill="none"/>
+              <path d="M20 20a6 6 0 0 0-12 0" fill="none"/>
+              <path d="M12 2a4 4 0 0 1 4 4c0 2-2 4-4 4s-4-2-4-4a4 4 0 0 1 4-4Z" fill="#fff"/>
+              <path d="M4 22c0-4 2.5-6 6-6s6 2 6 6" fill="none"/>
+            </svg>
+          </div>
+          <span>Клиенты</span>
+        </div>
+
+        <div class="navBtn" data-page="prices">
+          <div class="icoWrap">
+            <!-- цены -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2v20" fill="none"/>
+              <path d="M17 6.5c0-1.9-2.2-3.5-5-3.5S7 4.6 7 6.5 9.2 10 12 10s5 1.6 5 3.5-2.2 3.5-5 3.5-5-1.6-5-3.5" fill="none"/>
+            </svg>
+          </div>
+          <span>Цены</span>
+        </div>
+
         <div class="navBtn" data-page="orders">
           <div class="icoWrap">
             <!-- блокнот + галочка -->
@@ -1323,6 +1370,45 @@
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section id="pageClients" class="page" hidden>
+        <h1 class="title">Клиенты</h1>
+        <div class="searchRow">
+          <div class="searchWrap">
+            <input placeholder="поиск по имени или номеру" id="clientsSearch" />
+            <svg class="mag" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10.5 3a7.5 7.5 0 1 0 4.7 13.3l4.2 4.2 1.4-1.4-4.2-4.2A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11a5.5 5.5 0 0 1 0-11Z" fill="rgba(255,255,255,.9)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card tableCard">
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="colN">№</th>
+                <th>ФИО / Имя</th>
+                <th>Номер</th>
+                <th>Заказов</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="clientsTbody">
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pagePrices" class="page" hidden>
+        <h1 class="title">Управление ценами</h1>
+
+        <!-- Карточки тарифов -->
+        <div id="pricesTariffCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px;">
+          <div style="color:rgba(255,255,255,.4);padding:24px;text-align:center;">Загрузка...</div>
+        </div>
+
+        <!-- Редактор выбранного тарифа -->
+        <div id="pricesTariffsWrap"></div>
       </section>
 
       <section id="pageOrders" class="page" hidden>
@@ -1831,21 +1917,6 @@
       const ordersPeriodMonth = document.getElementById('ordersPeriodMonth');
       const ordersPeriodYear = document.getElementById('ordersPeriodYear');
 
-      const tariffForm = document.createElement('form');
-      tariffForm.className = 'card tableCard';
-      tariffForm.innerHTML = `
-        <h2 class="chartTitle">Тарифы и комиссии</h2>
-        <div class="statList" id="tariffsList"></div>
-        <div class="statsPeriodRow">
-          <button class="actionBtn add" type="button" id="addTariffRow">Добавить тариф</button>
-          <button class="actionBtn" type="submit">Сохранить</button>
-        </div>
-      `;
-      ordersFeesWrap?.appendChild(tariffForm);
-
-      const tariffsList = tariffForm.querySelector('#tariffsList');
-      const addTariffRow = tariffForm.querySelector('#addTariffRow');
-
       const payoutsWrap = document.createElement('div');
       payoutsWrap.className = 'card tableCard';
       payoutsWrap.innerHTML = `
@@ -1869,12 +1940,17 @@
       const navButtons = Array.from(document.querySelectorAll('.nav .navBtn'));
       const pages = {
         drivers: document.getElementById('pageDrivers'),
+        clients: document.getElementById('pageClients'),
+        prices: document.getElementById('pagePrices'),
         orders: document.getElementById('pageOrders'),
         promos: document.getElementById('pagePromos'),
         blocks: document.getElementById('pageBlocks'),
         verification: document.getElementById('pageVerification'),
         stats: document.getElementById('pageStats'),
       };
+
+      const clientsSearch = document.getElementById('clientsSearch');
+      const clientsTbody = document.getElementById('clientsTbody');
 
       let currentEditTr = null;
 
@@ -2167,6 +2243,65 @@
         }
       }
 
+      let clientsListCache = [];
+
+      async function loadClientsPage() {
+        if (!clientsTbody) return;
+        clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Загрузка...</td></tr>';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/clients`);
+          const data = await res.json();
+          if (!data || data.ok !== true) throw new Error('bad response');
+          const clients = Array.isArray(data.clients) ? data.clients : [];
+          clientsListCache = clients;
+          renderClientsTable(clients);
+        } catch (e) {
+          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Ошибка загрузки</td></tr>';
+        }
+      }
+
+      function renderClientsTable(clients) {
+        if (!clientsTbody) return;
+        const query = (clientsSearch?.value || '').trim().toLowerCase();
+        const filtered = query
+          ? clients.filter((c) => {
+              const name = (c.fullName || c.name || '').toLowerCase();
+              const phone = (c.phone || c.id || '').toString().toLowerCase();
+              return name.includes(query) || phone.includes(query);
+            })
+          : clients;
+        clientsTbody.innerHTML = '';
+        if (!filtered.length) {
+          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Нет клиентов</td></tr>';
+          return;
+        }
+        filtered.forEach((c, i) => {
+          const tr = document.createElement('tr');
+          const fio = [c.fullName, c.name, c.lastName, c.patronymic].filter(Boolean).join(' ') || '—';
+          const phone = c.phone || c.id || '—';
+          const orderCount = c.orderCount != null ? String(c.orderCount) : '—';
+          tr.innerHTML = `
+            <td class="colN">${i + 1}</td>
+            <td>${fio}</td>
+            <td>${phone}</td>
+            <td>${orderCount}</td>
+            <td></td>
+          `;
+          const actTd = tr.querySelector('td:last-child');
+          actTd.style.cssText = 'display:flex;gap:6px;align-items:center;';
+          const historyBtn = document.createElement('button');
+          historyBtn.className = 'btn';
+          historyBtn.textContent = 'История';
+          historyBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = c.id || c.phone;
+            if (id) await openHistory('client', id);
+          });
+          actTd.appendChild(historyBtn);
+          clientsTbody.appendChild(tr);
+        });
+      }
+
       function getTbody() {
         return document.querySelector('#pageDrivers .table tbody');
       }
@@ -2456,35 +2591,178 @@
         }
       }
 
-      function renderTariffRow({ name = '', base = '', perKm = '', commission = '' } = {}) {
-        const row = document.createElement('div');
-        row.className = 'statItem';
-        row.innerHTML = `
-          <input class="input" placeholder="Название" value="${name}" />
-          <input class="input" placeholder="База" value="${base}" />
-          <input class="input" placeholder="₽/км" value="${perKm}" />
-          <input class="input" placeholder="Комиссия %" value="${commission}" />
+      let tariffsCache = [];
+      let selectedTariffIndex = 0;
+
+      function getTariffMeta(tariff) {
+        const name = String(tariff?.name || '').toLowerCase();
+        if (name.includes('личный')) {
+          return { icon: '🎩', color: '#7c6fcd', desc: 'Фиксированно 9 000 ₽ за 5 ч, далее 25 ₽/мин' };
+        }
+        if (name.includes('перегон')) {
+          return { icon: '🚗', color: '#2e8b5a', desc: 'Как трезвый водитель: от 2 500 ₽, 25 ₽/мин; за МКАД +50 ₽/км' };
+        }
+        return { icon: '🍺', color: '#d4a020', desc: 'МКАД: от 2 500 ₽ / 1 ч, далее 25 ₽/мин. За МКАД: 2 900 ₽ + 50 ₽/км' };
+      }
+
+      function renderPriceTariffCards() {
+        const container = document.getElementById('pricesTariffCards');
+        if (!container) return;
+        if (!tariffsCache.length) {
+          container.innerHTML = '<div style="color:rgba(255,255,255,.4);padding:24px;">Нет тарифов</div>';
+          return;
+        }
+        container.innerHTML = tariffsCache.map((t, i) => {
+          const meta = getTariffMeta(t);
+          const comm = Number(t.commission || 0);
+          const sat = Number(t.saturdayMarkupPercent || 0);
+          const sun = Number(t.sundayMarkupPercent || 0);
+          const isActive = i === selectedTariffIndex;
+          return `<div class="priceCard${isActive ? ' priceCardActive' : ''}" data-ti="${i}" style="
+            background:${isActive ? 'rgba(255,255,255,.10)' : 'rgba(255,255,255,.04)'};
+            border:2px solid ${isActive ? meta.color : 'rgba(255,255,255,.08)'};
+            border-radius:16px;padding:20px;cursor:pointer;transition:all .2s;
+            display:flex;flex-direction:column;gap:12px;
+          ">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:28px;">${meta.icon}</span>
+              <div>
+                <div style="font-weight:900;font-size:15px;color:#fff;">${t.name || 'Тариф'}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;">${meta.desc}</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:10px 8px;text-align:center;">
+                <div style="font-size:20px;font-weight:900;color:#fff;">${comm}%</div>
+                <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">комиссия</div>
+              </div>
+              <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:10px 8px;text-align:center;">
+                <div style="font-size:20px;font-weight:900;color:${sat > 0 ? '#ffb24a' : 'rgba(255,255,255,.35)'};">${sat > 0 ? '+' + sat : '—'}${sat > 0 ? '%' : ''}</div>
+                <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">суббота</div>
+              </div>
+              <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:10px 8px;text-align:center;">
+                <div style="font-size:20px;font-weight:900;color:${sun > 0 ? '#ff7a7a' : 'rgba(255,255,255,.35)'};">${sun > 0 ? '+' + sun : '—'}${sun > 0 ? '%' : ''}</div>
+                <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">воскресенье</div>
+              </div>
+            </div>
+            ${isActive ? `<div style="font-size:11px;color:${meta.color};font-weight:800;text-align:center;">✎ Редактируется ниже</div>` : `<div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;">Нажмите для редактирования</div>`}
+          </div>`;
+        }).join('');
+
+        container.querySelectorAll('.priceCard').forEach(card => {
+          card.addEventListener('click', () => {
+            selectedTariffIndex = Number(card.getAttribute('data-ti'));
+            renderPriceTariffCards();
+            renderPriceTariffEditor();
+          });
+        });
+      }
+
+      function renderPriceTariffEditor() {
+        const wrap = document.getElementById('pricesTariffsWrap');
+        if (!wrap) return;
+        const tariff = tariffsCache[selectedTariffIndex];
+        if (!tariff) { wrap.innerHTML = ''; return; }
+        const meta = getTariffMeta(tariff);
+        wrap.innerHTML = `
+          <div style="background:rgba(255,255,255,.06);border:2px solid ${meta.color};border-radius:18px;padding:24px;max-width:480px;margin:0 auto;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+              <span style="font-size:26px;">${meta.icon}</span>
+              <div>
+                <div style="font-size:16px;font-weight:900;color:#fff;">${tariff.name}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);">${meta.desc}</div>
+              </div>
+            </div>
+            <form id="tariffForm" style="display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <label style="font-size:12px;font-weight:800;color:rgba(255,255,255,.55);">💼 Комиссия водителя, %</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input class="input" id="tariffCommissionInput" type="number" min="0" max="100" step="1"
+                    value="${Number(tariff.commission || 0)}"
+                    style="flex:1;font-size:22px;font-weight:900;text-align:center;padding:12px 8px;border-radius:12px;" />
+                  <span style="color:rgba(255,255,255,.5);font-size:18px;">%</span>
+                </div>
+                <div style="font-size:11px;color:rgba(255,255,255,.35);">Доля от стоимости заказа, которую получает платформа</div>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.08);"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <label style="font-size:12px;font-weight:800;color:#ffb24a;">🗓 Суббота, %</label>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <input class="input" id="tariffSaturdayInput" type="number" min="0" max="500" step="1"
+                      value="${Number(tariff.saturdayMarkupPercent || 0)}"
+                      style="flex:1;font-size:22px;font-weight:900;text-align:center;padding:12px 6px;border-radius:12px;border-color:rgba(255,178,74,.4);" />
+                    <span style="color:rgba(255,178,74,.7);font-size:18px;">%</span>
+                  </div>
+                  <div style="font-size:10px;color:rgba(255,255,255,.3);">Надбавка к цене в суб.</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <label style="font-size:12px;font-weight:800;color:#ff7a7a;">🗓 Воскресенье, %</label>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <input class="input" id="tariffSundayInput" type="number" min="0" max="500" step="1"
+                      value="${Number(tariff.sundayMarkupPercent || 0)}"
+                      style="flex:1;font-size:22px;font-weight:900;text-align:center;padding:12px 6px;border-radius:12px;border-color:rgba(255,122,122,.4);" />
+                    <span style="color:rgba(255,122,122,.7);font-size:18px;">%</span>
+                  </div>
+                  <div style="font-size:10px;color:rgba(255,255,255,.3);">Надбавка к цене в вс.</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:4px;">
+                <button type="submit" class="actionBtn" style="flex:1;padding:14px;font-size:15px;font-weight:900;border-radius:12px;background:${meta.color};border-color:${meta.color};">Сохранить</button>
+                <button type="button" id="tariffResetBtn" class="actionBtn" style="padding:14px 20px;border-radius:12px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:13px;">Сброс</button>
+              </div>
+            </form>
+            <div id="tariffSaveMsg" style="display:none;margin-top:12px;padding:10px 16px;border-radius:10px;background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.4);color:rgba(80,200,120,.95);font-weight:800;font-size:13px;text-align:center;">✓ Сохранено!</div>
+          </div>
         `;
-        return row;
+
+        document.getElementById('tariffForm')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (!tariffsCache.length) return;
+          const tariff = tariffsCache[selectedTariffIndex];
+          if (!tariff) return;
+          tariff.commission = Number(document.getElementById('tariffCommissionInput')?.value || 0);
+          tariff.saturdayMarkupPercent = Number(document.getElementById('tariffSaturdayInput')?.value || 0);
+          tariff.sundayMarkupPercent = Number(document.getElementById('tariffSundayInput')?.value || 0);
+          const btn = e.target.querySelector('[type=submit]');
+          if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем...'; }
+          try {
+            await adminFetch(`${API_BASE}/admin/tariffs`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tariffs: tariffsCache }),
+            });
+            const msg = document.getElementById('tariffSaveMsg');
+            if (msg) { msg.style.display = 'block'; setTimeout(() => { msg.style.display = 'none'; }, 2500); }
+            renderPriceTariffCards();
+          } catch (_) {
+            if (btn) btn.textContent = 'Ошибка!';
+          } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'Сохранить'; }
+          }
+        });
+
+        document.getElementById('tariffResetBtn')?.addEventListener('click', () => {
+          document.getElementById('tariffCommissionInput').value = Number(tariff.commission || 0);
+          document.getElementById('tariffSaturdayInput').value = Number(tariff.saturdayMarkupPercent || 0);
+          document.getElementById('tariffSundayInput').value = Number(tariff.sundayMarkupPercent || 0);
+        });
       }
 
       async function loadTariffs() {
-        if (!tariffsList) return;
-        tariffsList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        const container = document.getElementById('pricesTariffCards');
+        const wrap = document.getElementById('pricesTariffsWrap');
+        if (container) container.innerHTML = '<div style="color:rgba(255,255,255,.4);padding:24px;grid-column:1/-1;text-align:center;">Загрузка...</div>';
+        if (wrap) wrap.innerHTML = '';
         try {
           const res = await adminFetch(`${API_BASE}/admin/tariffs`);
           const data = await res.json();
-          const list = Array.isArray(data.tariffs) ? data.tariffs : [];
-          tariffsList.innerHTML = '';
-          if (!list.length) {
-            tariffsList.appendChild(renderTariffRow());
-            return;
-          }
-          list.forEach((t) => {
-            tariffsList.appendChild(renderTariffRow(t));
-          });
+          tariffsCache = Array.isArray(data.tariffs) ? data.tariffs : [];
+          if (selectedTariffIndex >= tariffsCache.length) selectedTariffIndex = 0;
+          renderPriceTariffCards();
+          renderPriceTariffEditor();
         } catch (_) {
-          tariffsList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
+          if (container) container.innerHTML = '<div style="color:rgba(255,100,100,.7);padding:24px;grid-column:1/-1;">Ошибка загрузки тарифов</div>';
         }
       }
 
@@ -2542,26 +2820,6 @@
         }
       }
 
-      tariffForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (!tariffsList) return;
-        const rows = Array.from(tariffsList.querySelectorAll('.statItem'));
-        const tariffs = rows.map((row) => {
-          const inputs = row.querySelectorAll('input');
-          return {
-            name: inputs[0]?.value || '',
-            base: Number(inputs[1]?.value || 0),
-            perKm: Number(inputs[2]?.value || 0),
-            commission: Number(inputs[3]?.value || 0),
-          };
-        });
-        await adminFetch(`${API_BASE}/admin/tariffs`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tariffs }),
-        });
-      });
-
       promoForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const code = (promoCodeInput?.value || '').trim();
@@ -2581,11 +2839,6 @@
         if (promoDiscountInput) promoDiscountInput.value = '';
         if (promoExpiresInput) promoExpiresInput.value = '';
         loadPromos();
-      });
-
-      addTariffRow?.addEventListener('click', () => {
-        if (!tariffsList) return;
-        tariffsList.appendChild(renderTariffRow());
       });
 
       async function loadPayouts() {
@@ -2655,12 +2908,17 @@
         if (pageKey === 'drivers') {
           loadDrivers();
         }
+        if (pageKey === 'clients') {
+          loadClientsPage();
+        }
+        if (pageKey === 'prices') {
+          loadTariffs();
+        }
         if (pageKey === 'blocks') {
           loadClients();
           loadDrivers();
         }
         if (pageKey === 'stats') {
-          loadTariffs();
           setStatsPeriod(statsPeriod);
         }
         if (pageKey === 'promos') {
@@ -2691,6 +2949,10 @@
       });
       driversFilter?.addEventListener('change', () => {
         loadDrivers();
+      });
+
+      clientsSearch?.addEventListener('input', () => {
+        if (clientsListCache.length) renderClientsTable(clientsListCache);
       });
 
       let blocksActiveTab = 'clients';
@@ -2962,7 +3224,6 @@
 
         if (tabKey === 'stats') setOrdersPeriod(ordersPeriod);
         if (tabKey === 'fees') {
-          loadTariffs();
           loadPayouts();
         }
       }

@@ -8149,6 +8149,11 @@ class _ProfilePageState extends State<ProfilePage> {
       _addressFav = fav;
       _loadingName = false;
     });
+
+    final syncPhone = phone.trim().isNotEmpty ? phone.trim() : (_phoneFromJwt(widget.token) ?? '').trim();
+    if (fullName.trim().isNotEmpty || syncPhone.isNotEmpty) {
+      unawaited(_syncClientProfile(fullName: fullName, phone: syncPhone));
+    }
   }
 
   Future<void> _saveDisplayName(String name) async {
@@ -8163,6 +8168,27 @@ class _ProfilePageState extends State<ProfilePage> {
     await prefs.setString(_profileFullNameKey, name);
     if (!mounted) return;
     setState(() => _fullName = name);
+  }
+
+  Future<void> _syncClientProfile({
+    required String fullName,
+    required String phone,
+  }) async {
+    final clientId = (_clientId ?? _phoneFromJwt(widget.token)?.trim() ?? '').trim();
+    if (clientId.isEmpty) return;
+    try {
+      await http
+          .post(
+            Uri.parse('$_apiBaseUrl/client/profile'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'clientId': clientId,
+              'fullName': fullName.trim(),
+              'phone': phone.trim(),
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {}
   }
 
   Future<void> _savePhone(String phone) async {
@@ -8413,6 +8439,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   onPressed: () async {
                     await _saveDisplayName(nameController.text);
                     await _saveFullName(fioController.text);
+                    final syncPhone = _phoneOverride.trim().isNotEmpty
+                        ? _phoneOverride.trim()
+                        : (_phoneFromJwt(widget.token) ?? '').trim();
+                    await _syncClientProfile(
+                      fullName: fioController.text,
+                      phone: syncPhone,
+                    );
                     if (context.mounted) Navigator.of(context).pop();
                   },
                   child: Text(

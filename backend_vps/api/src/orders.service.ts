@@ -230,17 +230,81 @@ export class OrdersService {
     return { priceFrom, tariffName };
   }
 
+  private resolvePricingDate(scheduledAt?: string) {
+    if (!scheduledAt) return new Date();
+    const date = new Date(scheduledAt);
+    return Number.isNaN(date.getTime()) ? new Date() : date;
+  }
+
+  private weekendMarkupPercent(tariff: any, scheduledAt?: string) {
+    if (!tariff) return 0;
+    const day = this.resolvePricingDate(scheduledAt).getDay();
+    if (day === 6) return Math.max(0, this.safeNum(tariff.saturdayMarkupPercent));
+    if (day === 0) return Math.max(0, this.safeNum(tariff.sundayMarkupPercent));
+    return 0;
+  }
+
+  private applyWeekendMarkup(priceFrom: number, tariff: any, scheduledAt?: string) {
+    const percent = this.weekendMarkupPercent(tariff, scheduledAt);
+    if (!Number.isFinite(priceFrom) || priceFrom <= 0 || percent <= 0) return priceFrom;
+    return Math.round(priceFrom * (1 + percent / 100));
+  }
+
+  private defaultTariffs() {
+    return [
+      {
+        name: 'Трезвый водитель',
+        mode: 'system',
+        base: 2500,
+        perMin: 25,
+        perKm: 50,
+        includedMin: 60,
+        commission: 0,
+        saturdayMarkupPercent: 0,
+        sundayMarkupPercent: 0,
+      },
+      {
+        name: 'Личный водитель',
+        mode: 'system',
+        base: 9000,
+        perMin: 25,
+        includedMin: 300,
+        commission: 0,
+        saturdayMarkupPercent: 0,
+        sundayMarkupPercent: 0,
+      },
+      {
+        name: 'Перегон автомобиля',
+        mode: 'system',
+        base: 2500,
+        perMin: 25,
+        perKm: 50,
+        includedMin: 60,
+        commission: 0,
+        saturdayMarkupPercent: 0,
+        sundayMarkupPercent: 0,
+      },
+    ];
+  }
+
+  private async loadTariffs() {
+    try {
+      const raw = await this.redis.client.get('tariffs:list');
+      const list = raw ? (JSON.parse(raw) as any[]) : [];
+      if (Array.isArray(list) && list.length) return list;
+    } catch {
+      // Ignore corrupted Redis value and use built-in defaults.
+    }
+    return this.defaultTariffs();
+  }
+
   private safeNum(v: any, fallback = 0): number {
     const n = Number(v);
     return Number.isFinite(n) ? n : fallback;
   }
 
   private async computeCommission(order: Order) {
-    let list: any[] = [];
-    try {
-      const raw = await this.redis.client.get('tariffs:list');
-      list = raw ? (JSON.parse(raw) as any[]) : [];
-    } catch { /* corrupted tariff JSON — use defaults */ }
+    const list = await this.loadTariffs();
     const index = this.safeNum(order.serviceIndex, 0);
     const tariff = list[index];
     const rawPercent = tariff ? this.safeNum(tariff.commission, 0) : 0;
@@ -257,17 +321,17 @@ export class OrdersService {
   }
 
   private async computePrice(input: CreateOrderInput) {
-    let list: any[] = [];
-    try {
-      const raw = await this.redis.client.get('tariffs:list');
-      list = raw ? (JSON.parse(raw) as any[]) : [];
-    } catch { /* corrupted tariff data — use legacy */ }
+    const list = await this.loadTariffs();
     const index = this.safeNum(input.serviceIndex, 0);
     const tariff = list[index];
     const mode = tariff ? String(tariff.mode || '').trim().toLowerCase() : '';
 
     if (!tariff || mode !== 'custom') {
-      return this.computeLegacyPrice(input);
+      const legacy = this.computeLegacyPrice(input);
+      return {
+        ...legacy,
+        priceFrom: this.applyWeekendMarkup(legacy.priceFrom, tariff, input.scheduledAt),
+      };
     }
 
     const base = this.safeNum(tariff.base);
@@ -279,9 +343,16 @@ export class OrdersService {
     const extraMin = Math.max(0, minutes - includedMin);
     const priceFrom = Math.max(0, Math.round(base + perKm * distanceKm + perMin * extraMin));
     if (!Number.isFinite(priceFrom) || priceFrom <= 0) {
-      return this.computeLegacyPrice(input);
+      const legacy = this.computeLegacyPrice(input);
+      return {
+        ...legacy,
+        priceFrom: this.applyWeekendMarkup(legacy.priceFrom, tariff, input.scheduledAt),
+      };
     }
-    return { priceFrom, tariffName: String(tariff.name || '') };
+    return {
+      priceFrom: this.applyWeekendMarkup(priceFrom, tariff, input.scheduledAt),
+      tariffName: String(tariff.name || ''),
+    };
   }
 
   async createOrder(input: CreateOrderInput): Promise<Order> {
@@ -764,6 +835,11 @@ export class OrdersService {
     return raws
       .filter((raw): raw is string => typeof raw === 'string')
       .map((raw) => JSON.parse(raw) as Order);
+  }
+
+  async getClientOrderCount(clientId: string): Promise<number> {
+    const n = await this.redis.client.llen(this.clientOrdersKey(clientId));
+    return Number.isFinite(n) ? n : 0;
   }
 
   async findNearbySearchingOrderForDriver(phone: string, radiusKm = 2.5): Promise<Order | null> {
