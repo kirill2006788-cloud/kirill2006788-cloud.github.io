@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Headers, Post, Query, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query, UnauthorizedException } from '@nestjs/common';
 import jwt from 'jsonwebtoken';
 import { DriversService } from './drivers.service';
 import { OrdersService } from './orders.service';
@@ -16,12 +16,21 @@ export class DriversController {
     return `driver:push_token:${phone}`;
   }
 
+  private photosBackupKey(phone: string) {
+    return `driver:photos_backup:${phone}`;
+  }
+
   private requireDriverPhone(auth?: string) {
     const token = auth?.replace(/^Bearer\s+/i, '').trim();
     if (!token) throw new UnauthorizedException('Driver token required');
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new UnauthorizedException('Server configuration error');
-    const payload = jwt.verify(token, secret) as any;
+    let payload: any;
+    try {
+      payload = jwt.verify(token, secret) as any;
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
     if (!payload || payload.role !== 'driver' || typeof payload.phone !== 'string' || !payload.phone.trim()) {
       throw new UnauthorizedException('Driver token required');
     }
@@ -29,12 +38,15 @@ export class DriversController {
   }
 
   @Get('profile')
-  async getProfile(@Query('phone') phone?: string) {
-    const raw = (phone || '').trim();
-    const digits = raw.replace(/\D/g, '');
-    const normalized = digits || raw;
-    if (!normalized) throw new BadRequestException('phone required');
+  async getProfile(@Query('phone') phone?: string, @Headers('authorization') auth?: string) {
+    const normalized = this.requireDriverPhone(auth);
+    if (phone && phone.trim() && phone.trim() !== normalized) {
+      throw new UnauthorizedException('Driver token mismatch');
+    }
     const profile = await this.drivers.getProfile(normalized);
+    const backupRaw = await this.redis.client.get(this.photosBackupKey(normalized));
+    let photosBackup: any = {};
+    try { if (backupRaw) photosBackup = JSON.parse(backupRaw); } catch { /* ignore corrupted backup */ }
     const bonus = await this.drivers.getBonus(normalized);
     const rating = await this.orders.getDriverRating(normalized);
     const earnings = await this.orders.getDriverEarnings(normalized);
@@ -44,6 +56,10 @@ export class DriversController {
     const earningsLimit = Number(await this.redis.client.get('settings:earnings_limit') || 15000);
     const safeProfile = {
       ...baseProfile,
+      avatarBase64: (baseProfile as any).avatarBase64 || photosBackup.avatarBase64 || null,
+      passportFrontBase64: (baseProfile as any).passportFrontBase64 || photosBackup.passportFrontBase64 || null,
+      passportRegBase64: (baseProfile as any).passportRegBase64 || photosBackup.passportRegBase64 || null,
+      selfieBase64: (baseProfile as any).selfieBase64 || photosBackup.selfieBase64 || null,
       rating: rating.avg,
       ratingCount: rating.count,
       earnedRub: Math.round(Number(earnings.net || 0)),
@@ -61,11 +77,15 @@ export class DriversController {
   }
 
   @Get('trips')
-  async getTrips(@Query('phone') phone?: string, @Query('limit') limitRaw?: string) {
-    const raw = (phone || '').trim();
-    const digits = raw.replace(/\D/g, '');
-    const normalized = digits || raw;
-    if (!normalized) throw new BadRequestException('phone required');
+  async getTrips(
+    @Query('phone') phone?: string,
+    @Query('limit') limitRaw?: string,
+    @Headers('authorization') auth?: string,
+  ) {
+    const normalized = this.requireDriverPhone(auth);
+    if (phone && phone.trim() && phone.trim() !== normalized) {
+      throw new UnauthorizedException('Driver token mismatch');
+    }
     const limit = Math.min(100, Math.max(1, Number(limitRaw) || 50));
     const orders = await this.orders.listOrdersForDriver(normalized, limit);
     const trips = orders
@@ -85,8 +105,36 @@ export class DriversController {
     return { ok: true, trips };
   }
 
+  @Get('public/:phone')
+  async getPublicProfile(@Param('phone') phoneRaw: string, @Headers('authorization') auth?: string) {
+    // Require any valid authenticated user to reduce scraping.
+    const token = auth?.replace(/^Bearer\s+/i, '').trim();
+    if (!token) throw new UnauthorizedException('Authorization required');
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new UnauthorizedException('Server configuration error');
+    try {
+      jwt.verify(token, secret);
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
+    const phone = (phoneRaw || '').trim().replace(/\D/g, '');
+    if (!phone) throw new UnauthorizedException('phone required');
+    const profile = (await this.drivers.getProfile(phone)) as Record<string, any>;
+    const rating = await this.orders.getDriverRating(phone);
+    return {
+      ok: true,
+      profile: {
+        fullName: (profile?.fullName || '').toString(),
+        avatarBase64: profile?.avatarBase64 || profile?.selfieBase64 || profile?.passportFrontBase64 || null,
+        rating: rating.avg,
+        ratingCount: rating.count,
+      },
+    };
+  }
+
   @Post('profile')
   async saveProfile(
+    @Headers('authorization') auth: string,
     @Body()
     body: {
       phone?: string;
@@ -103,10 +151,10 @@ export class DriversController {
       referralCode?: string;
     },
   ) {
-    const rawPhone = (body.phone || '').trim();
-    const phoneDigits = rawPhone.replace(/\D/g, '');
-    const phone = phoneDigits || rawPhone;
-    if (!phone) throw new BadRequestException('phone required');
+    const phone = this.requireDriverPhone(auth);
+    if (body.phone && body.phone.trim() && body.phone.trim() !== phone) {
+      throw new UnauthorizedException('Driver token mismatch');
+    }
     const referralCode = (body.referralCode || '').toString().trim().replace(/\D/g, '');
     const existing = await this.drivers.getProfile(phone);
     if (referralCode && referralCode !== phone && !(existing as any)?.referralCode) {
@@ -130,12 +178,22 @@ export class DriversController {
       passportRegBase64: body.passportRegBase64 ?? (existing as any)?.passportRegBase64 ?? null,
       selfieBase64: body.selfieBase64 ?? (existing as any)?.selfieBase64 ?? null,
       docsSigned: Boolean(body.docsSigned),
-      registrationStatus: (body.registrationStatus || '').toString() || 'incomplete',
-      referralCount: Number.isFinite(Number(body.referralCount)) ? Number(body.referralCount) : 0,
+      registrationStatus: (existing as any)?.registrationStatus || 'incomplete',
+      referralCount: Number.isFinite(Number((existing as any)?.referralCount))
+        ? Number((existing as any)?.referralCount)
+        : 0,
       referralCode: referralCode || (existing as any)?.referralCode || undefined,
       updatedAt: new Date().toISOString(),
     };
     await this.drivers.saveProfile(phone, profile);
+    const backup = {
+      avatarBase64: profile.avatarBase64 || null,
+      passportFrontBase64: profile.passportFrontBase64 || null,
+      passportRegBase64: profile.passportRegBase64 || null,
+      selfieBase64: profile.selfieBase64 || null,
+      updatedAt: new Date().toISOString(),
+    };
+    await this.redis.client.set(this.photosBackupKey(phone), JSON.stringify(backup));
     return { ok: true, profile };
   }
 

@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  API_BASE_URL: ${{ vars.API_BASE_URL || 'http://194.67.84.155' }}
+  API_BASE_URL: ${{ vars.API_BASE_URL || 'https://api.trezv7777.ru' }}
 
 jobs:
   build-android:

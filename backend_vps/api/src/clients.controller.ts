@@ -35,7 +35,12 @@ export class ClientsController {
     if (!token) throw new UnauthorizedException('Client token required');
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new UnauthorizedException('Server configuration error');
-    const payload = jwt.verify(token, secret) as any;
+    let payload: any;
+    try {
+      payload = jwt.verify(token, secret) as any;
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
     if (!payload || payload.role !== 'client' || typeof payload.phone !== 'string' || !payload.phone.trim()) {
       throw new UnauthorizedException('Client token required');
     }
@@ -43,9 +48,11 @@ export class ClientsController {
   }
 
   @Get('profile')
-  async getProfile(@Query('clientId') clientId?: string) {
-    const id = (clientId || '').trim();
-    if (!id) throw new BadRequestException('clientId required');
+  async getProfile(@Query('clientId') clientId?: string, @Headers('authorization') auth?: string) {
+    const id = this.requireClientId(auth);
+    if (clientId && clientId.trim() && clientId.trim() !== id) {
+      throw new UnauthorizedException('Client token mismatch');
+    }
     const raw = await this.redis.client.get(this.profileKey(id));
     let profile: any = {};
     try { if (raw) profile = JSON.parse(raw); } catch { /* corrupted profile data */ }
@@ -64,6 +71,7 @@ export class ClientsController {
 
   @Post('profile')
   async saveProfile(
+    @Headers('authorization') auth: string,
     @Body()
     body: {
       clientId?: string;
@@ -72,8 +80,10 @@ export class ClientsController {
       referralCode?: string;
     },
   ) {
-    const id = (body.clientId || '').trim();
-    if (!id) throw new BadRequestException('clientId required');
+    const id = this.requireClientId(auth);
+    if (body.clientId && body.clientId.trim() && body.clientId.trim() !== id) {
+      throw new UnauthorizedException('Client token mismatch');
+    }
 
     const referralCode = (body.referralCode || '').toString().trim().replace(/\D/g, '');
     const existingRaw = await this.redis.client.get(this.profileKey(id));
@@ -129,10 +139,12 @@ export class ClientsController {
   }
 
   @Post('bonus/use')
-  async useBonus(@Body() body: { clientId?: string; amount?: number }) {
-    const id = (body.clientId || '').trim();
+  async useBonus(@Body() body: { clientId?: string; amount?: number }, @Headers('authorization') auth?: string) {
+    const id = this.requireClientId(auth);
     const amount = Math.max(0, Math.round(Number(body.amount) || 0));
-    if (!id) throw new BadRequestException('clientId required');
+    if (body.clientId && body.clientId.trim() && body.clientId.trim() !== id) {
+      throw new UnauthorizedException('Client token mismatch');
+    }
     if (amount <= 0) throw new BadRequestException('amount must be positive');
 
     const key = this.bonusKey(id);
@@ -146,10 +158,12 @@ export class ClientsController {
   }
 
   @Post('promo/activate')
-  async activatePromo(@Body() body: { clientId?: string; code?: string }) {
-    const id = (body.clientId || '').trim();
+  async activatePromo(@Body() body: { clientId?: string; code?: string }, @Headers('authorization') auth?: string) {
+    const id = this.requireClientId(auth);
     const code = (body.code || '').toString().trim().toLowerCase();
-    if (!id) throw new BadRequestException('clientId required');
+    if (body.clientId && body.clientId.trim() && body.clientId.trim() !== id) {
+      throw new UnauthorizedException('Client token mismatch');
+    }
     if (!code) throw new BadRequestException('code required');
 
     const promoRaw = await this.redis.client.hgetall(this.promoKey(code));

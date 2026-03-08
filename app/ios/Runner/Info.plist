@@ -56,17 +56,6 @@
 		<string>http</string>
 		<string>mailto</string>
 	</array>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>194.67.84.155</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
-	</dict>
 	<key>YANDEX_MAPS_KEY</key>
 	<string>$(YANDEX_MAPS_KEY)</string>
 </dict>

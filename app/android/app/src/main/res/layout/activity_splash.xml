@@ -12,8 +12,7 @@
         android:layout_height="match_parent"
         android:background="#05060A"
         android:visibility="gone"
-        android:scaleType="centerCrop"
-        android:src="@drawable/splash_poster" />
+        android:scaleType="centerCrop" />
 
     <VideoView
         android:id="@+id/splashVideo"

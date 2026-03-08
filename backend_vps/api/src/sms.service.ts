@@ -15,7 +15,10 @@ export class SmsService {
     const message = `Код: ${code}`;
 
     if (!login || !psw) {
-      process.stdout.write(`SMSC not configured. OTP for ${phone}: ${code}\n`);
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('SMSC not configured in production');
+      }
+      process.stdout.write('SMSC not configured. Skipping SMS send in non-production mode.\n');
       return;
     }
 

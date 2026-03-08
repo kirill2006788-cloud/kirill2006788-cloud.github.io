@@ -38,7 +38,12 @@ export class AdminController {
     if (!token) throw new UnauthorizedException('Admin token required');
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error('JWT_SECRET not set');
-    const payload = jwt.verify(token, secret) as any;
+    let payload: any;
+    try {
+      payload = jwt.verify(token, secret) as any;
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
     if (!payload || payload.role !== 'admin') {
       throw new UnauthorizedException('Admin token required');
     }
@@ -47,6 +52,10 @@ export class AdminController {
 
   private driverProfileKey(phone: string) {
     return `driver:profile:${phone}`;
+  }
+
+  private driverPhotosBackupKey(phone: string) {
+    return `driver:photos_backup:${phone}`;
   }
 
   private clientProfileKey(id: string) {
@@ -73,6 +82,46 @@ export class AdminController {
     return `promo:${code.toLowerCase()}`;
   }
 
+  private defaultTariffs() {
+    return [
+      { name: 'Трезвый водитель', mode: 'system', base: 2500, perMin: 25, perKm: 50, includedMin: 60, commission: 33.3, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
+      { name: 'Личный водитель', mode: 'system', base: 9000, perMin: 25, includedMin: 300, commission: 33.3, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
+      { name: 'Перегон автомобиля', mode: 'system', base: 2500, perMin: 25, perKm: 50, includedMin: 60, commission: 33.3, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
+    ];
+  }
+
+  private normalizeTariff(input: any, fallback: any) {
+    const base = Number.isFinite(Number(input?.base)) ? Math.max(0, Math.round(Number(input.base))) : Number(fallback.base || 0);
+    const perKm = Number.isFinite(Number(input?.perKm)) ? Math.max(0, Math.round(Number(input.perKm))) : Number(fallback.perKm || 0);
+    const perMin = Number.isFinite(Number(input?.perMin)) ? Math.max(0, Math.round(Number(input.perMin))) : Number(fallback.perMin || 0);
+    const includedMin = Number.isFinite(Number(input?.includedMin))
+      ? Math.max(0, Math.round(Number(input.includedMin)))
+      : Number(fallback.includedMin || 0);
+    const commissionRaw = Number(input?.commission);
+    const commission = Number.isFinite(commissionRaw)
+      ? Math.max(0, Math.min(100, commissionRaw))
+      : Number(fallback.commission || 0);
+    const saturdayRaw = Number(input?.saturdayMarkupPercent);
+    const saturdayMarkupPercent = Number.isFinite(saturdayRaw)
+      ? Math.max(0, Math.min(300, Math.round(saturdayRaw)))
+      : Number(fallback.saturdayMarkupPercent || 0);
+    const sundayRaw = Number(input?.sundayMarkupPercent);
+    const sundayMarkupPercent = Number.isFinite(sundayRaw)
+      ? Math.max(0, Math.min(300, Math.round(sundayRaw)))
+      : Number(fallback.sundayMarkupPercent || 0);
+    return {
+      name: String(input?.name || fallback.name || 'Тариф'),
+      mode: String(input?.mode || fallback.mode || 'system'),
+      base,
+      perKm,
+      perMin,
+      includedMin,
+      commission,
+      saturdayMarkupPercent,
+      sundayMarkupPercent,
+    };
+  }
+
   @Get('drivers')
   async listDrivers(@Headers('authorization') auth?: string) {
     this.requireAdmin(auth);
@@ -80,15 +129,27 @@ export class AdminController {
     const earningsLimit = await this.orders.getEarningsLimit();
     const pipeline = this.redis.client.pipeline();
     base.forEach((d) => pipeline.get(this.driverProfileKey(d.phone)));
+    base.forEach((d) => pipeline.get(this.driverPhotosBackupKey(d.phone)));
     base.forEach((d) => pipeline.hgetall(`driver:earnings:${d.phone}`));
     const res = await pipeline.exec();
     const half = base.length;
     const profiles = res?.slice(0, half).map((r) => r?.[1]) || [];
-    const earningsRaw = res?.slice(half).map((r) => r?.[1]) || [];
+    const backups = res?.slice(half, half * 2).map((r) => r?.[1]) || [];
+    const earningsRaw = res?.slice(half * 2).map((r) => r?.[1]) || [];
     const drivers = base.map((d, idx) => {
       const raw = typeof profiles[idx] === 'string' ? profiles[idx] : null;
       let profile: any = {};
       try { if (raw) profile = JSON.parse(raw) as DriverProfile; } catch { /* skip corrupted */ }
+      const backupRaw = typeof backups[idx] === 'string' ? backups[idx] : null;
+      let backup: any = {};
+      try { if (backupRaw) backup = JSON.parse(backupRaw); } catch { /* skip corrupted */ }
+      profile = {
+        ...profile,
+        avatarBase64: profile.avatarBase64 || backup.avatarBase64 || null,
+        passportFrontBase64: profile.passportFrontBase64 || backup.passportFrontBase64 || null,
+        passportRegBase64: profile.passportRegBase64 || backup.passportRegBase64 || null,
+        selfieBase64: profile.selfieBase64 || backup.selfieBase64 || null,
+      };
       const e = (earningsRaw[idx] || {}) as Record<string, string>;
       const gross = Number(e.gross || 0);
       const commission = Number(e.commission || 0);
@@ -196,8 +257,9 @@ export class AdminController {
     const phone = (phoneRaw || '').trim();
     if (!phone) return { ok: false };
     const earnings = await this.orders.getDriverEarnings(phone);
-    // Обнуляем все счётчики заработка
-    await this.redis.client.del(`driver:earnings:${phone}`);
+    await this.redis.client.hset(`driver:earnings:${phone}`, {
+      commission: '0',
+    });
     // Уведомляем водителя через сокет — лимит снят
     this.events.emitCommissionCleared(phone);
     return { ok: true, cleared: earnings };
@@ -336,11 +398,7 @@ export class AdminController {
     let tariffs: any[] = [];
     try { if (raw) tariffs = JSON.parse(raw); } catch { /* corrupted tariffs */ }
     if (!tariffs.length) {
-      tariffs = [
-        { name: 'Трезвый водитель', mode: 'system', base: 2500, perMin: 25, perKm: 50, includedMin: 60, commission: 0, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
-        { name: 'Личный водитель', mode: 'system', base: 9000, perMin: 25, includedMin: 300, commission: 0, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
-        { name: 'Перегон автомобиля', mode: 'system', base: 2500, perMin: 25, perKm: 50, includedMin: 60, commission: 0, saturdayMarkupPercent: 0, sundayMarkupPercent: 0 },
-      ];
+      tariffs = this.defaultTariffs();
     }
     return { ok: true, tariffs };
   }
@@ -348,7 +406,10 @@ export class AdminController {
   @Post('tariffs')
   async saveTariffs(@Body() body: { tariffs?: any[] }, @Headers('authorization') auth?: string) {
     this.requireAdmin(auth);
-    const tariffs = Array.isArray(body.tariffs) ? body.tariffs : [];
+    const defaults = this.defaultTariffs();
+    const rawList = Array.isArray(body.tariffs) ? body.tariffs : [];
+    const source = rawList.length ? rawList : defaults;
+    const tariffs = source.map((item, idx) => this.normalizeTariff(item, defaults[idx] || defaults[0]));
     await this.redis.client.set('tariffs:list', JSON.stringify(tariffs));
     return { ok: true };
   }

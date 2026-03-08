@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.VideoView
 import android.app.Activity
 import androidx.core.view.WindowCompat
@@ -74,12 +75,26 @@ class SplashActivity : Activity() {
                 }
             }
 
-        // ── 2. Сразу запускаем видео (постер скрыт в layout — не показываем иконку на весь экран)
+        // ── 2. Сразу запускаем видео (если ресурса нет, показываем постер/фон)
         val videoView = findViewById<VideoView>(R.id.splashVideo)
+        val posterView = findViewById<ImageView>(R.id.splashPoster)
 
         videoView.setZOrderMediaOverlay(true)
 
-        val uri = Uri.parse("android.resource://$packageName/${R.raw.splash_video}")
+        val splashRawId = resources.getIdentifier("splash_video", "raw", packageName)
+        val splashPosterId = resources.getIdentifier("splash_poster", "drawable", packageName)
+        if (splashPosterId != 0) {
+            posterView.setImageResource(splashPosterId)
+            posterView.visibility = View.VISIBLE
+        }
+        if (splashRawId == 0) {
+            Log.w(TAG, "splash_video not found in res/raw, using poster-only fallback")
+            handler.removeCallbacks(timeoutRunnable)
+            handler.postDelayed(timeoutRunnable, minDurationMs + 600)
+            return
+        }
+
+        val uri = Uri.parse("android.resource://$packageName/$splashRawId")
         Log.d(TAG, "setVideoURI=$uri")
         videoView.setVideoURI(uri)
 
@@ -112,6 +127,7 @@ class SplashActivity : Activity() {
             }
 
             Log.d(TAG, "start video immediately")
+            posterView.visibility = View.GONE
             videoView.start()
         }
 
@@ -124,6 +140,7 @@ class SplashActivity : Activity() {
 
         videoView.setOnErrorListener { _, what, extra ->
             Log.e(TAG, "onError what=$what extra=$extra")
+            posterView.visibility = View.VISIBLE
             handler.removeCallbacks(timeoutRunnable)
             tryGoToMain()
             true

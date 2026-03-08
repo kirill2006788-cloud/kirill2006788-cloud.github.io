@@ -19,7 +19,7 @@ import 'package:yandex_mapkit/yandex_mapkit.dart';
 
 const _apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://194.67.84.155',
+  defaultValue: 'https://api.trezv7777.ru',
 );
 const _systemRidePrices = ['от 2500₽/час', 'от 9000₽/5ч', 'от 2500₽/час'];
 
@@ -190,6 +190,16 @@ bool _looksLikeLicensePlateOrCode(String text) {
   if (RegExp(r'^\d{2,4}[A-Za-zА-Яа-яЁё]$').hasMatch(t)) return true;
   // Цифры-дефис-цифры без букв (46-1082) — тоже код
   if (RegExp(r'^\d{2,4}-\d{4,}$').hasMatch(t)) return true;
+  return false;
+}
+
+bool _looksLikeGarbageAddressText(String text) {
+  final t = text.trim();
+  if (t.isEmpty) return true;
+  // Numeric-only and road-code-like fragments are not useful as destination suggestions.
+  if (RegExp(r'^[\d\-\s/]+$').hasMatch(t)) return true;
+  if (RegExp(r'^[A-Za-zА-Яа-яЁё]?\d{1,4}[A-Za-zА-Яа-яЁё]?(-\d+)?$').hasMatch(t)) return true;
+  if (RegExp(r'^(к|h|н|k)\d{1,4}$', caseSensitive: false).hasMatch(t)) return true;
   return false;
 }
 
@@ -1784,8 +1794,9 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
 
   BoundingBox _suggestBox() {
     final p = _fromPoint;
-    const dLat = 0.2;
-    const dLon = 0.2;
+    // Wider search area so city-level queries (e.g. Istra/Naro-Fominsk) still return real addresses.
+    const dLat = 1.2;
+    const dLon = 1.2;
     return BoundingBox(
       northEast: Point(latitude: p.latitude + dLat, longitude: p.longitude + dLon),
       southWest: Point(latitude: p.latitude - dLat, longitude: p.longitude - dLon),
@@ -2013,9 +2024,19 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
           })
           .where((s) =>
               s.title.trim().isNotEmpty &&
+              !_looksLikeGarbageAddressText(s.title) &&
+              !_looksLikeGarbageAddressText(s.searchText ?? '') &&
               !_looksLikeLicensePlateOrCode(s.title) &&
               !_looksLikeLicensePlateOrCode(s.searchText ?? ''))
-          .toList(growable: false);
+          .fold<List<_AddressSuggestion>>(<_AddressSuggestion>[], (acc, s) {
+            final key = '${(s.searchText ?? s.title).trim().toLowerCase()}|${s.point?.latitude ?? 0}|${s.point?.longitude ?? 0}';
+            final exists = acc.any((x) {
+              final k = '${(x.searchText ?? x.title).trim().toLowerCase()}|${x.point?.latitude ?? 0}|${x.point?.longitude ?? 0}';
+              return k == key;
+            });
+            if (!exists) acc.add(s);
+            return acc;
+          });
     } catch (e, st) {
       if (kDebugMode) {
         debugPrint('Search failed: $e');
@@ -4286,11 +4307,11 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
 
   Future<void> _loadTariffs() async {
     try {
-      final res = await http.get(Uri.parse('$_apiBaseUrl/api/tariffs'));
+      final res = await http.get(Uri.parse('$_apiBaseUrl/api/tariffs')).timeout(const Duration(seconds: 10));
       if (res.statusCode < 200 || res.statusCode >= 300) return;
       final map = jsonDecode(res.body) as Map<String, dynamic>;
       final list = map['tariffs'];
-      if (list is List) {
+      if (list is List && mounted) {
         setState(() {
           _tariffs = list.cast<Map<String, dynamic>>();
         });
@@ -4375,7 +4396,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
 
   Future<void> _loadCompletedDetails(String orderId) async {
     try {
-      final res = await http.get(Uri.parse('$_apiBaseUrl/api/orders/$orderId'));
+      final res = await _authGet(Uri.parse('$_apiBaseUrl/api/orders/$orderId'));
       if (res.statusCode < 200 || res.statusCode >= 300) return;
       final map = jsonDecode(res.body) as Map<String, dynamic>;
       final order = map['order'] as Map?;
@@ -4392,9 +4413,9 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
 
   Future<void> _loadActiveOrder() async {
     try {
-      final clientId = await _ensureClientId();
-      final res = await http.get(
-        Uri.parse('$_apiBaseUrl/api/orders/active/client?clientId=$clientId'),
+      await _ensureClientId();
+      final res = await _authGet(
+        Uri.parse('$_apiBaseUrl/api/orders/active/client'),
       );
       if (res.statusCode < 200 || res.statusCode >= 300) return;
       final map = jsonDecode(res.body) as Map<String, dynamic>;
@@ -4496,11 +4517,11 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
 
   Future<void> _rateOrder(String orderId, int rating) async {
     try {
-      final clientId = await _ensureClientId();
-      await http.post(
+      await _ensureClientId();
+      await _authPost(
         Uri.parse('$_apiBaseUrl/api/orders/$orderId/rate'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'clientId': clientId, 'rating': rating}),
+        body: jsonEncode({'rating': rating}),
       );
     } catch (_) {}
   }
@@ -4956,8 +4977,8 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
     _driverAvatarPhone = queryPhone;
     _driverProfileFetchedAt = DateTime.now();
     try {
-      final res = await http.get(
-        Uri.parse('$_apiBaseUrl/api/driver/profile?phone=$queryPhone'),
+      final res = await _authGet(
+        Uri.parse('$_apiBaseUrl/api/driver/public/$queryPhone'),
       );
       if (res.statusCode < 200 || res.statusCode >= 300) return;
       final map = jsonDecode(res.body) as Map<String, dynamic>;
@@ -5127,7 +5148,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       // Если ETA уже есть (пришёл через driver:location), выходим
       if (_arrivalMinutes > 0) return;
       try {
-        final res = await http.get(Uri.parse('$_apiBaseUrl/api/orders/$orderId'));
+        final res = await _authGet(Uri.parse('$_apiBaseUrl/api/orders/$orderId'));
         if (res.statusCode < 200 || res.statusCode >= 300) break;
         final map = jsonDecode(res.body) as Map<String, dynamic>;
         final dLat = double.tryParse(map['driverLat']?.toString() ?? '');
@@ -6273,11 +6294,10 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
     });
 
     try {
-      final res = await http.post(
+      final res = await _authPost(
         Uri.parse('$_apiBaseUrl/api/orders'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'clientId': clientId,
           'from': {'lat': _fromPoint.latitude, 'lng': _fromPoint.longitude},
           'to': {'lat': toPoint.latitude, 'lng': toPoint.longitude},
           'fromAddress': _fromAddress,
@@ -6338,11 +6358,11 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       if (!mounted) return;
       if (_orderFlow == _OrderFlowState.selecting) return;
       try {
-        final clientId = await _ensureClientId();
+        await _ensureClientId();
         final orderId = _currentOrderId;
         if (orderId == null || orderId.isEmpty) {
-          final res = await http.get(
-            Uri.parse('$_apiBaseUrl/api/orders/active/client?clientId=$clientId'),
+          final res = await _authGet(
+            Uri.parse('$_apiBaseUrl/api/orders/active/client'),
           );
           if (res.statusCode < 200 || res.statusCode >= 300) return;
           final map = jsonDecode(res.body) as Map<String, dynamic>;
@@ -6371,7 +6391,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
           }
           return;
         }
-        final res = await http.get(Uri.parse('$_apiBaseUrl/api/orders/$orderId'));
+        final res = await _authGet(Uri.parse('$_apiBaseUrl/api/orders/$orderId'));
         if (res.statusCode < 200 || res.statusCode >= 300) return;
         final map = jsonDecode(res.body) as Map<String, dynamic>;
         final order = map['order'] as Map?;
@@ -6452,13 +6472,12 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
     });
 
     final orderId = _currentOrderId;
-    final clientId = _clientId;
-    if (orderId != null && clientId != null) {
+    if (orderId != null) {
       unawaited(
-        http.post(
+        _authPost(
           Uri.parse('$_apiBaseUrl/api/orders/$orderId/cancel'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'clientId': clientId}),
+          body: jsonEncode({}),
         ),
       );
     }
@@ -8106,16 +8125,25 @@ class _ProfilePageState extends State<ProfilePage> {
     if (phone == null || phone.trim().isEmpty) return;
     _clientId = phone.trim();
     try {
-      final uri = Uri.parse('$_apiBaseUrl/client/profile?clientId=$_clientId');
-      final res = await http.get(uri).timeout(const Duration(seconds: 10));
+      final uri = Uri.parse('$_apiBaseUrl/api/client/profile');
+      final res = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      ).timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data['ok'] == true && mounted) {
           final bonus = data['bonus'] ?? {};
           final referral = data['referral'] ?? {};
+          final availableRaw = bonus['available'];
+          final countRaw = referral['count'];
           setState(() {
-            _bonusBalance = (bonus['available'] ?? 0) as int;
-            _referralCount = (referral['count'] ?? 0) as int;
+            _bonusBalance = availableRaw is num
+                ? availableRaw.toInt()
+                : int.tryParse(availableRaw?.toString() ?? '') ?? 0;
+            _referralCount = countRaw is num
+                ? countRaw.toInt()
+                : int.tryParse(countRaw?.toString() ?? '') ?? 0;
           });
         }
       }
@@ -8134,13 +8162,21 @@ class _ProfilePageState extends State<ProfilePage> {
     final home = prefs.getString(_addressHomeKey) ?? '';
     final work = prefs.getString(_addressWorkKey) ?? '';
     final fav = prefs.getString(_addressFavKey) ?? '';
+    Uint8List? avatarBytes;
+    if (avatar.isNotEmpty) {
+      try {
+        avatarBytes = base64Decode(avatar);
+      } catch (_) {
+        avatarBytes = null;
+      }
+    }
     if (!mounted) return;
     setState(() {
       _displayName = name;
       _fullName = fullName;
       _phoneOverride = phone;
       _avatarBase64 = avatar;
-      _avatarBytes = avatar.isEmpty ? null : base64Decode(avatar);
+      _avatarBytes = avatarBytes;
       _promoCode = promoCode;
       _promoDiscountPercent = discount;
       _notificationsEnabled = notifications;
@@ -8179,8 +8215,11 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       await http
           .post(
-            Uri.parse('$_apiBaseUrl/client/profile'),
-            headers: {'Content-Type': 'application/json'},
+            Uri.parse('$_apiBaseUrl/api/client/profile'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${widget.token}',
+            },
             body: jsonEncode({
               'clientId': clientId,
               'fullName': fullName.trim(),
@@ -8202,9 +8241,17 @@ class _ProfilePageState extends State<ProfilePage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_profileAvatarKey, base64);
     if (!mounted) return;
+    Uint8List? bytes;
+    if (base64.isNotEmpty) {
+      try {
+        bytes = base64Decode(base64);
+      } catch (_) {
+        bytes = null;
+      }
+    }
     setState(() {
       _avatarBase64 = base64;
-      _avatarBytes = base64.isEmpty ? null : base64Decode(base64);
+      _avatarBytes = bytes;
     });
   }
 
@@ -8584,7 +8631,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               final res = await http
                                   .post(
                                     Uri.parse('$_apiBaseUrl/api/client/promo/activate'),
-                                    headers: {'Content-Type': 'application/json'},
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                      'Authorization': 'Bearer ${widget.token}',
+                                    },
                                     body: jsonEncode({'clientId': clientId, 'code': code}),
                                   )
                                   .timeout(const Duration(seconds: 10));

@@ -1,7 +1,8 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package.json ./
-RUN npm i
+ARG NPM_CMD=ci
+COPY package*.json ./
+RUN npm $NPM_CMD
 
 FROM node:20-alpine AS build
 WORKDIR /app

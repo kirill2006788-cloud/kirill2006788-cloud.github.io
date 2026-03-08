@@ -172,7 +172,7 @@ export class OrdersService {
     return base + extraMin * 25 + kmCharge;
   }
 
-  private computeFinalPrice(order: Order) {
+  private async computeFinalPrice(order: Order) {
     if (!order.startedAt || !order.completedAt) return null;
     const start = Date.parse(order.startedAt);
     const end = Date.parse(order.completedAt);
@@ -187,6 +187,9 @@ export class OrdersService {
     if (promoPercent > 0) {
       price = Math.round(price * (1 - promoPercent / 100));
     }
+    const tariffs = await this.loadTariffs();
+    const tariff = tariffs[this.safeNum(order.serviceIndex, 0)];
+    price = this.applyWeekendMarkup(price, tariff, order.scheduledAt);
     return { price, minutes };
   }
 
@@ -259,7 +262,7 @@ export class OrdersService {
         perMin: 25,
         perKm: 50,
         includedMin: 60,
-        commission: 0,
+        commission: 33.3,
         saturdayMarkupPercent: 0,
         sundayMarkupPercent: 0,
       },
@@ -269,7 +272,7 @@ export class OrdersService {
         base: 9000,
         perMin: 25,
         includedMin: 300,
-        commission: 0,
+        commission: 33.3,
         saturdayMarkupPercent: 0,
         sundayMarkupPercent: 0,
       },
@@ -280,7 +283,7 @@ export class OrdersService {
         perMin: 25,
         perKm: 50,
         includedMin: 60,
-        commission: 0,
+        commission: 33.3,
         saturdayMarkupPercent: 0,
         sundayMarkupPercent: 0,
       },
@@ -307,9 +310,9 @@ export class OrdersService {
     const list = await this.loadTariffs();
     const index = this.safeNum(order.serviceIndex, 0);
     const tariff = list[index];
-    const rawPercent = tariff ? this.safeNum(tariff.commission, 0) : 0;
-    // Комиссия 33.3% по умолчанию, ограничена 0..100
-    const percent = rawPercent > 0 && rawPercent <= 100 ? rawPercent : 33.3;
+    const rawPercent = Number(tariff?.commission);
+    // 0% is a valid explicit value. Fallback is used only for invalid/missing values.
+    const percent = Number.isFinite(rawPercent) && rawPercent >= 0 && rawPercent <= 100 ? rawPercent : 33.3;
     const price = this.safeNum(order.priceFinal || order.priceFrom, 0);
     const amount = Math.max(0, Math.round(price * (percent / 100)));
     return { percent, amount: Number.isFinite(amount) ? amount : 0 };
@@ -459,7 +462,7 @@ export class OrdersService {
     // Проверка лимита заработка
     const earnings = await this.getDriverEarnings(driverPhone);
     const earningsLimit = Number(await this.redis.client.get('settings:earnings_limit') || 15000);
-    if (Number(earnings.net || 0) >= earningsLimit) {
+    if (Number(earnings.commission || 0) >= earningsLimit) {
       throw new ConflictException('EARNINGS_LIMIT_REACHED');
     }
 
@@ -573,7 +576,7 @@ export class OrdersService {
         next.paymentStatus = 'paid';
       }
       if (status === 'completed') {
-        const finalPrice = this.computeFinalPrice(next);
+        const finalPrice = await this.computeFinalPrice(next);
         if (finalPrice) {
           next.priceFinal = finalPrice.price;
           next.tripMinutes = finalPrice.minutes;
@@ -919,6 +922,9 @@ export class OrdersService {
   async markPaid(orderId: string) {
     const order = await this.getOrder(orderId);
     if (order.paymentStatus === 'paid') return order;
+    if (order.status !== 'completed') {
+      throw new ConflictException('Only completed orders can be marked as paid');
+    }
     const next: Order = {
       ...order,
       paymentStatus: 'paid',
@@ -1023,6 +1029,9 @@ export class OrdersService {
     }
     if (order.status !== 'completed') {
       throw new ConflictException('Order not completed');
+    }
+    if (order.ratedAt) {
+      throw new ConflictException('Order already rated');
     }
     const r = Math.max(1, Math.min(5, Math.round(rating)));
     const next: Order = {

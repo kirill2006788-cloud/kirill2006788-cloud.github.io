@@ -72,7 +72,7 @@ class _FastPageRoute<T> extends PageRouteBuilder<T> {
 
 const _apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://194.67.84.155:80',
+  defaultValue: 'https://api.trezv7777.ru',
 );
 const _accentColor = Color(0xFFFF2D55);
 const _accentDark = Color(0xFFFF3D00);
@@ -211,6 +211,19 @@ class _AuthApi {
     return raw;
   }
 
+String _formatRubAmount(num? value) {
+  final n = (value ?? 0).round();
+  final s = n.abs().toString();
+  final b = StringBuffer();
+  for (var i = 0; i < s.length; i++) {
+    final left = s.length - i;
+    b.write(s[i]);
+    if (left > 1 && left % 3 == 1) b.write(' ');
+  }
+  final v = n < 0 ? '-${b.toString()}' : b.toString();
+  return '$v ₽';
+}
+
   String _normalizeCode(String input) {
     return input.replaceAll(RegExp(r'\D'), '');
   }
@@ -234,7 +247,7 @@ class _AuthApi {
       _u('/api/auth/otp/request'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'phone': normalizedPhone}),
-    );
+    ).timeout(const Duration(seconds: 15));
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
       final map = (jsonDecode(res.body) as Map).cast<String, dynamic>();
@@ -255,7 +268,7 @@ class _AuthApi {
       _u('/api/auth/otp/verify'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'phone': normalizedPhone, 'code': normalizedCode, 'role': 'driver'}),
-    );
+    ).timeout(const Duration(seconds: 15));
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
       final map = (jsonDecode(res.body) as Map).cast<String, dynamic>();
@@ -681,6 +694,8 @@ class _ProfileTileEarnings extends StatelessWidget {
     return value < 0 ? '-${buffer.toString()}' : buffer.toString();
   }
 
+  String _rub(int? value) => '${_formatRub((value ?? 0))} ₽';
+
   @override
   Widget build(BuildContext context) {
     return _ProfileTileBase(
@@ -690,7 +705,7 @@ class _ProfileTileEarnings extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${_formatRub(earnedRub)} ₽',
+            _rub(earnedRub),
             style: TextStyle(
               color: _white95,
               fontWeight: FontWeight.w900,
@@ -702,7 +717,7 @@ class _ProfileTileEarnings extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Общий: ${_formatRub(earnedGross)} ₽',
+                  'Общий: ${_rub(earnedGross)}',
                   style: TextStyle(
                     color: _white60,
                     fontWeight: FontWeight.w700,
@@ -717,7 +732,7 @@ class _ProfileTileEarnings extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Комиссия: ${_formatRub(earnedCommission)} ₽',
+                  'Комиссия: ${_rub(earnedCommission)}',
                   style: TextStyle(
                     color: const Color(0xFFFF6B6B).withValues(alpha: 0.85),
                     fontWeight: FontWeight.w700,
@@ -732,7 +747,7 @@ class _ProfileTileEarnings extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Чистыми: ${_formatRub(earnedRub)} ₽',
+                  'Чистыми: ${_rub(earnedRub)}',
                   style: TextStyle(
                     color: Colors.greenAccent.shade400.withValues(alpha: 0.85),
                     fontWeight: FontWeight.w700,
@@ -1832,7 +1847,7 @@ class _DriverTripsHistoryPageState extends State<_DriverTripsHistoryPage> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '$price ₽',
+                                _formatRubAmount(price),
                                 style: TextStyle(
                                   color: _accentColor,
                                   fontWeight: FontWeight.w900,
@@ -2760,8 +2775,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     unawaited(_syncDriverPushToken(widget.token));
     unawaited(Future<void>.delayed(const Duration(seconds: 5), () => _syncDriverPushToken(widget.token)));
     _startLocationStream();
-    unawaited(_loadActiveOrder());
-    unawaited(_restoreActiveOrder());
+    unawaited(_recoverActiveOrderState());
     unawaited(_restorePreorder());
     unawaited(_checkBlockStatus());
     // Периодически проверяем статус регистрации и блокировки (каждые 15с)
@@ -2974,8 +2988,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       // пользователь мог выбрать «оффлайн» перед сворачиванием.
       // Просто повторно отправляем текущий статус на сервер.
       _socket?.emit('driver:status', {'status': _driverOnline ? 'online' : 'offline'});
-      unawaited(_loadActiveOrder());
-      unawaited(_restoreActiveOrder());
+      unawaited(_recoverActiveOrderState());
       unawaited(_checkBlockStatus());
       // Проверяем предзаказ при возобновлении
       if (_preorder != null) _checkPreorderTiming();
@@ -3963,8 +3976,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void _cancelPreorder() {
     final po = _preorder;
     if (po == null) return;
-    // Отменяем предзаказ на сервере
-    _socket?.emit('order:cancel', {'orderId': po.id, 'reason': 'driver_cancel_preorder'});
+    // Сервер не поддерживает order:cancel от водителя. Используем валидный статус-переход.
+    _socket?.emit('order:update', {'orderId': po.id, 'status': 'canceled'});
     _preorderCheckTimer?.cancel();
     setState(() {
       _preorder = null;
@@ -4126,8 +4139,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         _socketEverConnected = true;
       });
       s.emit('driver:status', {'status': _driverOnline ? 'online' : 'offline'});
-      unawaited(_loadActiveOrder());
-      unawaited(_restoreActiveOrder());
+      unawaited(_recoverActiveOrderState());
     });
     s.on('order:new', (data) {
       if (!mounted) return;
@@ -4307,6 +4319,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     s.connect();
   }
 
+  Future<void> _recoverActiveOrderState() async {
+    await _loadActiveOrder();
+    if (_order == null) {
+      await _restoreActiveOrder();
+    }
+  }
+
   _DriverOrder _mapOrder(Map<String, dynamic> order) {
     final from = order['from'] as Map? ?? const {};
     final to = order['to'] as Map? ?? const {};
@@ -4408,7 +4427,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     if (_fetchingOrderDetails) return;
     _fetchingOrderDetails = true;
     try {
-      final res = await http.get(Uri.parse('$_apiBaseUrl/api/orders/$orderId'));
+      final res = await _authGet(Uri.parse('$_apiBaseUrl/api/orders/$orderId'));
       if (res.statusCode < 200 || res.statusCode >= 300) return;
       final map = jsonDecode(res.body) as Map<String, dynamic>;
       final orderRaw = map['order'];
@@ -5584,11 +5603,11 @@ Future<void> _showOrderNotification(_DriverOrder order) async {
     final isToday = sa.year == now.year && sa.month == now.month && sa.day == now.day;
     final datePrefix = isToday ? 'сегодня' : '${sa.day.toString().padLeft(2, '0')}.${sa.month.toString().padLeft(2, '0')}';
     title = '⏰ Предзаказ на $datePrefix в $timeStr';
-    body = '${order.pickupTitle} → ${order.dropoffTitle} • ${order.priceRub} ₽'
+    body = '${order.pickupTitle} → ${order.dropoffTitle} • ${_formatRubAmount(order.priceRub)}'
         '${order.promoDiscountPercent > 0 ? '  (-${order.promoDiscountPercent}% клиенту)' : ''}';
   } else {
     title = 'Новый заказ';
-    body = '${order.pickupTitle} → ${order.dropoffTitle} • ${order.priceRub} ₽'
+    body = '${order.pickupTitle} → ${order.dropoffTitle} • ${_formatRubAmount(order.priceRub)}'
         '${order.promoDiscountPercent > 0 ? '  (-${order.promoDiscountPercent}% клиенту)' : ''}';
   }
   await _notifications.show(
@@ -5601,7 +5620,7 @@ Future<void> _showOrderNotification(_DriverOrder order) async {
 
 Future<void> _showNearbyOrderNotification(_DriverOrder order) async {
   final title = 'Заказ рядом';
-  final body = '${order.pickupTitle} → ${order.dropoffTitle} • ${order.priceRub} ₽'
+  final body = '${order.pickupTitle} → ${order.dropoffTitle} • ${_formatRubAmount(order.priceRub)}'
       '${order.promoDiscountPercent > 0 ? '  (-${order.promoDiscountPercent}% клиенту)' : ''}';
   await _notifications.show(
     id: 2,
@@ -6058,7 +6077,7 @@ class _IncomingOrderCardState extends State<_IncomingOrderCard>
                 Expanded(
                   child: _MetricChip(
                     icon: Icons.payments,
-                    label: 'Итог: ${widget.tripPriceRub!} ₽ • ${widget.tripElapsed}',
+                    label: 'Итог: ${_formatRubAmount(widget.tripPriceRub)} • ${widget.tripElapsed}',
                   ),
                 ),
               ],
@@ -6724,7 +6743,7 @@ class _PriceBlock extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '$price ₽',
+            _formatRubAmount(price),
             style: TextStyle(
               color: _white98,
               fontWeight: FontWeight.w900,

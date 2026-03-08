@@ -17,13 +17,23 @@ import { DriversService } from './drivers.service';
 /** Расширяющиеся радиусы поиска (метры) */
 const SEARCH_RADII = [2000, 4000, 6000, 8000, 15000];
 /** Задержка между раундами поиска (мс) */
-const SEARCH_INTERVAL_MS = 12_000;
+const SEARCH_INTERVAL_MS = 10_000;
 /** Автоотмена заказа если водитель не найден (мс) — 5 минут */
 const AUTO_CANCEL_DELAY_MS = 5 * 60 * 1000;
 /** Интервал очистки стухших Map-записей (мс) — 60 секунд */
 const MAP_CLEANUP_INTERVAL_MS = 60_000;
 
-@WebSocketGateway({ cors: { origin: '*' } })
+const socketDefaultOrigins = ['https://admin.trezv7777.ru', 'https://trezv7777.ru', 'https://api.trezv7777.ru'];
+const socketAllowedOrigins = (process.env.SOCKET_CORS_ORIGINS || socketDefaultOrigins.join(','))
+  .split(',')
+  .map((v) => v.trim())
+  .filter(Boolean);
+
+@WebSocketGateway({
+  cors: {
+    origin: socketAllowedOrigins.length ? socketAllowedOrigins : false,
+  },
+})
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(EventsGateway.name);
   constructor(
@@ -98,23 +108,15 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       (typeof client.handshake.headers.authorization === 'string'
         ? client.handshake.headers.authorization.replace(/^Bearer\s+/i, '')
         : undefined);
-
-    const clientIdRaw = (client.handshake.auth as any)?.clientId;
-    const clientId = typeof clientIdRaw === 'string' ? clientIdRaw.trim() : '';
-
     const secret = process.env.JWT_SECRET;
-
-    if (secret && token) {
-      try {
-        const payload = jwt.verify(token, secret) as any;
-        (client.data as any).user = payload;
-      } catch {
-        client.disconnect(true);
-        return;
-      }
-    } else if (clientId) {
-      (client.data as any).clientId = clientId;
-    } else {
+    if (!secret || !token) {
+      client.disconnect(true);
+      return;
+    }
+    try {
+      const payload = jwt.verify(token, secret) as any;
+      (client.data as any).user = payload;
+    } catch {
       client.disconnect(true);
       return;
     }
@@ -132,9 +134,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       client.join(`client:${user.phone.trim()}`);
       return;
     }
-    if (clientId) {
-      client.join(`client:${clientId}`);
-    }
+    client.disconnect(true);
   }
 
   handleDisconnect(client: Socket) {
@@ -146,14 +146,23 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   // ─── Отправка заказа водителям ───────────────────────────────
 
-  emitOrderNew(order: Order, driverPhones?: string[]) {
+  private hasLiveDriverSocket(phone: string): boolean {
+    const room = this.server.sockets.adapter.rooms.get(`driver:${phone}`);
+    return Boolean(room && room.size > 0);
+  }
+
+  emitOrderNew(order: Order, driverPhones?: string[]): string[] {
     if (driverPhones && driverPhones.length) {
+      const delivered: string[] = [];
       driverPhones.forEach((phone) => {
+        if (!this.hasLiveDriverSocket(phone)) return;
         this.server.to(`driver:${phone}`).emit('order:new', { order });
+        delivered.push(phone);
       });
-      return;
+      return delivered;
     }
     this.server.to('drivers').emit('order:new', { order });
+    return [];
   }
 
   // ─── Расширяющийся поиск водителей ──────────────────────────
@@ -222,7 +231,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       return;
     }
 
-    let newDrivers: string[] = [];
+    let candidateDrivers: string[] = [];
 
     // Лимит заработка — не отправляем заказ водителям с достигнутым лимитом
     const earningsLimit = Number(
@@ -244,9 +253,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
         const hasActive = await this.drivers.hasActiveOrder(phone);
         if (hasActive) continue;
         const earnings = await this.orders.getDriverEarnings(phone);
-        if (Number(earnings.net || 0) >= earningsLimit) continue;
-        newDrivers.push(phone);
-        notified.add(phone);
+        if (Number(earnings.commission || 0) >= earningsLimit) continue;
+        candidateDrivers.push(phone);
       }
     } else {
       // Финальный раунд — все онлайн водители
@@ -256,21 +264,32 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
         const hasActive = await this.drivers.hasActiveOrder(phone);
         if (hasActive) continue;
         const earnings = await this.orders.getDriverEarnings(phone);
-        if (Number(earnings.net || 0) >= earningsLimit) continue;
-        newDrivers.push(phone);
-        notified.add(phone);
+        if (Number(earnings.commission || 0) >= earningsLimit) continue;
+        candidateDrivers.push(phone);
       }
     }
 
-    // Отправляем заказ новым водителям
-    if (newDrivers.length > 0) {
-      this.emitOrderNew(order, newDrivers);
+    // Отправляем заказ только реально подключенным водителям.
+    // В notified попадают только те, кто действительно получил событие.
+    let deliveredDrivers: string[] = [];
+    if (candidateDrivers.length > 0) {
+      deliveredDrivers = this.emitOrderNew(order, candidateDrivers);
+      deliveredDrivers.forEach((phone) => notified.add(phone));
+
+      // Чистим "зависшие online" статусы (ключ есть, но сокета уже нет),
+      // чтобы заказ не терялся на фальшиво-онлайн водителях.
+      const undelivered = candidateDrivers.filter((p) => !deliveredDrivers.includes(p));
+      if (undelivered.length) {
+        await Promise.all(
+          undelivered.map((phone) => this.drivers.setStatus(phone, 'offline')),
+        );
+      }
     }
 
     // Сообщение для клиента о ходе поиска
-    if (roundIndex === 0 && newDrivers.length === 0) {
+    if (roundIndex === 0 && deliveredDrivers.length === 0) {
       this.emitOrderDelay(order, 'Ищем водителя поблизости…');
-    } else if (roundIndex > 0 && roundIndex < SEARCH_RADII.length && newDrivers.length === 0) {
+    } else if (roundIndex > 0 && roundIndex < SEARCH_RADII.length && deliveredDrivers.length === 0) {
       this.emitOrderDelay(order, 'Расширяем зону поиска…');
     }
 
@@ -457,7 +476,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     const orderId = (body?.orderId || '').trim();
     const status = (body?.status || '').trim();
     if (!orderId || !status) return { ok: false, error: 'orderId and status required' };
-    const order = await this.orders.updateOrderStatus(orderId, user.phone.trim(), status as any);
+    let order: Order;
+    try {
+      order = await this.orders.updateOrderStatus(orderId, user.phone.trim(), status as any);
+    } catch (err: any) {
+      return { ok: false, error: err?.message || 'UPDATE_FAILED' };
+    }
     this.emitOrderStatus(order);
     if (order.status === 'completed') {
       const nearby = await this.orders.findNearbySearchingOrderForDriver(user.phone.trim(), 2.5);

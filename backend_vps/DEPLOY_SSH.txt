@@ -1,0 +1,30 @@
+# Immutable deploy (Windows + VPS)
+#
+# 1) Локально в PowerShell/CMD:
+#    cd /d c:\Users\user\CascadeProjects\2048
+#    git pull
+#    git status
+#
+# 2) На VPS:
+#    ssh root@194.67.84.155
+#    cd /opt/prosto-taxi
+#    git pull
+#    docker compose build api --build-arg NPM_CMD=ci
+#    docker compose up -d api prosto_nginx
+#
+# 3) Post-deploy проверки:
+#    docker compose ps
+#    docker compose logs --tail=120 api
+#    curl -fsS https://api.trezv7777.ru/api/health
+#    curl -fsS https://api.trezv7777.ru/api/tariffs
+#
+# 4) Если менялась админка:
+#    # admin.html уже смонтирован из /opt/prosto-taxi/prosto_taxi_driver/android/admin.html
+#    docker exec prosto_nginx nginx -s reload
+#
+# 5) Быстрый rollback:
+#    cd /opt/prosto-taxi
+#    git log --oneline -n 5
+#    git checkout <prev_commit_sha>
+#    docker compose build api --build-arg NPM_CMD=ci
+#    docker compose up -d api prosto_nginx

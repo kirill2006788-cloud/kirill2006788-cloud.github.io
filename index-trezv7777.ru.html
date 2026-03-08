@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https:; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'self';" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%231b1b1f'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='%23ffb24a'>A</text></svg>" />
   <title>Admin Panel</title>
   <style>
     :root{
@@ -264,29 +264,6 @@
     .page{
       max-width:100%;
       overflow-x:hidden;
-    }
-
-    #pagePrices{
-      overflow: visible;
-    }
-
-    #pricesTariffCards .priceCard:hover{
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,.4);
-    }
-
-    #pricesTariffCards .priceCard:active{
-      transform: scale(.98);
-    }
-
-    #pricesTariffsWrap{
-      overflow: visible;
-    }
-
-    @media(max-width:480px){
-      #pricesTariffsWrap > div {
-        padding: 16px;
-      }
     }
 
     /* ─── Orders toolbar ─── */
@@ -1180,6 +1157,7 @@
 </head>
 
 <body>
+  <div id="api-debug" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.85);color:#ffb24a;font-size:11px;padding:4px 8px;text-align:center;z-index:9998;"></div>
   <div class="glowTop"></div>
   <div class="glowVert"></div>
 
@@ -1208,30 +1186,6 @@
             </svg>
           </div>
           <span>Управление водителями</span>
-        </div>
-
-        <div class="navBtn" data-page="clients">
-          <div class="icoWrap">
-            <!-- люди / клиенты -->
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z" fill="none"/>
-              <path d="M20 20a6 6 0 0 0-12 0" fill="none"/>
-              <path d="M12 2a4 4 0 0 1 4 4c0 2-2 4-4 4s-4-2-4-4a4 4 0 0 1 4-4Z" fill="#fff"/>
-              <path d="M4 22c0-4 2.5-6 6-6s6 2 6 6" fill="none"/>
-            </svg>
-          </div>
-          <span>Клиенты</span>
-        </div>
-
-        <div class="navBtn" data-page="prices">
-          <div class="icoWrap">
-            <!-- цены -->
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 2v20" fill="none"/>
-              <path d="M17 6.5c0-1.9-2.2-3.5-5-3.5S7 4.6 7 6.5 9.2 10 12 10s5 1.6 5 3.5-2.2 3.5-5 3.5-5-1.6-5-3.5" fill="none"/>
-            </svg>
-          </div>
-          <span>Цены</span>
         </div>
 
         <div class="navBtn" data-page="orders">
@@ -1371,45 +1325,6 @@
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section id="pageClients" class="page" hidden>
-        <h1 class="title">Клиенты</h1>
-        <div class="searchRow">
-          <div class="searchWrap">
-            <input placeholder="поиск по имени или номеру" id="clientsSearch" />
-            <svg class="mag" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M10.5 3a7.5 7.5 0 1 0 4.7 13.3l4.2 4.2 1.4-1.4-4.2-4.2A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11a5.5 5.5 0 0 1 0-11Z" fill="rgba(255,255,255,.9)"/>
-            </svg>
-          </div>
-        </div>
-        <div class="card tableCard">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="colN">№</th>
-                <th>ФИО / Имя</th>
-                <th>Номер</th>
-                <th>Заказов</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody id="clientsTbody">
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="pagePrices" class="page" hidden>
-        <h1 class="title">Управление ценами</h1>
-
-        <!-- Карточки тарифов -->
-        <div id="pricesTariffCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px;">
-          <div style="color:rgba(255,255,255,.4);padding:24px;text-align:center;">Загрузка...</div>
-        </div>
-
-        <!-- Редактор выбранного тарифа -->
-        <div id="pricesTariffsWrap"></div>
       </section>
 
       <section id="pageOrders" class="page" hidden>
@@ -1801,7 +1716,13 @@
 
   <script>
     (function () {
-      const API_BASE = `${location.origin}/api`;
+      var apiFromUrl = (function(){ var p = new URLSearchParams(location.search); var u = p.get('api'); return u ? (u.replace(/\/$/, '') + '/api') : ''; })();
+      const API_BASE = apiFromUrl || 'https://api.trezv7777.ru/api';
+      window.__ADMIN_API__ = API_BASE;
+      document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById('api-debug');
+        if (el) el.textContent = 'API: ' + API_BASE;
+      });
       const ADMIN_TOKEN_KEY = 'admin_token';
       let adminToken = localStorage.getItem(ADMIN_TOKEN_KEY) || '';
 
@@ -1822,26 +1743,7 @@
         const headers = Object.assign({}, options.headers || {}, {
           Authorization: `Bearer ${adminToken}`,
         });
-        const ctrl = new AbortController();
-        const timeoutMs = Number(options.timeoutMs || 15000);
-        const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-        let response;
-        try {
-          response = await fetch(url, Object.assign({}, options, { headers, signal: ctrl.signal }));
-        } catch (e) {
-          if (e && e.name === 'AbortError') {
-            throw new Error('ADMIN_FETCH_TIMEOUT');
-          }
-          throw e;
-        } finally {
-          clearTimeout(timer);
-        }
-        if (response.status === 401 || response.status === 403) {
-          setAdminToken('');
-          openLoginModal();
-          throw new Error('ADMIN_AUTH_EXPIRED');
-        }
-        return response;
+        return fetch(url, Object.assign({}, options, { headers }));
       }
       const modal = document.getElementById('addModal');
       const openBtn = document.getElementById('openAddModal');
@@ -1937,6 +1839,21 @@
       const ordersPeriodMonth = document.getElementById('ordersPeriodMonth');
       const ordersPeriodYear = document.getElementById('ordersPeriodYear');
 
+      const tariffForm = document.createElement('form');
+      tariffForm.className = 'card tableCard';
+      tariffForm.innerHTML = `
+        <h2 class="chartTitle">Тарифы и комиссии</h2>
+        <div class="statList" id="tariffsList"></div>
+        <div class="statsPeriodRow">
+          <button class="actionBtn add" type="button" id="addTariffRow">Добавить тариф</button>
+          <button class="actionBtn" type="submit">Сохранить</button>
+        </div>
+      `;
+      ordersFeesWrap?.appendChild(tariffForm);
+
+      const tariffsList = tariffForm.querySelector('#tariffsList');
+      const addTariffRow = tariffForm.querySelector('#addTariffRow');
+
       const payoutsWrap = document.createElement('div');
       payoutsWrap.className = 'card tableCard';
       payoutsWrap.innerHTML = `
@@ -1960,8 +1877,6 @@
       const navButtons = Array.from(document.querySelectorAll('.nav .navBtn'));
       const pages = {
         drivers: document.getElementById('pageDrivers'),
-        clients: document.getElementById('pageClients'),
-        prices: document.getElementById('pagePrices'),
         orders: document.getElementById('pageOrders'),
         promos: document.getElementById('pagePromos'),
         blocks: document.getElementById('pageBlocks'),
@@ -1969,32 +1884,7 @@
         stats: document.getElementById('pageStats'),
       };
 
-      const clientsSearch = document.getElementById('clientsSearch');
-      const clientsTbody = document.getElementById('clientsTbody');
-
       let currentEditTr = null;
-
-      function esc(value) {
-        return String(value ?? '')
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-      }
-
-      function safeBase64(value) {
-        let raw = String(value || '').trim();
-        if (!raw) return '';
-        // Support both raw base64 and data-uri values.
-        const m = raw.match(/^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/i);
-        if (m && m[1]) raw = m[1];
-        // Remove whitespaces/newlines and normalize URL-safe base64.
-        raw = raw.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
-        while (raw.length % 4 !== 0) raw += '=';
-        if (raw.length > 4_000_000) return '';
-        return /^[A-Za-z0-9+/=]+$/.test(raw) ? raw : '';
-      }
 
       async function loadDrivers() {
         const tbody = getTbody();
@@ -2020,8 +1910,8 @@
                 meta.className = 'pendingMeta';
                 const pHasPhotos = profile.passportFrontBase64 || profile.selfieBase64;
                 meta.innerHTML = `
-                  ${esc(profile.fullName || '—')} · ${esc(d.phone || '—')}
-                  <small>ИНН: ${esc(profile.inn || '—')} · Паспорт: ${esc(profile.passport || '—')}</small>
+                  ${profile.fullName || '—'} · ${d.phone || '—'}
+                  <small>ИНН: ${profile.inn || '—'} · Паспорт: ${profile.passport || '—'}</small>
                   <small>Документы подписаны: ${profile.docsSigned ? 'Да' : 'Нет'}</small>
                   <small>${pHasPhotos ? '📷 Фото загружены' : '⚠ Фото не загружены'}</small>
                 `;
@@ -2094,19 +1984,19 @@
             const earnNet = Number(earn.net || 0);
             const earnComm = Number(earn.commission || 0);
             const limitReached = d.limitReached === true;
-            const avatarB64 = safeBase64(profile.avatarBase64 || profile.selfieBase64 || profile.passportFrontBase64);
+            const avatarB64 = profile.avatarBase64 || profile.selfieBase64 || profile.passportFrontBase64;
             const avatarCell = avatarB64
               ? `<td style="vertical-align:middle;"><img src="data:image/jpeg;base64,${avatarB64}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.12);" title="Фото водителя"></td>`
               : '<td style="vertical-align:middle;width:52px;"><span style="display:inline-block;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.35);font-size:18px;line-height:40px;text-align:center;">—</span></td>';
             tr.innerHTML = `
               <td class="colN">${i + 1}</td>
               ${avatarCell}
-              <td>${esc(profile.fullName || '—')}</td>
-              <td>${esc(profile.email || '—')}</td>
-              <td>${esc(d.phone || '—')}</td>
-              <td>${esc(profile.rating || '—')} · ${esc(statusLabel)}</td>
-              <td>${esc(profile.inn || '—')}</td>
-              <td>${esc(profile.passport || '—')}</td>
+              <td>${profile.fullName || '—'}</td>
+              <td>${profile.email || '—'}</td>
+              <td>${d.phone || '—'}</td>
+              <td>${profile.rating || '—'} · ${statusLabel}</td>
+              <td>${profile.inn || '—'}</td>
+              <td>${profile.passport || '—'}</td>
               <td>${regLabel} / ${profile.docsSigned ? 'Да' : 'Нет'}</td>
               <td style="white-space:nowrap">
                 <span>${formatMoney(earnGross)}</span>
@@ -2196,12 +2086,9 @@
                   photoTd.colSpan = 10;
                   photoTd.style.cssText = 'padding:12px 16px;background:rgba(255,255,255,.03);';
                   let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
-                  const passportFront = safeBase64(profile.passportFrontBase64);
-                  const passportReg = safeBase64(profile.passportRegBase64);
-                  const selfie = safeBase64(profile.selfieBase64);
-                  if (passportFront) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${passportFront}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Паспорт (главная)"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Паспорт</div></div>`;
-                  if (passportReg) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${passportReg}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Вод. удостоверение"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Вод. удост.</div></div>`;
-                  if (selfie) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${selfie}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Селфи с паспортом"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Селфи</div></div>`;
+                  if (profile.passportFrontBase64) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${profile.passportFrontBase64}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Паспорт (главная)"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Паспорт</div></div>`;
+                  if (profile.passportRegBase64) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${profile.passportRegBase64}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Вод. удостоверение"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Вод. удост.</div></div>`;
+                  if (profile.selfieBase64) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${profile.selfieBase64}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Селфи с паспортом"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Селфи</div></div>`;
                   html += '</div>';
                   photoTd.innerHTML = html;
                   photoTr.appendChild(photoTd);
@@ -2240,10 +2127,10 @@
               : '<span style="font-size:11px;font-weight:800;color:#64dc8c;background:rgba(100,220,140,.15);padding:2px 8px;border-radius:6px;">Актив</span>';
             tr.innerHTML = `
               <td class="colN">${i + 1}</td>
-              <td>${esc(c.fullName || '—')}</td>
-              <td>${esc(c.email || '—')}</td>
-              <td>${esc(c.phone || '—')}</td>
-              <td>${esc(c.id || '—')}</td>
+              <td>${c.fullName || '—'}</td>
+              <td>${c.email || '—'}</td>
+              <td>${c.phone || '—'}</td>
+              <td>${c.id || '—'}</td>
             `;
             const actTd = document.createElement('td');
             actTd.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
@@ -2286,65 +2173,6 @@
         } catch (e) {
           blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Ошибка загрузки</td><td></td><td></td><td></td><td></td></tr>';
         }
-      }
-
-      let clientsListCache = [];
-
-      async function loadClientsPage() {
-        if (!clientsTbody) return;
-        clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Загрузка...</td></tr>';
-        try {
-          const res = await adminFetch(`${API_BASE}/admin/clients`);
-          const data = await res.json();
-          if (!data || data.ok !== true) throw new Error('bad response');
-          const clients = Array.isArray(data.clients) ? data.clients : [];
-          clientsListCache = clients;
-          renderClientsTable(clients);
-        } catch (e) {
-          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Ошибка загрузки</td></tr>';
-        }
-      }
-
-      function renderClientsTable(clients) {
-        if (!clientsTbody) return;
-        const query = (clientsSearch?.value || '').trim().toLowerCase();
-        const filtered = query
-          ? clients.filter((c) => {
-              const name = (c.fullName || c.name || '').toLowerCase();
-              const phone = (c.phone || c.id || '').toString().toLowerCase();
-              return name.includes(query) || phone.includes(query);
-            })
-          : clients;
-        clientsTbody.innerHTML = '';
-        if (!filtered.length) {
-          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Нет клиентов</td></tr>';
-          return;
-        }
-        filtered.forEach((c, i) => {
-          const tr = document.createElement('tr');
-          const fio = [c.fullName, c.name, c.lastName, c.patronymic].filter(Boolean).join(' ') || '—';
-          const phone = c.phone || c.id || '—';
-          const orderCount = c.orderCount != null ? String(c.orderCount) : '—';
-          tr.innerHTML = `
-            <td class="colN">${i + 1}</td>
-            <td>${esc(fio)}</td>
-            <td>${esc(phone)}</td>
-            <td>${esc(orderCount)}</td>
-            <td></td>
-          `;
-          const actTd = tr.querySelector('td:last-child');
-          actTd.style.cssText = 'display:flex;gap:6px;align-items:center;';
-          const historyBtn = document.createElement('button');
-          historyBtn.className = 'btn';
-          historyBtn.textContent = 'История';
-          historyBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = c.id || c.phone;
-            if (id) await openHistory('client', id);
-          });
-          actTd.appendChild(historyBtn);
-          clientsTbody.appendChild(tr);
-        });
       }
 
       function getTbody() {
@@ -2497,9 +2325,9 @@
             row.innerHTML = `
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
                 <span style="font-weight:700;color:#fff;">${formatDate(o.createdAt)}</span>
-                <span style="font-weight:800;color:rgba(255,255,255,.7);">${esc(o.status || '—')} · ${formatMoney(o.priceFrom)}</span>
+                <span style="font-weight:800;color:rgba(255,255,255,.7);">${o.status || '—'} · ${formatMoney(o.priceFrom)}</span>
               </div>
-              <div style="font-size:12px;color:rgba(255,255,255,.5);">${esc(from)} → ${esc(to)}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.5);">${from} → ${to}</div>
               ${schedHtml}
             `;
             historyList.appendChild(row);
@@ -2564,29 +2392,29 @@
             const stClass = `st-${status}`;
             const cancelBtn = status === 'canceled' || status === 'completed'
               ? ''
-              : `<button class="btn" data-cancel="${esc(o.id)}">Отменить</button>`;
+              : `<button class="btn" data-cancel="${o.id}">Отменить</button>`;
             const assignBtn = status === 'completed' || status === 'canceled'
               ? ''
-              : `<button class="btn" data-assign="${esc(o.id)}">${o.driverPhone ? 'Переназн.' : 'Назначить'}</button>`;
+              : `<button class="btn" data-assign="${o.id}">${o.driverPhone ? 'Переназн.' : 'Назначить'}</button>`;
             const payBtn = pay === 'paid'
               ? '<span style="font-size:11px;color:rgba(100,220,140,.85);font-weight:800;">✓ Оплачен</span>'
-              : `<button class="btn" data-pay="${esc(o.id)}">Оплата</button>`;
+              : `<button class="btn" data-pay="${o.id}">Оплата</button>`;
             const schedAt = o?.scheduledAt;
             const preorderBadge = schedAt
               ? `<span class="preorderBadge">⏰ Предзаказ на ${formatDate(schedAt)}</span>`
               : '';
             row.innerHTML = `
               <div class="orderHeader">
-                <span class="orderIdBadge">#${esc(shortId)}</span>
+                <span class="orderIdBadge">#${shortId}</span>
                 ${preorderBadge}
-                <span class="orderStatusBadge ${esc(stClass)}">${esc(status)}</span>
+                <span class="orderStatusBadge ${stClass}">${status}</span>
               </div>
-              <div class="orderRoute">${esc(from)}<span class="routeArrow">→</span>${esc(to)}</div>
+              <div class="orderRoute">${from}<span class="routeArrow">→</span>${to}</div>
               <div class="orderDetails">
                 <span class="orderPrice">${price}</span>
-                <span>Водитель: ${esc(driver)}</span>
-                <span>Оплата: ${esc(pay)}</span>
-                ${created ? `<span>${esc(created)}</span>` : ''}
+                <span>Водитель: ${driver}</span>
+                <span>Оплата: ${pay}</span>
+                ${created ? `<span>${created}</span>` : ''}
               </div>
               <div class="orderActions">
                 ${payBtn}
@@ -2636,178 +2464,35 @@
         }
       }
 
-      let tariffsCache = [];
-      let selectedTariffIndex = 0;
-
-      function getTariffMeta(tariff) {
-        const name = String(tariff?.name || '').toLowerCase();
-        if (name.includes('личный')) {
-          return { icon: '🎩', color: '#7c6fcd', desc: 'Фиксированно 9 000 ₽ за 5 ч, далее 25 ₽/мин' };
-        }
-        if (name.includes('перегон')) {
-          return { icon: '🚗', color: '#2e8b5a', desc: 'Как трезвый водитель: от 2 500 ₽, 25 ₽/мин; за МКАД +50 ₽/км' };
-        }
-        return { icon: '🍺', color: '#d4a020', desc: 'МКАД: от 2 500 ₽ / 1 ч, далее 25 ₽/мин. За МКАД: 2 900 ₽ + 50 ₽/км' };
-      }
-
-      function renderPriceTariffCards() {
-        const container = document.getElementById('pricesTariffCards');
-        if (!container) return;
-        if (!tariffsCache.length) {
-          container.innerHTML = '<div style="color:rgba(255,255,255,.4);padding:24px;">Нет тарифов</div>';
-          return;
-        }
-        container.innerHTML = tariffsCache.map((t, i) => {
-          const meta = getTariffMeta(t);
-          const comm = Number(t.commission || 0);
-          const sat = Number(t.saturdayMarkupPercent || 0);
-          const sun = Number(t.sundayMarkupPercent || 0);
-          const isActive = i === selectedTariffIndex;
-          return `<div class="priceCard${isActive ? ' priceCardActive' : ''}" data-ti="${i}" style="
-            background:${isActive ? 'rgba(255,255,255,.10)' : 'rgba(255,255,255,.04)'};
-            border:2px solid ${isActive ? meta.color : 'rgba(255,255,255,.08)'};
-            border-radius:16px;padding:20px;cursor:pointer;transition:all .2s;
-            display:flex;flex-direction:column;gap:12px;
-          ">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:28px;">${meta.icon}</span>
-              <div>
-                <div style="font-weight:900;font-size:15px;color:#fff;">${esc(t.name || 'Тариф')}</div>
-                <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;">${meta.desc}</div>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-              <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:10px 8px;text-align:center;">
-                <div style="font-size:20px;font-weight:900;color:#fff;">${comm}%</div>
-                <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">комиссия</div>
-              </div>
-              <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:10px 8px;text-align:center;">
-                <div style="font-size:20px;font-weight:900;color:${sat > 0 ? '#ffb24a' : 'rgba(255,255,255,.35)'};">${sat > 0 ? '+' + sat : '—'}${sat > 0 ? '%' : ''}</div>
-                <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">суббота</div>
-              </div>
-              <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:10px 8px;text-align:center;">
-                <div style="font-size:20px;font-weight:900;color:${sun > 0 ? '#ff7a7a' : 'rgba(255,255,255,.35)'};">${sun > 0 ? '+' + sun : '—'}${sun > 0 ? '%' : ''}</div>
-                <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">воскресенье</div>
-              </div>
-            </div>
-            ${isActive ? `<div style="font-size:11px;color:${meta.color};font-weight:800;text-align:center;">✎ Редактируется ниже</div>` : `<div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;">Нажмите для редактирования</div>`}
-          </div>`;
-        }).join('');
-
-        container.querySelectorAll('.priceCard').forEach(card => {
-          card.addEventListener('click', () => {
-            selectedTariffIndex = Number(card.getAttribute('data-ti'));
-            renderPriceTariffCards();
-            renderPriceTariffEditor();
-          });
-        });
-      }
-
-      function renderPriceTariffEditor() {
-        const wrap = document.getElementById('pricesTariffsWrap');
-        if (!wrap) return;
-        const tariff = tariffsCache[selectedTariffIndex];
-        if (!tariff) { wrap.innerHTML = ''; return; }
-        const meta = getTariffMeta(tariff);
-        wrap.innerHTML = `
-          <div style="background:rgba(255,255,255,.06);border:2px solid ${meta.color};border-radius:18px;padding:24px;max-width:480px;margin:0 auto;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-              <span style="font-size:26px;">${meta.icon}</span>
-              <div>
-                <div style="font-size:16px;font-weight:900;color:#fff;">${esc(tariff.name)}</div>
-                <div style="font-size:11px;color:rgba(255,255,255,.45);">${meta.desc}</div>
-              </div>
-            </div>
-            <form id="tariffForm" style="display:flex;flex-direction:column;gap:16px;">
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                <label style="font-size:12px;font-weight:800;color:rgba(255,255,255,.55);">💼 Комиссия водителя, %</label>
-                <div style="display:flex;align-items:center;gap:10px;">
-                  <input class="input" id="tariffCommissionInput" type="number" min="0" max="100" step="1"
-                    value="${Number(tariff.commission || 0)}"
-                    style="flex:1;font-size:22px;font-weight:900;text-align:center;padding:12px 8px;border-radius:12px;" />
-                  <span style="color:rgba(255,255,255,.5);font-size:18px;">%</span>
-                </div>
-                <div style="font-size:11px;color:rgba(255,255,255,.35);">Доля от стоимости заказа, которую получает платформа</div>
-              </div>
-              <div style="height:1px;background:rgba(255,255,255,.08);"></div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <label style="font-size:12px;font-weight:800;color:#ffb24a;">🗓 Суббота, %</label>
-                  <div style="display:flex;align-items:center;gap:6px;">
-                    <input class="input" id="tariffSaturdayInput" type="number" min="0" max="500" step="1"
-                      value="${Number(tariff.saturdayMarkupPercent || 0)}"
-                      style="flex:1;font-size:22px;font-weight:900;text-align:center;padding:12px 6px;border-radius:12px;border-color:rgba(255,178,74,.4);" />
-                    <span style="color:rgba(255,178,74,.7);font-size:18px;">%</span>
-                  </div>
-                  <div style="font-size:10px;color:rgba(255,255,255,.3);">Надбавка к цене в суб.</div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <label style="font-size:12px;font-weight:800;color:#ff7a7a;">🗓 Воскресенье, %</label>
-                  <div style="display:flex;align-items:center;gap:6px;">
-                    <input class="input" id="tariffSundayInput" type="number" min="0" max="500" step="1"
-                      value="${Number(tariff.sundayMarkupPercent || 0)}"
-                      style="flex:1;font-size:22px;font-weight:900;text-align:center;padding:12px 6px;border-radius:12px;border-color:rgba(255,122,122,.4);" />
-                    <span style="color:rgba(255,122,122,.7);font-size:18px;">%</span>
-                  </div>
-                  <div style="font-size:10px;color:rgba(255,255,255,.3);">Надбавка к цене в вс.</div>
-                </div>
-              </div>
-              <div style="display:flex;gap:10px;margin-top:4px;">
-                <button type="submit" class="actionBtn" style="flex:1;padding:14px;font-size:15px;font-weight:900;border-radius:12px;background:${meta.color};border-color:${meta.color};">Сохранить</button>
-                <button type="button" id="tariffResetBtn" class="actionBtn" style="padding:14px 20px;border-radius:12px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:13px;">Сброс</button>
-              </div>
-            </form>
-            <div id="tariffSaveMsg" style="display:none;margin-top:12px;padding:10px 16px;border-radius:10px;background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.4);color:rgba(80,200,120,.95);font-weight:800;font-size:13px;text-align:center;">✓ Сохранено!</div>
-          </div>
+      function renderTariffRow({ name = '', base = '', perKm = '', commission = '' } = {}) {
+        const row = document.createElement('div');
+        row.className = 'statItem';
+        row.innerHTML = `
+          <input class="input" placeholder="Название" value="${name}" />
+          <input class="input" placeholder="База" value="${base}" />
+          <input class="input" placeholder="₽/км" value="${perKm}" />
+          <input class="input" placeholder="Комиссия %" value="${commission}" />
         `;
-
-        document.getElementById('tariffForm')?.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          if (!tariffsCache.length) return;
-          const tariff = tariffsCache[selectedTariffIndex];
-          if (!tariff) return;
-          tariff.commission = Number(document.getElementById('tariffCommissionInput')?.value || 0);
-          tariff.saturdayMarkupPercent = Number(document.getElementById('tariffSaturdayInput')?.value || 0);
-          tariff.sundayMarkupPercent = Number(document.getElementById('tariffSundayInput')?.value || 0);
-          const btn = e.target.querySelector('[type=submit]');
-          if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем...'; }
-          try {
-            await adminFetch(`${API_BASE}/admin/tariffs`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ tariffs: tariffsCache }),
-            });
-            const msg = document.getElementById('tariffSaveMsg');
-            if (msg) { msg.style.display = 'block'; setTimeout(() => { msg.style.display = 'none'; }, 2500); }
-            renderPriceTariffCards();
-          } catch (_) {
-            if (btn) btn.textContent = 'Ошибка!';
-          } finally {
-            if (btn) { btn.disabled = false; btn.textContent = 'Сохранить'; }
-          }
-        });
-
-        document.getElementById('tariffResetBtn')?.addEventListener('click', () => {
-          document.getElementById('tariffCommissionInput').value = Number(tariff.commission || 0);
-          document.getElementById('tariffSaturdayInput').value = Number(tariff.saturdayMarkupPercent || 0);
-          document.getElementById('tariffSundayInput').value = Number(tariff.sundayMarkupPercent || 0);
-        });
+        return row;
       }
 
       async function loadTariffs() {
-        const container = document.getElementById('pricesTariffCards');
-        const wrap = document.getElementById('pricesTariffsWrap');
-        if (container) container.innerHTML = '<div style="color:rgba(255,255,255,.4);padding:24px;grid-column:1/-1;text-align:center;">Загрузка...</div>';
-        if (wrap) wrap.innerHTML = '';
+        if (!tariffsList) return;
+        tariffsList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
         try {
           const res = await adminFetch(`${API_BASE}/admin/tariffs`);
           const data = await res.json();
-          tariffsCache = Array.isArray(data.tariffs) ? data.tariffs : [];
-          if (selectedTariffIndex >= tariffsCache.length) selectedTariffIndex = 0;
-          renderPriceTariffCards();
-          renderPriceTariffEditor();
+          const list = Array.isArray(data.tariffs) ? data.tariffs : [];
+          tariffsList.innerHTML = '';
+          if (!list.length) {
+            tariffsList.appendChild(renderTariffRow());
+            return;
+          }
+          list.forEach((t) => {
+            tariffsList.appendChild(renderTariffRow(t));
+          });
         } catch (_) {
-          if (container) container.innerHTML = '<div style="color:rgba(255,100,100,.7);padding:24px;grid-column:1/-1;">Ошибка загрузки тарифов</div>';
+          tariffsList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
         }
       }
 
@@ -2832,20 +2517,19 @@
             const statusText = isActive ? 'активен' : 'отключен';
             const expires = p.expiresAt ? `до ${p.expiresAt.slice(0, 10)}` : 'без срока';
             const created = p.createdAt ? formatDate(p.createdAt) : '';
-            const discount = Math.max(0, Math.min(100, Number(p.discount) || 0));
             const action =
               isActive
-                ? `<button class="btn" data-disable="${esc(p.code)}">Отключить</button>`
+                ? `<button class="btn" data-disable="${p.code}">Отключить</button>`
                 : '';
             row.innerHTML = `
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                <span style="font-weight:900;font-size:15px;color:#fff;letter-spacing:.5px;">${esc(p.code)}</span>
+                <span style="font-weight:900;font-size:15px;color:#fff;letter-spacing:.5px;">${p.code}</span>
                 <span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:6px;background:${isActive ? 'rgba(100,220,140,.15)' : 'rgba(225,27,34,.12)'};color:${statusColor};">${statusText}</span>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;font-weight:700;color:rgba(255,255,255,.50);">
-                <span style="color:rgba(255,178,74,.95);font-weight:900;">-${discount}%</span>
-                <span>${esc(expires)}</span>
-                ${created ? `<span>создан ${esc(created)}</span>` : ''}
+                <span style="color:rgba(255,178,74,.95);font-weight:900;">-${p.discount}%</span>
+                <span>${expires}</span>
+                ${created ? `<span>создан ${created}</span>` : ''}
               </div>
               ${action ? `<div style="padding-top:4px;border-top:1px solid rgba(255,255,255,.06);">${action}</div>` : ''}
             `;
@@ -2865,6 +2549,26 @@
           promosList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
         }
       }
+
+      tariffForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!tariffsList) return;
+        const rows = Array.from(tariffsList.querySelectorAll('.statItem'));
+        const tariffs = rows.map((row) => {
+          const inputs = row.querySelectorAll('input');
+          return {
+            name: inputs[0]?.value || '',
+            base: Number(inputs[1]?.value || 0),
+            perKm: Number(inputs[2]?.value || 0),
+            commission: Number(inputs[3]?.value || 0),
+          };
+        });
+        await adminFetch(`${API_BASE}/admin/tariffs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tariffs }),
+        });
+      });
 
       promoForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -2887,6 +2591,11 @@
         loadPromos();
       });
 
+      addTariffRow?.addEventListener('click', () => {
+        if (!tariffsList) return;
+        tariffsList.appendChild(renderTariffRow());
+      });
+
       async function loadPayouts() {
         if (!payoutsList) return;
         payoutsList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
@@ -2903,7 +2612,7 @@
             const row = document.createElement('div');
             row.className = 'statItem';
             row.innerHTML = `
-              <span>${esc(formatDate(p.createdAt))} · ${esc(p.driverPhone || '—')} · ${esc(p.orderId || '—')}</span>
+              <span>${formatDate(p.createdAt)} · ${p.driverPhone || '—'} · ${p.orderId || '—'}</span>
               <span>${formatMoney(p.amount)}</span>
             `;
             payoutsList.appendChild(row);
@@ -2954,17 +2663,12 @@
         if (pageKey === 'drivers') {
           loadDrivers();
         }
-        if (pageKey === 'clients') {
-          loadClientsPage();
-        }
-        if (pageKey === 'prices') {
-          loadTariffs();
-        }
         if (pageKey === 'blocks') {
           loadClients();
           loadDrivers();
         }
         if (pageKey === 'stats') {
+          loadTariffs();
           setStatsPeriod(statsPeriod);
         }
         if (pageKey === 'promos') {
@@ -2995,10 +2699,6 @@
       });
       driversFilter?.addEventListener('change', () => {
         loadDrivers();
-      });
-
-      clientsSearch?.addEventListener('input', () => {
-        if (clientsListCache.length) renderClientsTable(clientsListCache);
       });
 
       let blocksActiveTab = 'clients';
@@ -3032,10 +2732,10 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td class="colN">${i + 1}</td>
-              <td>${esc(profile.fullName || '—')}</td>
-              <td>${esc(profile.email || '—')}</td>
-              <td>${esc(d.phone || '—')}</td>
-              <td>${esc(d.phone || '—')}</td>
+              <td>${profile.fullName || '—'}</td>
+              <td>${profile.email || '—'}</td>
+              <td>${d.phone || '—'}</td>
+              <td>${d.phone || '—'}</td>
             `;
             const td = document.createElement('td');
             td.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
@@ -3126,10 +2826,7 @@
             }
             pending.forEach((d) => {
               const p = d.profile || {};
-              const avB64 = safeBase64(p.avatarBase64 || p.selfieBase64 || p.passportFrontBase64);
-              const passportFront = safeBase64(p.passportFrontBase64);
-              const passportReg = safeBase64(p.passportRegBase64);
-              const selfie = safeBase64(p.selfieBase64);
+              const avB64 = p.avatarBase64 || p.selfieBase64 || p.passportFrontBase64;
               const avatarHtml = avB64
                 ? `<img src="data:image/jpeg;base64,${avB64}" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,178,74,.4);flex-shrink:0;" title="Фото водителя">`
                 : '<span style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:20px;line-height:48px;text-align:center;flex-shrink:0;">—</span>';
@@ -3141,32 +2838,32 @@
                   ${avatarHtml}
                   <div style="flex:1;min-width:0;">
                     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                      <span style="font-weight:900;font-size:15px;color:#fff;">${esc(p.fullName || '—')}</span>
-                      <span style="font-size:12px;font-weight:800;color:rgba(255,178,74,.90);">${esc(d.phone || '—')}</span>
+                      <span style="font-weight:900;font-size:15px;color:#fff;">${p.fullName || '—'}</span>
+                      <span style="font-size:12px;font-weight:800;color:rgba(255,178,74,.90);">${d.phone || '—'}</span>
                     </div>
                   </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px;font-weight:700;color:rgba(255,255,255,.55);">
-                  <span>ИНН: <b style="color:#fff;">${esc(p.inn || '—')}</b></span>
-                  <span>Паспорт: <b style="color:#fff;">${esc(p.passport || '—')}</b></span>
-                  <span>Email: <b style="color:#fff;">${esc(p.email || '—')}</b></span>
+                  <span>ИНН: <b style="color:#fff;">${p.inn || '—'}</b></span>
+                  <span>Паспорт: <b style="color:#fff;">${p.passport || '—'}</b></span>
+                  <span>Email: <b style="color:#fff;">${p.email || '—'}</b></span>
                   <span>Документы: <b style="color:${p.docsSigned ? 'rgba(100,220,140,.9)' : 'rgba(225,27,34,.8)'};">${p.docsSigned ? 'Подписаны' : 'Нет'}</b></span>
                 </div>
-                ${(passportFront || passportReg || selfie) ? `
+                ${(p.passportFrontBase64 || p.passportRegBase64 || p.selfieBase64) ? `
                 <div style="display:flex;gap:6px;padding:8px 0 4px;">
-                  ${passportFront ? `<a href="data:image/jpeg;base64,${passportFront}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${passportFront}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Паспорт (главная)"></a>` : ''}
-                  ${passportReg ? `<a href="data:image/jpeg;base64,${passportReg}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${passportReg}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Вод. удостоверение"></a>` : ''}
-                  ${selfie ? `<a href="data:image/jpeg;base64,${selfie}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${selfie}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Селфи с паспортом"></a>` : ''}
+                  ${p.passportFrontBase64 ? `<a href="data:image/jpeg;base64,${p.passportFrontBase64}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${p.passportFrontBase64}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Паспорт (главная)"></a>` : ''}
+                  ${p.passportRegBase64 ? `<a href="data:image/jpeg;base64,${p.passportRegBase64}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${p.passportRegBase64}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Вод. удостоверение"></a>` : ''}
+                  ${p.selfieBase64 ? `<a href="data:image/jpeg;base64,${p.selfieBase64}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${p.selfieBase64}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Селфи с паспортом"></a>` : ''}
                 </div>
                 <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.35);display:flex;gap:6px;">
-                  ${passportFront ? '<span style="flex:1;text-align:center;">Паспорт</span>' : ''}
-                  ${passportReg ? '<span style="flex:1;text-align:center;">Вод. удост.</span>' : ''}
-                  ${selfie ? '<span style="flex:1;text-align:center;">Селфи</span>' : ''}
+                  ${p.passportFrontBase64 ? '<span style="flex:1;text-align:center;">Паспорт</span>' : ''}
+                  ${p.passportRegBase64 ? '<span style="flex:1;text-align:center;">Вод. удост.</span>' : ''}
+                  ${p.selfieBase64 ? '<span style="flex:1;text-align:center;">Селфи</span>' : ''}
                 </div>
                 ` : '<div style="font-size:11px;color:rgba(255,178,74,.6);font-weight:700;padding:4px 0;">⚠ Фото документов не загружены</div>'}
                 <div style="display:flex;gap:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);">
-                  <button class="btn" data-v-approve="${esc(d.phone)}" style="flex:1;">Подтвердить</button>
-                  <button class="btn" data-v-reject="${esc(d.phone)}" style="flex:1;background:rgba(225,27,34,.18);color:#e11b22;">Отклонить</button>
+                  <button class="btn" data-v-approve="${d.phone}" style="flex:1;">Подтвердить</button>
+                  <button class="btn" data-v-reject="${d.phone}" style="flex:1;background:rgba(225,27,34,.18);color:#e11b22;">Отклонить</button>
                 </div>
               `;
               verifyPendingList.appendChild(card);
@@ -3209,17 +2906,17 @@
               const photoBadge = hasPhotos
                 ? '<span style="color:rgba(100,220,140,.9);font-weight:800;font-size:11px;">Есть фото</span>'
                 : '<span style="color:rgba(255,178,74,.7);font-weight:700;font-size:11px;">Нет фото</span>';
-              const avB64 = safeBase64(p.avatarBase64 || p.selfieBase64 || p.passportFrontBase64);
+              const avB64 = p.avatarBase64 || p.selfieBase64 || p.passportFrontBase64;
               const avTd = avB64
                 ? `<td style="vertical-align:middle;"><img src="data:image/jpeg;base64,${avB64}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.12);" title="Фото водителя"></td>`
                 : '<td style="vertical-align:middle;"><span style="display:inline-block;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.35);font-size:18px;line-height:40px;text-align:center;">—</span></td>';
               tr.innerHTML = `
                 <td class="colN">${i + 1}</td>
                 ${avTd}
-                <td>${esc(p.fullName || '—')}</td>
-                <td>${esc(d.phone || '—')}</td>
-                <td>${esc(p.inn || '—')}</td>
-                <td>${esc(p.passport || '—')}</td>
+                <td>${p.fullName || '—'}</td>
+                <td>${d.phone || '—'}</td>
+                <td>${p.inn || '—'}</td>
+                <td>${p.passport || '—'}</td>
                 <td>${p.docsSigned ? 'Да' : 'Нет'}<br>${photoBadge}</td>
                 <td style="color:${stColor};font-weight:800;">${stLabel}</td>
               `;
@@ -3273,6 +2970,7 @@
 
         if (tabKey === 'stats') setOrdersPeriod(ordersPeriod);
         if (tabKey === 'fees') {
+          loadTariffs();
           loadPayouts();
         }
       }
@@ -3538,14 +3236,7 @@
         if (openLoginModalBtn) openLoginModalBtn.focus();
       }
 
-      openLoginModalBtn?.addEventListener('click', () => {
-        if (adminToken) {
-          const ok = confirm('Выйти из админки?');
-          if (!ok) return;
-          setAdminToken('');
-        }
-        openLoginModal();
-      });
+      openLoginModalBtn?.addEventListener('click', openLoginModal);
       closeLoginModalBtn?.addEventListener('click', closeLoginModal);
       cancelLoginBtn?.addEventListener('click', closeLoginModal);
 
@@ -3774,18 +3465,7 @@
         el.className = 'admin-toast';
         const now = new Date();
         const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        const iconEl = document.createElement('span');
-        iconEl.className = 'toast-icon';
-        iconEl.textContent = String(icon || '');
-        const textEl = document.createElement('span');
-        textEl.className = 'toast-text';
-        textEl.textContent = String(text || '');
-        const timeEl = document.createElement('span');
-        timeEl.className = 'toast-time';
-        timeEl.textContent = time;
-        el.appendChild(iconEl);
-        el.appendChild(textEl);
-        el.appendChild(timeEl);
+        el.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-text">${text}</span><span class="toast-time">${time}</span>`;
         toastContainer.appendChild(el);
         setTimeout(() => {
           el.classList.add('fade-out');

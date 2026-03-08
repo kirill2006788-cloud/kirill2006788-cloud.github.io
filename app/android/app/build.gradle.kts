@@ -33,6 +33,13 @@ val releaseKeyFile = rootProject.file("key.properties")
 val releaseKeyProperties = loadLocalSecrets(releaseKeyFile)
 val releaseSigningReady = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
     .all { !releaseKeyProperties.getProperty(it).isNullOrBlank() }
+val isReleaseTask = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
+
+if (isReleaseTask && !releaseSigningReady) {
+    throw GradleException(
+        "Release signing is not configured. Create android/key.properties with storeFile, storePassword, keyAlias, keyPassword."
+    )
+}
 
 val yandexMapsKey = (secrets.getProperty("YANDEX_MAPS_KEY")
     ?: secrets.getProperty("\uFEFFYANDEX_MAPS_KEY")
