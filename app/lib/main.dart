@@ -8214,6 +8214,8 @@ class _ProfilePageState extends State<ProfilePage> {
   int _referralCount = 0;
   int _bonusBalance = 0;
   String? _clientId;
+  String? _usedReferralCode;
+  String _myReferralCode = '';
 
   @override
   void initState() {
@@ -8237,8 +8239,11 @@ class _ProfilePageState extends State<ProfilePage> {
         if (data['ok'] == true && mounted) {
           final bonus = data['bonus'] ?? {};
           final referral = data['referral'] ?? {};
+          final profile = data['profile'] ?? {};
           final availableRaw = bonus['available'];
           final countRaw = referral['count'];
+          final used = profile['usedReferralCode']?.toString().trim();
+          final myCode = referral['code']?.toString().trim() ?? '';
           setState(() {
             _bonusBalance = availableRaw is num
                 ? availableRaw.toInt()
@@ -8246,6 +8251,8 @@ class _ProfilePageState extends State<ProfilePage> {
             _referralCount = countRaw is num
                 ? countRaw.toInt()
                 : int.tryParse(countRaw?.toString() ?? '') ?? 0;
+            _usedReferralCode = (used != null && used.isNotEmpty) ? used : null;
+            _myReferralCode = myCode.isNotEmpty ? myCode : _myReferralCode;
           });
         }
       }
@@ -8311,10 +8318,18 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _syncClientProfile({
     required String fullName,
     required String phone,
+    String? referralCode,
   }) async {
     final clientId = (_clientId ?? _phoneFromJwt(widget.token)?.trim() ?? '').trim();
     if (clientId.isEmpty) return;
     try {
+      final body = <String, dynamic>{
+        'clientId': clientId,
+        'fullName': fullName.trim(),
+        'phone': phone.trim(),
+      };
+      final code = referralCode?.trim().replaceAll(RegExp(r'\D'), '');
+      if (code != null && code.isNotEmpty) body['referralCode'] = code;
       await http
           .post(
             Uri.parse('$_apiBaseUrl/api/client/profile'),
@@ -8322,13 +8337,12 @@ class _ProfilePageState extends State<ProfilePage> {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer ${widget.token}',
             },
-            body: jsonEncode({
-              'clientId': clientId,
-              'fullName': fullName.trim(),
-              'phone': phone.trim(),
-            }),
+            body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 10));
+      if (mounted && code != null && code.isNotEmpty) {
+        setState(() => _usedReferralCode = code);
+      }
     } catch (_) {}
   }
 
@@ -8560,6 +8574,8 @@ class _ProfilePageState extends State<ProfilePage> {
   void _openPersonalDataScreen(BuildContext context) {
     final nameController = TextEditingController(text: _displayName);
     final fioController = TextEditingController(text: _fullName);
+    final referralController = TextEditingController();
+    final canUseReferral = _usedReferralCode == null || (_usedReferralCode ?? '').isEmpty;
     Navigator.of(context).push(
       _FastPageRoute<void>(
         builder: (context) {
@@ -8591,9 +8607,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     final syncPhone = _phoneOverride.trim().isNotEmpty
                         ? _phoneOverride.trim()
                         : (_phoneFromJwt(widget.token) ?? '').trim();
+                    final refCode = canUseReferral ? referralController.text.trim() : null;
                     await _syncClientProfile(
                       fullName: fioController.text,
                       phone: syncPhone,
+                      referralCode: (refCode != null && refCode.isNotEmpty) ? refCode : null,
                     );
                     if (context.mounted) Navigator.of(context).pop();
                   },
@@ -8650,6 +8668,47 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                       ),
+                      if (canUseReferral) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Если вас пригласил друг — введите его код (цифры номера телефона). Тогда ему засчитается приглашение.',
+                          style: TextStyle(
+                            color: secondary,
+                            fontSize: 12,
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: referralController,
+                          style: TextStyle(
+                            color: primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Код пригласившего',
+                            labelStyle: TextStyle(color: secondary),
+                            filled: true,
+                            fillColor: fieldFill,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(Icons.check_circle, color: const Color(0xFF4CAF50), size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Код пригласившего уже был введён',
+                              style: TextStyle(color: secondary, fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -8781,8 +8840,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _openReferralScreen(BuildContext context) {
-    final clientId = _clientId ?? '';
-    final referralCode = clientId.replaceAll(RegExp(r'\D'), '');
+    final referralCode = _myReferralCode.isNotEmpty ? _myReferralCode : (_clientId ?? '').replaceAll(RegExp(r'\D'), '');
     Navigator.of(context).push(
       _FastPageRoute<void>(
         builder: (context) {

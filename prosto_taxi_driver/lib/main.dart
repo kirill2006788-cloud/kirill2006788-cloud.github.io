@@ -3067,12 +3067,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           _orderState = _DriverOrderUiState.incoming;
         });
         _clearRouteState();
+        _refreshRoutePreview();
       } else if (!blocked && _driverBlocked) {
         setState(() {
           _driverBlocked = false;
           _driverBlockReason = null;
           _driverBlockUntil = null;
         });
+        _clearRouteState();
+        _refreshRoutePreview();
       }
     } catch (_) {}
   }
