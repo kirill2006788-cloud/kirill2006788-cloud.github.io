@@ -25,6 +25,7 @@ export type Order = {
   priceFrom?: number;
   priceFinal?: number;
   promoDiscountPercent?: number;
+  bonusUsed?: number;
   tripMinutes?: number;
   tariffName?: string;
   paymentMethod?: 'sbp' | 'cash';
@@ -63,6 +64,7 @@ export type CreateOrderInput = {
   paymentMethod?: 'sbp' | 'cash';
   scheduledAt?: string;
   discountPercent?: number;
+  bonusAmount?: number;
 };
 
 function isFiniteNumber(v: unknown): v is number {
@@ -121,6 +123,10 @@ export class OrdersService {
 
   private clientProfileKey(id: string) {
     return `client:profile:${id}`;
+  }
+
+  private clientBonusKey(id: string) {
+    return `client:bonus:${id}`;
   }
 
   private driverEarningsKey(phone: string) {
@@ -190,6 +196,8 @@ export class OrdersService {
     const tariffs = await this.loadTariffs();
     const tariff = tariffs[this.safeNum(order.serviceIndex, 0)];
     price = this.applyWeekendMarkup(price, tariff, order.scheduledAt);
+    const bonusUsed = Math.max(0, Math.round(Number(order.bonusUsed) || 0));
+    if (bonusUsed > 0) price = Math.max(0, price - bonusUsed);
     return { price, minutes };
   }
 
@@ -396,6 +404,21 @@ export class OrdersService {
         discountPercent = 0;
       }
     }
+    const priceAfterPromo = Math.round(priceFrom * (1 - Math.max(0, Math.min(100, discountPercent)) / 100));
+    let bonusUsed = 0;
+    const requestedBonus = Math.max(0, Math.round(Number(input.bonusAmount) || 0));
+    if (requestedBonus > 0) {
+      const bonusKey = this.clientBonusKey(clientId);
+      const available = Number((await this.redis.client.hget(bonusKey, 'available')) || 0);
+      if (requestedBonus > available) {
+        throw new BadRequestException('Insufficient bonus balance');
+      }
+      if (requestedBonus > priceAfterPromo) {
+        throw new BadRequestException('Bonus cannot exceed order price');
+      }
+      await this.redis.client.hincrby(bonusKey, 'available', -requestedBonus);
+      bonusUsed = requestedBonus;
+    }
     const order: Order = {
       id,
       clientId,
@@ -408,6 +431,7 @@ export class OrdersService {
       serviceIndex: Number.isFinite(Number(input.serviceIndex)) ? Number(input.serviceIndex) : undefined,
       priceFrom,
       promoDiscountPercent: discountPercent > 0 ? discountPercent : undefined,
+      bonusUsed: bonusUsed > 0 ? bonusUsed : undefined,
       tariffName: tariffName || undefined,
       paymentMethod: input.paymentMethod === 'cash' ? 'cash' : 'sbp',
       paymentStatus: 'unpaid',

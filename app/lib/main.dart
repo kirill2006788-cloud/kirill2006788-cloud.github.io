@@ -2954,10 +2954,15 @@ class _TariffQuote {
 }
 
 class _TariffCard extends StatelessWidget {
-  const _TariffCard({required this.quote, required this.discountPercent});
+  const _TariffCard({
+    required this.quote,
+    required this.discountPercent,
+    this.bonusToApply = 0,
+  });
 
   final _TariffQuote quote;
   final int discountPercent;
+  final int bonusToApply;
 
   @override
   Widget build(BuildContext context) {
@@ -3076,7 +3081,7 @@ class _TariffCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${_applyDiscount(quote.priceFrom, discountPercent)} ₽',
+                            '${(_applyDiscount(quote.priceFrom, discountPercent) - bonusToApply).clamp(0, 0x7FFFFFFF)} ₽',
                             style: TextStyle(
                               color: isLight
                                   ? const Color(0xFF1F2534)
@@ -3086,10 +3091,14 @@ class _TariffCard extends StatelessWidget {
                               height: 1.05,
                             ),
                           ),
-                          if (discountPercent > 0) ...[
+                          if (discountPercent > 0 || bonusToApply > 0) ...[
                             const SizedBox(height: 4),
                             Text(
-                              '${quote.priceFrom} ₽  ·  -$discountPercent%',
+                              discountPercent > 0 && bonusToApply > 0
+                                  ? '${quote.priceFrom} ₽  ·  -$discountPercent%  ·  -$bonusToApply ₽ бонусами'
+                                  : discountPercent > 0
+                                      ? '${quote.priceFrom} ₽  ·  -$discountPercent%'
+                                      : '${_applyDiscount(quote.priceFrom, discountPercent)} ₽  ·  -$bonusToApply ₽ бонусами',
                               style: TextStyle(
                                 color: isLight
                                     ? const Color(0xFF7A8296)
@@ -4116,6 +4125,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
   String? _clientId;
   int _referralCount = 0;
   int _bonusBalance = 0;
+  int _bonusToApply = 0;
   String? _currentOrderId;
   String? _driverPhone;
   IO.Socket? _socket;
@@ -4256,6 +4266,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
     unawaited(_initRealtime());
     unawaited(_loadTariffs());
     unawaited(_loadActiveOrder());
+    unawaited(_loadBonusBalance());
 
     // Геолокация — самая тяжёлая, последняя
     if (mounted) _maybeInitMyLocation();
@@ -4314,6 +4325,24 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       if (list is List && mounted) {
         setState(() {
           _tariffs = list.cast<Map<String, dynamic>>();
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _loadBonusBalance() async {
+    try {
+      final res = await _authGet(Uri.parse('$_apiBaseUrl/api/client/profile')).timeout(const Duration(seconds: 10));
+      if (res.statusCode != 200 || !mounted) return;
+      final data = jsonDecode(res.body);
+      if (data['ok'] != true) return;
+      final bonus = data['bonus'] ?? {};
+      final availableRaw = bonus['available'];
+      final value = availableRaw is num ? availableRaw.toInt() : int.tryParse(availableRaw?.toString() ?? '') ?? 0;
+      if (mounted) {
+        setState(() {
+          _bonusBalance = value;
+          if (_bonusToApply > _bonusBalance) _bonusToApply = 0;
         });
       }
     } catch (_) {}
@@ -6310,6 +6339,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
           'kmOutsideMkad': _kmOutsideMkad,
           'paymentMethod': _paymentMethod == _PaymentMethod.cash ? 'cash' : 'sbp',
           if (_promoDiscountPercent > 0) 'discountPercent': _promoDiscountPercent,
+          if (_bonusToApply > 0) 'bonusAmount': _bonusToApply,
           if (_scheduledAt != null) 'scheduledAt': _scheduledAt!.toIso8601String(),
         }),
       );
@@ -6329,6 +6359,12 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
             _promoDiscountPercent = 0;
           });
         }
+      }
+      if (_bonusToApply > 0 && mounted) {
+        setState(() {
+          _bonusBalance = (_bonusBalance - _bonusToApply).clamp(0, 0x7FFFFFFF);
+          _bonusToApply = 0;
+        });
       }
       _startOrderStatusPolling();
       await _saveOrderHistory();
@@ -7171,6 +7207,16 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
                     _OrderBottomSheet(
                       quote: _quote,
                       discountPercent: _promoDiscountPercent,
+                      bonusBalance: _bonusBalance,
+                      bonusToApply: _bonusToApply,
+                      onBonusTap: _quote != null && _bonusBalance > 0
+                          ? () {
+                              final priceAfterPromo = _applyDiscount(_quote!.priceFrom, _promoDiscountPercent);
+                              setState(() {
+                                _bonusToApply = _bonusToApply > 0 ? 0 : (_bonusBalance.clamp(0, priceAfterPromo));
+                              });
+                            }
+                          : null,
                       ridePrices: _tariffs.isEmpty
                           ? _systemRidePrices
                           : List.generate(
@@ -7512,6 +7558,9 @@ class _OrderBottomSheet extends StatelessWidget {
     this.onFromTap,
     this.onToTap,
     this.onEntranceTap,
+    this.bonusBalance = 0,
+    this.bonusToApply = 0,
+    this.onBonusTap,
   });
 
   final _TariffQuote? quote;
@@ -7535,6 +7584,9 @@ class _OrderBottomSheet extends StatelessWidget {
   final VoidCallback? onFromTap;
   final VoidCallback? onToTap;
   final VoidCallback? onEntranceTap;
+  final int bonusBalance;
+  final int bonusToApply;
+  final VoidCallback? onBonusTap;
 
   @override
   Widget build(BuildContext context) {
@@ -7625,7 +7677,57 @@ class _OrderBottomSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   if (quote != null) ...[
-                    _TariffCard(quote: quote!, discountPercent: discountPercent),
+                    _TariffCard(
+                      quote: quote!,
+                      discountPercent: discountPercent,
+                      bonusToApply: bonusToApply,
+                    ),
+                    if (bonusBalance > 0 && onBonusTap != null) ...[
+                      const SizedBox(height: 8),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: onBonusTap,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  bonusToApply > 0 ? Icons.check_circle : Icons.card_giftcard_outlined,
+                                  color: bonusToApply > 0
+                                      ? const Color(0xFFFFD400)
+                                      : (isLight ? const Color(0xFF5C6477) : Colors.white.withOpacity(0.7)),
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    bonusToApply > 0
+                                        ? 'Списать бонусы: $bonusToApply ₽'
+                                        : 'Списать бонусы (до $bonusBalance ₽)',
+                                    style: TextStyle(
+                                      color: isLight ? const Color(0xFF1F2534) : _white95,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                if (bonusToApply > 0)
+                                  Text(
+                                    'отключить',
+                                    style: TextStyle(
+                                      color: isLight ? const Color(0xFF7A8296) : Colors.white.withOpacity(0.6),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 10),
                   ],
                   if (routeLoading || routeSummary != null) ...[
@@ -9623,7 +9725,7 @@ class _AboutCompanyScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Поездили — получили промокод. Делитесь с друзьями: за каждого друга по 200 ₽ на счёт вам и ему. Количество приглашённых не ограничено.',
+                    'Делитесь с друзьями своим реферальным кодом. За каждые 3 приглашённых друга — 500 ₽ на ваш бонусный счёт. Бонусы можно списывать при оплате поездок.',
                     style: TextStyle(
                       color: muted,
                       fontSize: 14,
