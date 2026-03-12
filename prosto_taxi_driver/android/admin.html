@@ -1077,8 +1077,20 @@
     }
 
     .card.tableCard{
-      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
       max-height: min(560px, calc(100vh - 260px));
+    }
+    .tableCardScroll{
+      flex: 1;
+      min-height: 0;
+      max-height: min(70vh, 640px);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tableCard .table{
+      min-width: 100%;
     }
 
     .card::before,
@@ -1272,6 +1284,16 @@
           <span>Блокировки</span>
         </div>
 
+        <div class="navBtn" data-page="abonplata">
+          <div class="icoWrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <span>Абонплата</span>
+        </div>
+
         <div class="navBtn" data-page="verification">
           <div class="icoWrap">
             <!-- верификация: галочка в щите -->
@@ -1351,25 +1373,27 @@
         </div>
 
         <div class="card tableCard">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="colN">№</th>
-                <th style="width:52px;">Фото</th>
-                <th>ФИО</th>
-                <th>E-mail</th>
-                <th>Номер</th>
-                <th>Оценка</th>
-                <th>ИНН</th>
-                <th>Паспорт</th>
-                <th>Регистрация</th>
-                <th>Заработок</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
+          <div class="tableCardScroll">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="colN">№</th>
+                  <th style="width:52px;">Фото</th>
+                  <th>ФИО</th>
+                  <th>E-mail</th>
+                  <th>Номер</th>
+                  <th>Оценка</th>
+                  <th>ИНН</th>
+                  <th>Паспорт</th>
+                  <th>Регистрация</th>
+                  <th>Заработок</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -1384,19 +1408,21 @@
           </div>
         </div>
         <div class="card tableCard">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="colN">№</th>
-                <th>ФИО / Имя</th>
-                <th>Номер</th>
-                <th>Заказов</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody id="clientsTbody">
-            </tbody>
-          </table>
+          <div class="tableCardScroll">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="colN">№</th>
+                  <th>ФИО / Имя</th>
+                  <th>Номер</th>
+                  <th>Заказов</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="clientsTbody">
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -1480,6 +1506,45 @@
         <div class="card" id="ordersFeesWrap" hidden></div>
       </section>
 
+      <section id="pageAbonplata" class="page" hidden>
+        <h1 class="title">Абонплата водителей</h1>
+        <p style="color:rgba(255,255,255,.6);margin-bottom:16px;">Оплата каждого N числа. Просроченные не могут выйти в онлайн (кроме времени активного заказа).</p>
+        <div class="card tableCard" style="margin-bottom:20px;">
+          <h3 class="title" style="margin:0 0 12px 0; font-size:16px;">Настройки</h3>
+          <div class="statList" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+            <div class="statItem" style="margin:0;">
+              <label style="margin-right:6px;">День месяца (1–28):</label>
+              <input type="number" id="abonDayOfMonth" class="input" min="1" max="28" value="5" style="width:70px;" />
+            </div>
+            <div class="statItem" style="margin:0;">
+              <label style="margin-right:6px;">Сумма (₽):</label>
+              <input type="number" id="abonAmount" class="input" min="0" value="1500" style="width:100px;" />
+            </div>
+            <button type="button" class="actionBtn add" id="abonSaveSettings">Сохранить настройки</button>
+          </div>
+        </div>
+        <div class="card tableCard">
+          <h3 class="title" style="margin:0 0 10px 0; font-size:18px;">Водители</h3>
+          <div class="tableCardScroll">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="colN">№</th>
+                  <th>Номер</th>
+                  <th>ФИО</th>
+                  <th>Оплачено до</th>
+                  <th>Статус</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="abonplataTbody">
+                <tr><td colspan="6">Загрузка…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section id="pagePromos" class="page" hidden>
         <h1 class="title">Бонусы и промокоды</h1>
 
@@ -1519,37 +1584,41 @@
         </div>
 
         <div class="card tableCard" id="blocksClientsTableWrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="colN">№</th>
-                <th>ФИО</th>
-                <th>E-mail</th>
-                <th>Номер</th>
-                <th>ID</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody id="blocksClientsTbody">
-            </tbody>
-          </table>
+          <div class="tableCardScroll">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="colN">№</th>
+                  <th>ФИО</th>
+                  <th>E-mail</th>
+                  <th>Номер</th>
+                  <th>ID</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="blocksClientsTbody">
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div class="card tableCard" id="blocksDriversTableWrap" hidden>
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="colN">№</th>
-                <th>ФИО</th>
-                <th>E-mail</th>
-                <th>Номер</th>
-                <th>ID</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody id="blocksDriversTbody">
-            </tbody>
-          </table>
+          <div class="tableCardScroll">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="colN">№</th>
+                  <th>ФИО</th>
+                  <th>E-mail</th>
+                  <th>Номер</th>
+                  <th>ID</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="blocksDriversTbody">
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -1570,22 +1639,24 @@
         </div>
 
         <div class="card tableCard" id="verifyAllWrap" hidden>
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="colN">№</th>
-                <th style="width:52px;">Фото</th>
-                <th>ФИО</th>
-                <th>Телефон</th>
-                <th>ИНН</th>
-                <th>Паспорт</th>
-                <th>Документы</th>
-                <th>Статус</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody id="verifyAllTbody"></tbody>
-          </table>
+          <div class="tableCardScroll">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="colN">№</th>
+                  <th style="width:52px;">Фото</th>
+                  <th>ФИО</th>
+                  <th>Телефон</th>
+                  <th>ИНН</th>
+                  <th>Паспорт</th>
+                  <th>Документы</th>
+                  <th>Статус</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="verifyAllTbody"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -1978,6 +2049,7 @@
         orders: document.getElementById('pageOrders'),
         promos: document.getElementById('pagePromos'),
         blocks: document.getElementById('pageBlocks'),
+        abonplata: document.getElementById('pageAbonplata'),
         verification: document.getElementById('pageVerification'),
         stats: document.getElementById('pageStats'),
       };
@@ -2948,6 +3020,130 @@
         loadPromos();
       });
 
+      async function loadAbonplata() {
+        const tbody = document.getElementById('abonplataTbody');
+        const dayInput = document.getElementById('abonDayOfMonth');
+        const amountInput = document.getElementById('abonAmount');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="6">Загрузка…</td></tr>';
+        try {
+          const [settingsRes, driversRes] = await Promise.all([
+            adminFetch(`${API_BASE}/admin/subscription/settings`),
+            adminFetch(`${API_BASE}/admin/drivers`),
+          ]);
+          const settingsData = await settingsRes.json();
+          const driversData = await driversRes.json();
+          if (settingsData.ok && dayInput && amountInput) {
+            dayInput.value = settingsData.dayOfMonth ?? 5;
+            amountInput.value = settingsData.amount ?? 1500;
+          }
+          const drivers = Array.isArray(driversData.drivers) ? driversData.drivers : [];
+          tbody.innerHTML = '';
+          if (!drivers.length) {
+            tbody.innerHTML = '<tr><td colspan="6">Нет водителей</td></tr>';
+            return;
+          }
+          drivers.forEach((d, idx) => {
+            const phone = esc(d.phone || '—');
+            const name = esc((d.profile && d.profile.fullName) ? d.profile.fullName : '—');
+            const paidUntil = d.subscriptionPaidUntil || '—';
+            const overdue = d.subscriptionOverdue === true;
+            const statusHtml = overdue
+              ? '<span style="color:#f44336;font-weight:800;">Просрочено</span>'
+              : '<span style="color:#4caf50;">Оплачено</span>';
+            const forceLabel = overdue ? 'Выставить сейчас' : 'Сделать просроченным';
+            const forceTitle = overdue ? 'Выставить просрочку (для проверки)' : 'Убрать статус «Оплачено», водитель увидит экран абонплаты';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="colN">${idx + 1}</td>
+              <td>${phone}</td>
+              <td>${name}</td>
+              <td>${esc(paidUntil)}</td>
+              <td>${statusHtml}</td>
+              <td>
+                <button type="button" class="btn" data-abon-paid="${esc(d.phone)}" title="Отметить оплату (до след. N-го)">Оплатил</button>
+                <button type="button" class="btn" style="margin-left:4px;" data-abon-force="${esc(d.phone)}" data-abon-force-label="${esc(forceLabel)}" title="${forceTitle}">${forceLabel}</button>
+                <button type="button" class="btn" style="margin-left:4px;" data-abon-date="${esc(d.phone)}" title="Изменить дату «оплачено до»">Изменить дату</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+          tbody.querySelectorAll('button[data-abon-paid]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const phone = b.getAttribute('data-abon-paid');
+              if (!phone) return;
+              try {
+                await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/subscription/paid`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({}),
+                });
+                loadAbonplata();
+              } catch (e) {
+                if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') alert('Ошибка: ' + (e?.message || e));
+              }
+            });
+          });
+          tbody.querySelectorAll('button[data-abon-force]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const phone = (b.getAttribute('data-abon-force') || '').trim();
+              if (!phone) return;
+              const label = b.getAttribute('data-abon-force-label') || 'Выставить просрочку';
+              const msg = label === 'Сделать просроченным'
+                ? 'Убрать статус «Оплачено»? Водитель увидит экран абонплаты (просрочено).'
+                : 'Выставить просрочку сейчас? Водитель увидит экран абонплаты.';
+              if (!confirm(msg)) return;
+              try {
+                await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/subscription/force-overdue`, { method: 'POST' });
+                tbody.innerHTML = '<tr><td colspan="6">Обновление…</td></tr>';
+                await loadAbonplata();
+              } catch (e) {
+                if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') alert('Ошибка: ' + (e?.message || e));
+              }
+            });
+          });
+          tbody.querySelectorAll('button[data-abon-date]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const phone = b.getAttribute('data-abon-date');
+              if (!phone) return;
+              const dateStr = prompt('Дата «оплачено до» (ГГГГ-ММ-ДД):', new Date().toISOString().slice(0, 10));
+              if (dateStr === null || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr.trim())) return;
+              try {
+                await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/subscription/set-date`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ paidUntil: dateStr.trim() }),
+                });
+                loadAbonplata();
+              } catch (e) {
+                if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') alert('Ошибка: ' + (e?.message || e));
+              }
+            });
+          });
+        } catch (e) {
+          tbody.innerHTML = '<tr><td colspan="6">Ошибка загрузки</td></tr>';
+        }
+      }
+
+      document.getElementById('abonSaveSettings')?.addEventListener('click', async () => {
+        const dayInput = document.getElementById('abonDayOfMonth');
+        const amountInput = document.getElementById('abonAmount');
+        const day = Math.max(1, Math.min(28, parseInt(dayInput?.value || '5', 10) || 5));
+        const amount = Math.max(0, parseInt(amountInput?.value || '1500', 10) || 1500);
+        try {
+          await adminFetch(`${API_BASE}/admin/subscription/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dayOfMonth: day, amount }),
+          });
+          if (dayInput) dayInput.value = day;
+          if (amountInput) amountInput.value = amount;
+          loadAbonplata();
+        } catch (e) {
+          if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') alert('Ошибка: ' + (e?.message || e));
+        }
+      });
+
       async function loadPayouts() {
         if (!payoutsList) return;
         payoutsList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
@@ -3036,6 +3232,9 @@
         }
         if (pageKey === 'promos') {
           loadPromos();
+        }
+        if (pageKey === 'abonplata') {
+          loadAbonplata();
         }
         if (pageKey === 'verification') {
           loadVerification();
@@ -3935,6 +4134,8 @@
             await loadVerification();
           } else if (page === 'promos') {
             await loadPromos();
+          } else if (page === 'abonplata') {
+            await loadAbonplata();
           }
         } catch {}
       }

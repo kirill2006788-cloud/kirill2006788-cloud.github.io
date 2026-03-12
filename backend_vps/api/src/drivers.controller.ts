@@ -55,6 +55,9 @@ export class DriversController {
     const blocked = await this.redis.client.exists(`driver:block:${normalized}`);
     const blockMeta = await this.drivers.getBlockMeta(normalized);
     const earningsLimit = Number(await this.redis.client.get('settings:earnings_limit') || 15000);
+    const subSettings = await this.drivers.getSubscriptionSettings();
+    const subscriptionPaidUntil = await this.drivers.getSubscriptionPaidUntil(normalized);
+    const subscriptionOverdue = await this.drivers.isSubscriptionOverdue(normalized);
     const safeProfile = {
       ...baseProfile,
       avatarBase64: (baseProfile as any).avatarBase64 || photosBackup.avatarBase64 || null,
@@ -76,6 +79,10 @@ export class DriversController {
       blockUntil: blockMeta?.until || null,
       earningsLimit,
       limitReached: Number(earnings.commission || 0) >= earningsLimit,
+      subscriptionPaidUntil: subscriptionPaidUntil || null,
+      subscriptionOverdue,
+      subscriptionAmount: subSettings.amount,
+      subscriptionDayOfMonth: subSettings.dayOfMonth,
     };
     return { ok: true, profile: safeProfile, bonus };
   }

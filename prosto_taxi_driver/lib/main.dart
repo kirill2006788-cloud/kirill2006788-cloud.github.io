@@ -2848,6 +2848,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String? _driverBlockReason;
   DateTime? _driverBlockUntil;
   bool _earningsLimitReached = false;
+  bool _subscriptionOverdue = false;
+  int _subscriptionAmount = 1500;
+  int _subscriptionDayOfMonth = 5;
   bool _socketConnected = true; // true пока не было первого disconnect
   bool _socketEverConnected = false;
   String _registrationStatus = 'incomplete';
@@ -2916,9 +2919,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getBool('driver_online_v1');
     final savedRegStatus = prefs.getString('driver_registration_status');
+    final savedSubOverdue = prefs.getBool('driver_subscription_overdue_v1');
     if (!mounted) return;
     setState(() {
       if (saved != null) _driverOnline = saved;
+      if (savedSubOverdue == true) _subscriptionOverdue = true;
       // Восстанавливаем статус регистрации, чтобы не начинать с 'incomplete'
       if (savedRegStatus != null && savedRegStatus.isNotEmpty) {
         _registrationStatus = savedRegStatus;
@@ -3012,12 +3017,18 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       final blockUntil = DateTime.tryParse(profile['blockUntil']?.toString() ?? '');
       final regStatus = (profile['registrationStatus']?.toString() ?? 'incomplete');
       final limitReached = profile['limitReached'] == true;
+      final subOverdue = profile['subscriptionOverdue'] == true;
+      final subAmount = int.tryParse(profile['subscriptionAmount']?.toString() ?? '') ?? 1500;
+      final subDay = int.tryParse(profile['subscriptionDayOfMonth']?.toString() ?? '') ?? 5;
       if (!mounted) return;
       final prevRegStatus = _registrationStatus;
       final wasLimitReached = _earningsLimitReached;
       setState(() {
         _registrationStatus = regStatus;
         _earningsLimitReached = limitReached;
+        _subscriptionOverdue = subOverdue;
+        _subscriptionAmount = subAmount;
+        _subscriptionDayOfMonth = subDay;
         _driverBlockReason = blockReason;
         _driverBlockUntil = blockUntil;
         // Если лимит снят — убираем оверлей блокировки
@@ -3025,6 +3036,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           _resultOverlay = _ActionResultOverlay.none;
         }
       });
+      unawaited(SharedPreferences.getInstance().then((prefs) {
+        prefs.setBool('driver_subscription_overdue_v1', subOverdue);
+      }));
       // Сохраняем статус регистрации, чтобы при следующем запуске не терялся
       unawaited(SharedPreferences.getInstance().then((prefs) {
         prefs.setString('driver_registration_status', regStatus);
@@ -3047,6 +3061,21 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         // Если есть активный заказ — НЕ прерываем его.
         // Флаг _earningsLimitReached уже установлен,
         // блокировка сработает после завершения/отмены заказа.
+      }
+      if (subOverdue) {
+        final hasActiveOrder = _order != null &&
+            _orderState != _DriverOrderUiState.incoming &&
+            _orderState != _DriverOrderUiState.declined;
+        if (!hasActiveOrder && mounted) {
+          setState(() {
+            _driverOnline = false;
+            _order = null;
+            _orderState = _DriverOrderUiState.incoming;
+          });
+          _socket?.emit('driver:status', {'status': 'offline'});
+          _clearRouteState();
+          _refreshRoutePreview();
+        }
       }
       // Показать диалог «Документы подтверждены» только 1 раз
       if (regStatus == 'completed') {
@@ -3256,6 +3285,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           });
           SharedPreferences.getInstance().then((p) => p.setBool('driver_online_v1', false));
           _showEarningsLimitOverlay();
+          return;
+        }
+        if (response is Map && response['error'] == 'SUBSCRIPTION_OVERDUE') {
+          setState(() {
+            _driverOnline = false;
+            _subscriptionOverdue = true;
+          });
+          SharedPreferences.getInstance().then((p) => p.setBool('driver_online_v1', false));
+          return;
         }
       });
       return;
@@ -3291,6 +3329,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           _setDriverOnline(true);
         } else {
           _showEarningsLimitOverlay();
+        }
+      }));
+      return;
+    }
+    if (value && _subscriptionOverdue) {
+      unawaited(_checkBlockStatus().then((_) {
+        if (!mounted) return;
+        if (!_subscriptionOverdue) {
+          _setDriverOnline(true);
         }
       }));
       return;
@@ -4494,6 +4541,23 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         _driverBlockUntil = null;
       });
     });
+    s.on('driver:subscription_overdue', (_) {
+      if (!mounted) return;
+      setState(() {
+        _subscriptionOverdue = true;
+        _driverOnline = false;
+      });
+      SharedPreferences.getInstance().then((p) {
+        p.setBool('driver_online_v1', false);
+        p.setBool('driver_subscription_overdue_v1', true);
+      });
+    });
+    s.on('driver:subscription_paid', (_) {
+      if (!mounted) return;
+      setState(() => _subscriptionOverdue = false);
+      SharedPreferences.getInstance().then((p) => p.setBool('driver_subscription_overdue_v1', false));
+      unawaited(_checkBlockStatus());
+    });
     s.on('driver:earnings-limit', (_) {
       if (!mounted) return;
       setState(() {
@@ -5551,6 +5615,75 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   ),
                 ),
               ),
+              ),
+            ),
+          // ─── Экран «Абонплата» (оплата каждого N числа) ─────────────
+          if (!_driverBlocked && !_earningsLimitReached && _subscriptionOverdue &&
+              (_order == null || _orderState == _DriverOrderUiState.incoming))
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {},
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  color: const Color(0xF005060A),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF6A3CA5), Color(0xFF4A2C75)],
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.calendar_today,
+                              color: Colors.white,
+                              size: 42,
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+                          Text(
+                            'Оплата каждого $_subscriptionDayOfMonth числа',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '$_subscriptionAmount ₽',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xFFFFD400),
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Обратитесь к администратору для оплаты.\nДоступ к заказам будет открыт после оплаты.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: _white55,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
         ],

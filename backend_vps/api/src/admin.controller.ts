@@ -147,11 +147,15 @@ export class AdminController {
     base.forEach((d) => pipeline.get(this.driverProfileKey(d.phone)));
     base.forEach((d) => pipeline.get(this.driverPhotosBackupKey(d.phone)));
     base.forEach((d) => pipeline.hgetall(`driver:earnings:${d.phone}`));
+    base.forEach((d) => pipeline.get(`driver:sub:paid_until:${d.phone}`));
     const res = await pipeline.exec();
     const half = base.length;
     const profiles = res?.slice(0, half).map((r) => r?.[1]) || [];
     const backups = res?.slice(half, half * 2).map((r) => r?.[1]) || [];
-    const earningsRaw = res?.slice(half * 2).map((r) => r?.[1]) || [];
+    const earningsRaw = res?.slice(half * 2, half * 3).map((r) => r?.[1]) || [];
+    const subPaidRaw = res?.slice(half * 3).map((r) => r?.[1]) || [];
+    const subSettings = await this.drivers.getSubscriptionSettings();
+    const currentDue = this.drivers.getCurrentPeriodDueDate(subSettings.dayOfMonth);
     const drivers = base.map((d, idx) => {
       const raw = typeof profiles[idx] === 'string' ? profiles[idx] : null;
       let profile: any = {};
@@ -172,12 +176,18 @@ export class AdminController {
       const commission = Number(e.commission || 0);
       const net = Number(e.net || 0);
       const paid = Number(e.paid || 0);
+      const paidUntil = typeof subPaidRaw[idx] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(subPaidRaw[idx] as string) ? (subPaidRaw[idx] as string) : null;
+      const subscriptionOverdue = !paidUntil || paidUntil < currentDue;
       return {
         ...d,
         profile,
         earnings: { gross, commission, net, paid, available: net - paid },
         limitReached: commission >= earningsLimit,
         earningsLimit,
+        subscriptionPaidUntil: paidUntil,
+        subscriptionOverdue,
+        subscriptionAmount: subSettings.amount,
+        subscriptionDayOfMonth: subSettings.dayOfMonth,
       };
     });
     return { ok: true, drivers };
@@ -231,7 +241,75 @@ export class AdminController {
       // geo index cleanup is best-effort
     }
     await this.redis.client.srem('drivers:active_order', phone);
+    await this.redis.client.del(`driver:sub:paid_until:${phone}`);
     return { ok: true };
+  }
+
+  @Get('subscription/settings')
+  async getSubscriptionSettings(@Headers('authorization') auth?: string) {
+    this.requireAdmin(auth);
+    const settings = await this.drivers.getSubscriptionSettings();
+    return { ok: true, ...settings };
+  }
+
+  @Post('subscription/settings')
+  async setSubscriptionSettings(
+    @Body() body: { amount?: number; dayOfMonth?: number },
+    @Headers('authorization') auth?: string,
+  ) {
+    this.requireAdmin(auth);
+    const current = await this.drivers.getSubscriptionSettings();
+    const amount = Number.isFinite(Number(body?.amount)) ? Math.max(0, Math.round(Number(body.amount))) : current.amount;
+    const dayOfMonth = Number.isFinite(Number(body?.dayOfMonth)) ? Math.max(1, Math.min(28, Math.round(Number(body.dayOfMonth)))) : current.dayOfMonth;
+    await this.drivers.setSubscriptionSettings(amount, dayOfMonth);
+    return { ok: true, amount, dayOfMonth };
+  }
+
+  @Post('drivers/:phone/subscription/paid')
+  async markSubscriptionPaid(
+    @Param('phone') phoneRaw: string,
+    @Body() body: { paidUntil?: string },
+    @Headers('authorization') auth?: string,
+  ) {
+    this.requireAdmin(auth);
+    const phone = (phoneRaw || '').trim();
+    if (!phone) return { ok: false, error: 'phone required' };
+    const nextDue = this.drivers.getNextDueDate((await this.drivers.getSubscriptionSettings()).dayOfMonth);
+    const paidUntil = body?.paidUntil && /^\d{4}-\d{2}-\d{2}$/.test(String(body.paidUntil).trim()) ? String(body.paidUntil).trim() : nextDue;
+    await this.drivers.setSubscriptionPaidUntil(phone, paidUntil);
+    this.events.emitDriverSubscriptionPaid(phone);
+    return { ok: true, paidUntil };
+  }
+
+  @Post('drivers/:phone/subscription/force-overdue')
+  async forceSubscriptionOverdue(@Param('phone') phoneRaw: string, @Headers('authorization') auth?: string) {
+    this.requireAdmin(auth);
+    const phone = (phoneRaw || '').trim();
+    if (!phone) return { ok: false, error: 'phone required' };
+    const settings = await this.drivers.getSubscriptionSettings();
+    const currentDue = this.drivers.getCurrentPeriodDueDate(settings.dayOfMonth);
+    const dueDate = new Date(currentDue + 'T12:00:00Z');
+    dueDate.setDate(dueDate.getDate() - 1);
+    const paidUntil = dueDate.toISOString().slice(0, 10);
+    await this.drivers.setSubscriptionPaidUntil(phone, paidUntil);
+    this.events.emitDriverSubscriptionOverdue(phone);
+    return { ok: true, paidUntil };
+  }
+
+  @Post('drivers/:phone/subscription/set-date')
+  async setSubscriptionDate(
+    @Param('phone') phoneRaw: string,
+    @Body() body: { paidUntil: string },
+    @Headers('authorization') auth?: string,
+  ) {
+    this.requireAdmin(auth);
+    const phone = (phoneRaw || '').trim();
+    if (!phone) return { ok: false, error: 'phone required' };
+    const paidUntil = body?.paidUntil && /^\d{4}-\d{2}-\d{2}$/.test(String(body.paidUntil).trim()) ? String(body.paidUntil).trim() : null;
+    if (!paidUntil) return { ok: false, error: 'paidUntil required (YYYY-MM-DD)' };
+    await this.drivers.setSubscriptionPaidUntil(phone, paidUntil);
+    this.events.emitDriverSubscriptionPaid(phone);
+    return { ok: true, paidUntil };
   }
 
   @Post('drivers/:phone/approve')

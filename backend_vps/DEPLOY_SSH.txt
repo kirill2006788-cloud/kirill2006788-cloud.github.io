@@ -9,8 +9,8 @@
 #    ssh root@194.67.84.155
 #    cd /opt/prosto-taxi
 #    git pull
-#    docker compose build api --build-arg NPM_CMD=ci
-#    docker compose up -d api prosto_nginx
+#    docker compose build api
+#    docker compose up -d api nginx
 #
 # 3) Post-deploy проверки:
 #    docker compose ps
@@ -26,5 +26,5 @@
 #    cd /opt/prosto-taxi
 #    git log --oneline -n 5
 #    git checkout <prev_commit_sha>
-#    docker compose build api --build-arg NPM_CMD=ci
-#    docker compose up -d api prosto_nginx
+#    docker compose build api
+#    docker compose up -d api nginx

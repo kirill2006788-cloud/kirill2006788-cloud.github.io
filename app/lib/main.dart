@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:video_player/video_player.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 
 const _apiBaseUrl = String.fromEnvironment(
@@ -305,6 +306,80 @@ class _AuthApi {
   }
 }
 
+/// Полноэкранная видео-заставка при загрузке (на весь экран, в т.ч. на iOS).
+class _VideoSplashScreen extends StatefulWidget {
+  const _VideoSplashScreen();
+
+  @override
+  State<_VideoSplashScreen> createState() => _VideoSplashScreenState();
+}
+
+class _VideoSplashScreenState extends State<_VideoSplashScreen> {
+  VideoPlayerController? _controller;
+  bool _error = false;
+
+  static const _assetPath = 'assets/video/splash.mp4';
+
+  @override
+  void initState() {
+    super.initState();
+    _initVideo();
+  }
+
+  Future<void> _initVideo() async {
+    try {
+      _controller = VideoPlayerController.asset(_assetPath);
+      await _controller!.initialize();
+      if (!mounted) return;
+      _controller!.setLooping(false);
+      _controller!.setVolume(1.0);
+      _controller!.play();
+      setState(() {});
+    } catch (_) {
+      if (mounted) setState(() => _error = true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error || _controller == null || !_controller!.value.isInitialized) {
+      return const SizedBox.expand(
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: Color(0xFF05060A)),
+          child: Center(child: CircularProgressIndicator(color: Colors.white70)),
+        ),
+      );
+    }
+    final size = _controller!.value.size;
+    final w = size.width;
+    final h = size.height;
+    if (w <= 0 || h <= 0) {
+      return const SizedBox.expand(
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: Color(0xFF05060A)),
+          child: Center(child: CircularProgressIndicator(color: Colors.white70)),
+        ),
+      );
+    }
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: w,
+          height: h,
+          child: VideoPlayer(_controller!),
+        ),
+      ),
+    );
+  }
+}
+
 class _AuthGate extends StatefulWidget {
   const _AuthGate({
     required this.childBuilder,
@@ -365,7 +440,7 @@ class _AuthGateState extends State<_AuthGate> {
     if (_loading) {
       return const Scaffold(
         backgroundColor: Color(0xFF05060A),
-        body: Center(child: CircularProgressIndicator()),
+        body: _VideoSplashScreen(),
       );
     }
 
@@ -3160,15 +3235,10 @@ class _MapBlockState extends State<_MapBlock> {
   @override
   void initState() {
     super.initState();
-    // Откладываем создание тяжёлого нативного YandexMap
-    // чтобы переход страницы был мгновенным
+    // Создаём карту после первого кадра (на iOS иначе карта могла не появиться)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // Даём анимации перехода завершиться, потом создаём карту
-      Future.delayed(const Duration(milliseconds: 80), () {
-        if (!mounted) return;
-        setState(() { _mapReady = true; });
-      });
+      setState(() { _mapReady = true; });
     });
   }
 
@@ -3203,7 +3273,7 @@ class _MapBlockState extends State<_MapBlock> {
   @override
   Widget build(BuildContext context) {
     if (!_isMobilePlatform || !widget.enabled || !_mapReady) {
-      return _placeholder;
+      return SizedBox.expand(child: _placeholder);
     }
 
     return RepaintBoundary(
@@ -10957,9 +11027,9 @@ class _ScheduleBottomSheetState extends State<_ScheduleBottomSheet>
                 ],
               ),
             ),
-            // ── Confirm ──
+            // ── Confirm ── (уменьшены отступы, чтобы не было overflow на маленьких экранах/с клавиатурой)
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
               child: SizedBox(
                 width: double.infinity,
                 child: _PrimaryGlowButton(
@@ -10981,9 +11051,10 @@ class _ScheduleBottomSheetState extends State<_ScheduleBottomSheet>
     final fieldBorder = isLight ? const Color(0xFFDCE2EB) : _white06;
     final hintColor = isLight ? const Color(0xFF9AA3B5) : _white40;
     final textColor = isLight ? const Color(0xFF1F2534) : _white95;
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 22, 20, 8),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(

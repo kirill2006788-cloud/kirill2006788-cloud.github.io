@@ -396,6 +396,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     this.server.to(`driver:${phone}`).emit('driver:unblocked', { phone });
   }
 
+  emitDriverSubscriptionOverdue(phone: string) {
+    this.server.to(`driver:${phone}`).emit('driver:subscription_overdue', { phone });
+  }
+
+  emitDriverSubscriptionPaid(phone: string) {
+    this.server.to(`driver:${phone}`).emit('driver:subscription_paid', { phone });
+  }
+
   /** Комиссия погашена — водитель снова может принимать заказы */
   emitCommissionCleared(phone: string) {
     this.server.to(`driver:${phone}`).emit('commission:cleared', { phone });
@@ -480,6 +488,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
           commission,
           limit: earningsLimit,
         };
+      }
+      const subOverdue = await this.drivers.isSubscriptionOverdue(user.phone);
+      const hasActiveOrder = await this.drivers.hasActiveOrder(user.phone);
+      if (subOverdue && !hasActiveOrder) {
+        await this.drivers.setStatus(user.phone, 'offline');
+        client.emit('driver:subscription_overdue', { phone: user.phone });
+        return { ok: false, error: 'SUBSCRIPTION_OVERDUE' };
       }
     }
     await this.drivers.setStatus(user.phone, status);

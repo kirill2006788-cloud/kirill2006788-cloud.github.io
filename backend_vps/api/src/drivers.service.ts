@@ -51,6 +51,83 @@ export class DriversService {
     return `driver:missed_orders:${phone}`;
   }
 
+  private subscriptionPaidUntilKey(phone: string) {
+    return `driver:sub:paid_until:${phone}`;
+  }
+
+  private subscriptionSettingsKey() {
+    return 'settings:subscription';
+  }
+
+  async getSubscriptionSettings(): Promise<{ amount: number; dayOfMonth: number }> {
+    const raw = await this.redis.client.get(this.subscriptionSettingsKey());
+    if (raw) {
+      try {
+        const o = JSON.parse(raw) as { amount?: number; dayOfMonth?: number };
+        const amount = Number.isFinite(Number(o?.amount)) ? Math.max(0, Math.round(Number(o.amount))) : 1500;
+        const day = Number.isFinite(Number(o?.dayOfMonth)) ? Math.max(1, Math.min(28, Math.round(Number(o.dayOfMonth)))) : 5;
+        return { amount, dayOfMonth: day };
+      } catch {
+        return { amount: 1500, dayOfMonth: 5 };
+      }
+    }
+    return { amount: 1500, dayOfMonth: 5 };
+  }
+
+  async setSubscriptionSettings(amount: number, dayOfMonth: number) {
+    await this.redis.client.set(
+      this.subscriptionSettingsKey(),
+      JSON.stringify({
+        amount: Math.max(0, Math.round(amount)),
+        dayOfMonth: Math.max(1, Math.min(28, Math.round(dayOfMonth))),
+      }),
+    );
+  }
+
+  getNextDueDate(dayOfMonth: number): string {
+    const now = new Date();
+    let d = new Date(now.getFullYear(), now.getMonth(), dayOfMonth);
+    if (d <= now) d = new Date(now.getFullYear(), now.getMonth() + 1, dayOfMonth);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  getCurrentPeriodDueDate(dayOfMonth: number): string {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), dayOfMonth);
+    if (d > now) {
+      const prev = new Date(now.getFullYear(), now.getMonth() - 1, dayOfMonth);
+      const y = prev.getFullYear();
+      const m = String(prev.getMonth() + 1).padStart(2, '0');
+      const day = String(prev.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  async getSubscriptionPaidUntil(phone: string): Promise<string | null> {
+    const raw = await this.redis.client.get(this.subscriptionPaidUntilKey(phone));
+    return raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
+  }
+
+  async setSubscriptionPaidUntil(phone: string, dateStr: string) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+    await this.redis.client.set(this.subscriptionPaidUntilKey(phone), dateStr);
+  }
+
+  async isSubscriptionOverdue(phone: string): Promise<boolean> {
+    const settings = await this.getSubscriptionSettings();
+    const due = this.getCurrentPeriodDueDate(settings.dayOfMonth);
+    const paidUntil = await this.getSubscriptionPaidUntil(phone);
+    if (!paidUntil) return true;
+    return paidUntil < due;
+  }
+
   async setStatus(phone: string, status: DriverStatus) {
     await this.redis.client.hset(this.statusKey(), phone, status);
     await this.redis.client.sadd(this.allKey(), phone);
