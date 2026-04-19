@@ -84,7 +84,7 @@ const _addressWorkKey = 'address_work';
 const _addressFavKey = 'address_favorite';
 const _orderHistoryKey = 'order_history';
 const _themeModeKey = 'theme_mode'; // 'dark' | 'light'
-const _iosPushChannel = MethodChannel('ru.prostotaxi.client/push');
+const _iosPushChannel = MethodChannel('ru.prostotaxi.driver/push');
 
 Future<String?> _requestIosPushToken() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return null;
@@ -192,6 +192,25 @@ bool _looksLikeLicensePlateOrCode(String text) {
   // Цифры-дефис-цифры без букв (46-1082) — тоже код
   if (RegExp(r'^\d{2,4}-\d{4,}$').hasMatch(t)) return true;
   return false;
+}
+
+/// Расстояние по формуле Гаверсина в метрах
+double _haversineDistanceM(Point a, Point b) {
+  const r = 6371000.0;
+  final dLat = (b.latitude - a.latitude) * math.pi / 180;
+  final dLon = (b.longitude - a.longitude) * math.pi / 180;
+  final lat1 = a.latitude * math.pi / 180;
+  final lat2 = b.latitude * math.pi / 180;
+  final x = math.sin(dLat / 2) * math.sin(dLat / 2) +
+      math.cos(lat1) * math.cos(lat2) * math.sin(dLon / 2) * math.sin(dLon / 2);
+  return r * 2 * math.atan2(math.sqrt(x), math.sqrt(1 - x));
+}
+
+/// Форматирует расстояние как «500 м», «1.2 км», «15 км»
+String _formatDistance(double meters) {
+  if (meters < 900) return '${meters.round()} м';
+  if (meters < 9950) return '${(meters / 1000).toStringAsFixed(1)} км';
+  return '${(meters / 1000).round()} км';
 }
 
 bool _looksLikeGarbageAddressText(String text) {
@@ -1808,13 +1827,16 @@ class _RouteSelection {
 }
 
 class _AddressSuggestion {
-  const _AddressSuggestion(this.title, this.point, {this.searchText, this.icon, this.label});
+  const _AddressSuggestion(this.title, this.point,
+      {this.searchText, this.icon, this.label, this.trusted = false, this.distanceM});
 
   final String title;
   final Point? point;
-  final String? searchText;
+  final String? searchText; // адрес / подзаголовок для отображения и поиска
   final IconData? icon;
   final String? label; // "Дом", "Работа", "Избранное"
+  final bool trusted; // если true — не перезаписывать title через обратное геокодирование
+  final double? distanceM; // расстояние от пользователя в метрах
 }
 
 class _RoutePickerBottomSheet extends StatefulWidget {
@@ -1862,6 +1884,8 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
   SuggestSession? _suggestSession;
   int _suggestRequestId = 0;
   bool _suggestLoading = false;
+  bool _applyingSuggestion = false;
+  bool _doneSubmitting = false;
   List<_AddressSuggestion> _suggestions = const <_AddressSuggestion>[];
 
   static const int _minSuggestQueryLength = 2;
@@ -1882,42 +1906,52 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
     _AddressSuggestion(
       'Аптекарский переулок, 1',
       Point(latitude: 55.76733, longitude: 37.63173),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Казанский вокзал',
       Point(latitude: 55.77612, longitude: 37.65588),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Белорусский вокзал',
       Point(latitude: 55.77675, longitude: 37.58286),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Парк Горького',
       Point(latitude: 55.72989, longitude: 37.60347),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Шереметьево (SVO)',
       Point(latitude: 55.97264, longitude: 37.41459),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Домодедово (DME)',
       Point(latitude: 55.40900, longitude: 37.90200),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Внуково (VKO)',
       Point(latitude: 55.60500, longitude: 37.28700),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Химки, Московская область',
       Point(latitude: 55.88900, longitude: 37.44500),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Одинцово, Московская область',
       Point(latitude: 55.67800, longitude: 37.27700),
+      trusted: true,
     ),
     _AddressSuggestion(
       'Зеленоград',
       Point(latitude: 55.99200, longitude: 37.21400),
+      trusted: true,
     ),
   ];
 
@@ -1932,6 +1966,7 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
           null,
           icon: Icons.home_rounded,
           label: 'Дом',
+          trusted: true,
         ));
       }
     }
@@ -1942,6 +1977,7 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
           null,
           icon: Icons.work_rounded,
           label: 'Работа',
+          trusted: true,
         ));
       }
     }
@@ -1952,6 +1988,7 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
           null,
           icon: Icons.star_rounded,
           label: 'Избранное',
+          trusted: true,
         ));
       }
     }
@@ -2064,6 +2101,70 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return const <_AddressSuggestion>[];
 
+    // 1) Suggest API — как в Яндекс.Go: понимает «метро X», POI, адреса
+    try {
+      final (suggestSession, suggestFuture) = await YandexSuggest.getSuggestions(
+        text: trimmed,
+        boundingBox: _suggestBox(),
+        suggestOptions: SuggestOptions(
+          suggestType: SuggestType.unspecified,
+          userPosition: _fromPoint,
+        ),
+      );
+      final suggestResult = await suggestFuture;
+      await suggestSession.close();
+      final suggestItems = suggestResult.items ?? const <SuggestItem>[];
+
+      final suggestions = suggestItems
+          .where((item) => item.title.trim().isNotEmpty)
+          .where((item) => !_looksLikeLicensePlateOrCode(item.title))
+          .where((item) => !_looksLikeGarbageAddressText(item.title))
+          .map((item) {
+            final rawTitle = item.title.trim();
+            final subtitle = item.subtitle?.trim() ?? '';
+            final title = _shortenAddress(rawTitle);
+            return _AddressSuggestion(
+              title,
+              item.center,
+              searchText: subtitle.isNotEmpty && subtitle.toLowerCase() != title.toLowerCase()
+                  ? subtitle
+                  : (rawTitle != title ? rawTitle : null),
+            );
+          })
+          .fold<List<_AddressSuggestion>>(<_AddressSuggestion>[], (acc, s) {
+            if (acc.any((x) => x.title.toLowerCase() == s.title.toLowerCase())) return acc;
+            acc.add(s);
+            return acc;
+          });
+
+      if (suggestions.isNotEmpty) {
+        // Считаем расстояния от позиции пользователя и сортируем ближайшие первыми
+        final userPos = _fromPoint;
+        final withDist = suggestions.map((s) {
+          if (userPos == null || s.point == null) return s;
+          final dist = _haversineDistanceM(userPos, s.point!);
+          return _AddressSuggestion(
+            s.title,
+            s.point,
+            searchText: s.searchText,
+            distanceM: dist,
+          );
+        }).toList();
+        if (userPos != null) {
+          withDist.sort((a, b) {
+            if (a.distanceM == null && b.distanceM == null) return 0;
+            if (a.distanceM == null) return 1;
+            if (b.distanceM == null) return -1;
+            return a.distanceM!.compareTo(b.distanceM!);
+          });
+        }
+        return withDist;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('Suggest error: $e');
+    }
+
+    // 2) Fallback: полнотекстовый геопоиск
     try {
       final (session, futureResult) = await YandexSearch.searchByText(
         searchText: trimmed,
@@ -2216,6 +2317,9 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
 
 
   Future<void> _applySuggestion(_AddressSuggestion s) async {
+    if (_applyingSuggestion) return;
+    _applyingSuggestion = true;
+    try {
     // Мгновенно показываем выбранный адрес без ожидания сети
     _suppressSuggest = true;
     setState(() {
@@ -2249,26 +2353,32 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
     });
     _suppressSuggest = false;
 
-    // Форматируем адрес в фоне (не блокируем UI)
-    unawaited(() async {
-      final formatted = await _formatSuggestionAddress(point);
-      if (!mounted) return;
-      final title = (formatted != null && formatted.trim().isNotEmpty)
-          ? formatted.trim()
-          : s.title;
-      _suppressSuggest = true;
-      setState(() {
-        if (_toController.text == s.title) {
-          _toController.text = title;
-        } else if (_fromController.text == s.title) {
-          _fromController.text = title;
-        }
-      });
-      _suppressSuggest = false;
-    }());
+    // Форматируем адрес в фоне — только для поисковых результатов, не для быстрых/сохранённых адресов
+    if (!s.trusted) {
+      unawaited(() async {
+        final formatted = await _formatSuggestionAddress(point);
+        if (!mounted) return;
+        final title = (formatted != null && formatted.trim().isNotEmpty)
+            ? formatted.trim()
+            : s.title;
+        _suppressSuggest = true;
+        setState(() {
+          if (_toController.text == s.title) {
+            _toController.text = title;
+          } else if (_fromController.text == s.title) {
+            _fromController.text = title;
+          }
+        });
+        _suppressSuggest = false;
+      }());
+    }
+    } finally {
+      _applyingSuggestion = false;
+    }
   }
 
   void _done() {
+    if (_doneSubmitting) return;
     final to = _toPoint;
     if (to == null || _toController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2277,6 +2387,7 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
       return;
     }
 
+    _doneSubmitting = true;
     FocusScope.of(context).unfocus();
     Navigator.of(context).pop(
       _RouteSelection(
@@ -2396,7 +2507,7 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
 
                                 _scheduleSuggest();
                               },
-                              onChanged: (_) => _scheduleSuggest(),
+                              onChanged: (_) {},
                               onClear: () {
                                 setState(() {
                                   _activeField = _RouteField.from;
@@ -2431,8 +2542,6 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
                                 setState(() {
                                   _toPoint = null;
                                 });
-
-                                _scheduleSuggest();
                               },
                               onClear: () {
                                 setState(() {
@@ -2469,48 +2578,42 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
                                       width: 1,
                                     ),
                                   ),
-                                  child: _suggestLoading
-                                      ? Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: CircularProgressIndicator(
-                                              valueColor: AlwaysStoppedAnimation<Color>(
-                                                isLight ? const Color(0xFF1F2534) : _white75,
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      : (list.isEmpty
-                                          ? Center(
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(16),
-                                                child: Text(
-                                                  'Ничего не найдено',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    color: isLight
-                                                        ? const Color(0xFF5C6477)
-                                                        : Colors.white.withOpacity(0.62),
-                                                    fontWeight: FontWeight.w800,
+                                  child: Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        child: list.isEmpty && !_suggestLoading
+                                            ? Center(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(16),
+                                                  child: Text(
+                                                    'Ничего не найдено',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      color: isLight
+                                                          ? const Color(0xFF5C6477)
+                                                          : Colors.white.withOpacity(0.62),
+                                                      fontWeight: FontWeight.w800,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            )
-                                          : ListView.separated(
-                                              padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-                                              itemCount: list.length,
-                                              separatorBuilder: (_, __) => Divider(
-                                                height: 1,
-                                                color: isLight ? const Color(0xFFDCE2EB) : const Color(0xFF1C2030),
-                                              ),
-                                              itemBuilder: (context, index) {
-                                                final s = list[index];
-                                                final isSaved = s.label != null;
-                                                return Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
-                                                    borderRadius: BorderRadius.circular(14),
-                                                    onTap: () => _applySuggestion(s),
+                                              )
+                                            : ListView.separated(
+                                                padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+                                                itemCount: list.length,
+                                                separatorBuilder: (_, __) => Divider(
+                                                  height: 1,
+                                                  color: isLight ? const Color(0xFFDCE2EB) : const Color(0xFF1C2030),
+                                                ),
+                                                itemBuilder: (context, index) {
+                                                  final s = list[index];
+                                                  final isSaved = s.label != null;
+                                                  return Material(
+                                                    color: Colors.transparent,
+                                                    child: InkWell(
+                                                      borderRadius: BorderRadius.circular(14),
+                                                      splashColor: const Color(0xFF7C3AED).withOpacity(0.07),
+                                                      highlightColor: const Color(0xFF7C3AED).withOpacity(0.04),
+                                                      onTap: () => _applySuggestion(s),
                                                     child: Padding(
                                                       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                                       child: Row(
@@ -2545,33 +2648,87 @@ class _RoutePickerBottomSheetState extends State<_RoutePickerBottomSheet> {
                                                                   Text(
                                                                     s.label!,
                                                                     style: TextStyle(
-                                                                    color: isLight
-                                                                        ? const Color(0xFF7C3AED)
-                                                                        : const Color(0xFFB07CFF),
+                                                                      color: isLight
+                                                                          ? const Color(0xFF7C3AED)
+                                                                          : const Color(0xFFB07CFF),
                                                                       fontWeight: FontWeight.w900,
                                                                       fontSize: 11,
                                                                     ),
                                                                   ),
                                                                 Text(
                                                                   s.title,
-                                                                  maxLines: 2,
+                                                                  maxLines: 1,
                                                                   overflow: TextOverflow.ellipsis,
                                                                   style: TextStyle(
-                                                                  color: isLight ? const Color(0xFF1F2534) : _white88,
-                                                                    fontWeight: FontWeight.w800,
-                                                                    height: 1.05,
-                                                                  ),
+                                                                      color: isLight ? const Color(0xFF1F2534) : _white88,
+                                                                      fontWeight: FontWeight.w800,
+                                                                      height: 1.1,
+                                                                    ),
                                                                 ),
+                                                                if (!isSaved && s.searchText != null && s.searchText!.trim().isNotEmpty)
+                                                                  Text(
+                                                                    s.searchText!.trim(),
+                                                                    maxLines: 1,
+                                                                    overflow: TextOverflow.ellipsis,
+                                                                    style: TextStyle(
+                                                                      fontSize: 11,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      color: isLight
+                                                                          ? const Color(0xFF8A93A8)
+                                                                          : _white50,
+                                                                      height: 1.2,
+                                                                    ),
+                                                                  ),
                                                               ],
                                                             ),
                                                           ),
+                                                          if (!isSaved && s.distanceM != null)
+                                                            Container(
+                                                              margin: const EdgeInsets.only(left: 8),
+                                                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                                              decoration: BoxDecoration(
+                                                                color: isLight
+                                                                    ? const Color(0xFFEEF0F8)
+                                                                    : const Color(0xFF1A1E2C),
+                                                                borderRadius: BorderRadius.circular(8),
+                                                              ),
+                                                              child: Text(
+                                                                _formatDistance(s.distanceM!),
+                                                                style: TextStyle(
+                                                                  fontSize: 11,
+                                                                  fontWeight: FontWeight.w700,
+                                                                  color: isLight
+                                                                      ? const Color(0xFF5C6477)
+                                                                      : _white60,
+                                                                ),
+                                                              ),
+                                                            ),
                                                         ],
                                                       ),
                                                     ),
-                                                  ),
-                                                );
-                                              },
-                                            )),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                      ),
+                                      if (_suggestLoading)
+                                        Positioned(
+                                          top: 0,
+                                          left: 0,
+                                          right: 0,
+                                          child: ClipRRect(
+                                            borderRadius: const BorderRadius.vertical(
+                                              top: Radius.circular(18),
+                                            ),
+                                            child: LinearProgressIndicator(
+                                              minHeight: 2,
+                                              color: const Color(0xFF7C3AED),
+                                              backgroundColor: Colors.transparent,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -4197,6 +4354,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
   int _bonusBalance = 0;
   int _bonusToApply = 0;
   String? _currentOrderId;
+  String? _pendingOrderRequestId;
   String? _driverPhone;
   IO.Socket? _socket;
   bool _socketConnected = true; // true пока не было первого disconnect
@@ -5484,6 +5642,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       zIndex: existing.zIndex,
       icon: existing.icon,
     );
+    _notifyMapObjects();
   }
 
   void _updateDropoffPlacemarkPoint(Point point) {
@@ -5497,6 +5656,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       zIndex: existing.zIndex,
       icon: existing.icon,
     );
+    _notifyMapObjects();
   }
 
   void _onCameraPositionChanged(
@@ -5516,13 +5676,11 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       if (finished) {
         _toPoint = _lastCameraTarget;
         _updateDropoffPlacemarkPoint(_toPoint!);
-        setState(() {});
         _scheduleDropoffAddressUpdate(_lastCameraTarget);
         return;
       }
-      // Во время drag — только сохраняем координату, без rebuild (пин по центру экрана)
+      // Во время drag/zoom — только сохраняем координату (без геокодинга и full rebuild)
       _toPoint = _lastCameraTarget;
-      _scheduleDropoffAddressUpdate(_lastCameraTarget);
       return;
     }
 
@@ -5537,7 +5695,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
     }
 
     // Когда в selecting режиме и нет точки назначения — всегда обновляем pickup
-    if (_orderFlow == _OrderFlowState.selecting && _toPoint == null && !_pickupEditing) {
+    if (_orderFlow == _OrderFlowState.selecting && _toPoint == null && !_dropoffEditing) {
       _lastCameraTarget = cameraPosition.target;
       _pendingPickupPoint = _lastCameraTarget;
       if (!mounted) return;
@@ -5547,13 +5705,11 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       if (finished) {
         _fromPoint = _lastCameraTarget;
         _updatePickupPlacemarkPoint(_fromPoint);
-        setState(() {});
         _schedulePickupAddressUpdate(_fromPoint);
         return;
       }
-      // Во время drag — только сохраняем координату, без rebuild
+      // Во время drag/zoom — только сохраняем координату (без геокодинга и full rebuild)
       _fromPoint = _lastCameraTarget;
-      _schedulePickupAddressUpdate(_fromPoint);
       return;
     }
 
@@ -5567,13 +5723,11 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       if (finished) {
         _fromPoint = _lastCameraTarget;
         _updatePickupPlacemarkPoint(_fromPoint);
-        setState(() {});
         _schedulePickupAddressUpdate(_fromPoint);
         return;
       }
-      // Во время drag — только сохраняем координату, без rebuild (пин по центру экрана)
+      // Во время drag/zoom — только сохраняем координату (без геокодинга и full rebuild)
       _fromPoint = _lastCameraTarget;
-      _schedulePickupAddressUpdate(_fromPoint);
       return;
     }
 
@@ -6391,12 +6545,14 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       _searchDelayMessage = null;
       _clearDriverProfile();
     });
+    _pendingOrderRequestId ??= '${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}_${math.Random().nextInt(0x7fffffff).toRadixString(36)}';
 
     try {
       final res = await _authPost(
         Uri.parse('$_apiBaseUrl/api/orders'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
+          'requestId': _pendingOrderRequestId,
           'from': {'lat': _fromPoint.latitude, 'lng': _fromPoint.longitude},
           'to': {'lat': toPoint.latitude, 'lng': toPoint.longitude},
           'fromAddress': _fromAddress,
@@ -6419,6 +6575,7 @@ class _OrderPageState extends State<OrderPage> with WidgetsBindingObserver {
       final map = jsonDecode(res.body) as Map<String, dynamic>;
       final order = (map['order'] as Map).cast<String, dynamic>();
       _currentOrderId = order['id']?.toString();
+      _pendingOrderRequestId = null;
       if (_promoDiscountPercent > 0) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_promoCodeKey, '');
@@ -8398,9 +8555,13 @@ class _ProfilePageState extends State<ProfilePage> {
         'fullName': fullName.trim(),
         'phone': phone.trim(),
       };
-      final code = referralCode?.trim().replaceAll(RegExp(r'\D'), '');
+      final code = referralCode
+          ?.trim()
+          .toUpperCase()
+          .replaceAll(RegExp(r'\s+'), '')
+          .replaceAll(RegExp(r'[^A-Z0-9]'), '');
       if (code != null && code.isNotEmpty) body['referralCode'] = code;
-      await http
+      final res = await http
           .post(
             Uri.parse('$_apiBaseUrl/api/client/profile'),
             headers: {
@@ -8410,8 +8571,17 @@ class _ProfilePageState extends State<ProfilePage> {
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 10));
-      if (mounted && code != null && code.isNotEmpty) {
-        setState(() => _usedReferralCode = code);
+      if (mounted) {
+        String? used;
+        try {
+          final data = jsonDecode(res.body) as Map<String, dynamic>;
+          used = data['profile']?['usedReferralCode']?.toString().trim();
+        } catch (_) {
+          used = null;
+        }
+        setState(() {
+          _usedReferralCode = (used != null && used.isNotEmpty) ? used : _usedReferralCode;
+        });
       }
     } catch (_) {}
   }

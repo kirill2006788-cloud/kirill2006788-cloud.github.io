@@ -1,4 +1,4 @@
-package ru.prostotaxi.driver
+package ru.nolpromille.driver
 
 import io.flutter.embedding.android.FlutterActivity
 

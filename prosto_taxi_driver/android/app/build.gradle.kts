@@ -51,7 +51,7 @@ if (yandexMapsKey.isBlank()) {
 }
 
 android {
-    namespace = "ru.prostotaxi.driver"
+    namespace = "ru.nolpromille.driver"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -77,13 +77,13 @@ android {
     }
 
     defaultConfig {
-        applicationId = "ru.prostotaxi.driver"
+        applicationId = "ru.nolpromille.driver"
         minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        manifestPlaceholders["applicationName"] = "ru.prostotaxi.driver.MainApplication"
+        manifestPlaceholders["applicationName"] = "ru.nolpromille.driver.MainApplication"
         manifestPlaceholders["YANDEX_MAPS_KEY"] = yandexMapsKey
 
         buildConfigField("String", "YANDEX_MAPS_KEY", "\"$yandexMapsKey\"")
@@ -97,8 +97,8 @@ android {
 
     packaging {
         jniLibs {
-            // Some bundled native libraries fail symbol stripping on Windows/CI.
-            keepDebugSymbols += setOf("**/*.so")
+            // Avoids "failed to strip debug symbols" on Windows when building AAB (Flutter 3.32+).
+            useLegacyPackaging = true
         }
     }
 

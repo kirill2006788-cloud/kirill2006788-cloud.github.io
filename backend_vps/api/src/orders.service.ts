@@ -51,6 +51,7 @@ export type Order = {
 
 export type CreateOrderInput = {
   clientId: string;
+  requestId?: string;
   from: LatLng;
   to: LatLng;
   fromAddress?: string;
@@ -105,12 +106,24 @@ export class OrdersService {
     return `order:lock:${orderId}`;
   }
 
+  private orderRequestKey(clientId: string, requestId: string) {
+    return `order:req:${clientId}:${requestId}`;
+  }
+
+  private orderRequestLockKey(clientId: string, requestId: string) {
+    return `order:req_lock:${clientId}:${requestId}`;
+  }
+
   private declineSetKey(orderId: string) {
     return `order:declines:${orderId}`;
   }
 
   private recentListKey() {
     return 'orders:recent';
+  }
+
+  private searchingOrdersKey() {
+    return 'orders:searching';
   }
 
   private driverOrdersKey(phone: string) {
@@ -139,6 +152,22 @@ export class OrdersService {
 
   private payoutKey(id: string) {
     return `payout:${id}`;
+  }
+
+  async listSearchingOrderIds(): Promise<string[]> {
+    const ids = await this.redis.client.smembers(this.searchingOrdersKey());
+    return (ids || []).map((id: string) => String(id || '').trim()).filter(Boolean);
+  }
+
+  async markOrderSearching(orderId: string): Promise<void> {
+    if (!orderId) return;
+    await this.redis.client.sadd(this.searchingOrdersKey(), orderId);
+  }
+
+  async unmarkOrderSearching(orderId: string): Promise<void> {
+    if (!orderId) return;
+    await this.redis.client.srem(this.searchingOrdersKey(), orderId);
+    await this.redis.client.del(this.declineSetKey(orderId));
   }
 
   private driverRatingKey(phone: string) {
@@ -369,20 +398,56 @@ export class OrdersService {
   async createOrder(input: CreateOrderInput): Promise<Order> {
     const clientId = (input.clientId || '').trim();
     if (!clientId) throw new BadRequestException('clientId is required');
-    const blocked = await this.redis.client.exists(`client:block:${clientId}`);
-    if (blocked) throw new BadRequestException('Client is blocked');
+    const requestIdRaw = (input.requestId || '').toString().trim();
+    const requestId = /^[a-zA-Z0-9_-]{8,64}$/.test(requestIdRaw) ? requestIdRaw : '';
 
-    // Защита от дублей — нельзя создать заказ, если уже есть активный
-    const existingActive = await this.findActiveOrderForClient(clientId);
-    if (existingActive) {
-      throw new ConflictException('Client already has an active order');
+    if (requestId) {
+      const existingOrderId = await this.redis.client.get(this.orderRequestKey(clientId, requestId));
+      if (existingOrderId) {
+        try {
+          const existingOrder = await this.getOrder(existingOrderId);
+          if (existingOrder.clientId === clientId) {
+            return existingOrder;
+          }
+        } catch {
+          await this.redis.client.del(this.orderRequestKey(clientId, requestId));
+        }
+      }
     }
 
-    validatePoint(input.from, 'from');
-    validatePoint(input.to, 'to');
+    let requestLockKey = '';
+    if (requestId) {
+      requestLockKey = this.orderRequestLockKey(clientId, requestId);
+      const requestLockOk = await (this.redis.client as any).set(requestLockKey, '1', 'EX', 20, 'NX');
+      if (!requestLockOk) {
+        const orderId = await this.redis.client.get(this.orderRequestKey(clientId, requestId));
+        if (orderId) {
+          try {
+            const order = await this.getOrder(orderId);
+            if (order.clientId === clientId) return order;
+          } catch {
+            await this.redis.client.del(this.orderRequestKey(clientId, requestId));
+          }
+        }
+        throw new ConflictException('Order create already in progress');
+      }
+    }
 
-    const id = crypto.randomUUID();
-    const { priceFrom, tariffName } = await this.computePrice(input);
+    try {
+      const blocked = await this.redis.client.exists(`client:block:${clientId}`);
+      if (blocked) throw new BadRequestException('Client is blocked');
+
+      // Защита от дублей — нельзя создать заказ, если уже есть активный
+      const existingActive = await this.findActiveOrderForClient(clientId);
+      if (existingActive) {
+        throw new ConflictException('Client already has an active order');
+      }
+
+      validatePoint(input.from, 'from');
+      validatePoint(input.to, 'to');
+
+      const id = crypto.randomUUID();
+      const { priceFrom, tariffName } = await this.computePrice(input);
 
     // Скидка берётся только из серверного профиля клиента и сгорает после 1 заказа.
     let discountPercent = 0;
@@ -449,12 +514,21 @@ export class OrdersService {
       createdAt: new Date().toISOString(),
     };
 
-    await this.redis.client.set(this.orderKey(id), JSON.stringify(order), 'EX', 60 * 60 * 24 * 30);
-    await this.redis.client.lpush(this.recentListKey(), id);
-    await this.redis.client.ltrim(this.recentListKey(), 0, 1999);
-    await this.redis.client.sadd('clients:all', clientId);
-    await this.pushOrderIndex(this.clientOrdersKey(clientId), id);
-    return order;
+      await this.redis.client.set(this.orderKey(id), JSON.stringify(order), 'EX', 60 * 60 * 24 * 30);
+      await this.markOrderSearching(id);
+      await this.redis.client.lpush(this.recentListKey(), id);
+      await this.redis.client.ltrim(this.recentListKey(), 0, 1999);
+      await this.redis.client.sadd('clients:all', clientId);
+      await this.pushOrderIndex(this.clientOrdersKey(clientId), id);
+      if (requestId) {
+        await this.redis.client.set(this.orderRequestKey(clientId, requestId), id, 'EX', 60 * 30);
+      }
+      return order;
+    } finally {
+      if (requestLockKey) {
+        await this.redis.client.del(requestLockKey);
+      }
+    }
   }
 
   async getOrder(orderId: string): Promise<Order> {
@@ -524,6 +598,7 @@ export class OrdersService {
       };
 
       await this.redis.client.set(this.orderKey(orderId), JSON.stringify(next), 'EX', 60 * 60 * 24 * 30);
+      await this.unmarkOrderSearching(orderId);
 
       // Определяем, является ли заказ предзаказом (scheduledAt > 15 мин в будущем)
       const isPreorder = freshOrder.scheduledAt
@@ -616,6 +691,9 @@ export class OrdersService {
         }
       }
       await this.redis.client.set(this.orderKey(orderId), JSON.stringify(next), 'EX', 60 * 60 * 24 * 30);
+      if (order.status === 'searching' && status !== 'searching') {
+        await this.unmarkOrderSearching(orderId);
+      }
       // При переходе в enroute — водитель становится busy (важно для предзаказов)
       if (status === 'enroute' && order.driverPhone) {
         await this.drivers.setStatus(order.driverPhone, 'busy');
@@ -688,6 +766,7 @@ export class OrdersService {
         canceledBy: 'client',
       };
       await this.redis.client.set(this.orderKey(orderId), JSON.stringify(next), 'EX', 60 * 60 * 24 * 30);
+      await this.unmarkOrderSearching(orderId);
       if (freshOrder.driverPhone) {
         await this.drivers.setStatus(freshOrder.driverPhone, 'online');
         await this.redis.client.srem('drivers:active_order', freshOrder.driverPhone);
@@ -724,6 +803,7 @@ export class OrdersService {
       next.cancelReason = reason?.trim() ? reason.trim() : freshOrder.cancelReason;
       next.canceledBy = 'admin';
       await this.redis.client.set(this.orderKey(orderId), JSON.stringify(next), 'EX', 60 * 60 * 24 * 30);
+      await this.unmarkOrderSearching(orderId);
       if (freshOrder.driverPhone) {
         await this.drivers.setStatus(freshOrder.driverPhone, 'online');
         await this.redis.client.srem('drivers:active_order', freshOrder.driverPhone);
@@ -857,7 +937,13 @@ export class OrdersService {
 
   async listOrdersForDriver(phone: string, limit = 50): Promise<Order[]> {
     const ids = await this.redis.client.lrange(this.driverOrdersKey(phone), 0, Math.max(0, limit - 1));
-    if (!ids.length) return [];
+    if (!ids.length) {
+      const fallback = await this.getAllOrdersForStats(2000);
+      return fallback
+        .filter((o) => (o.driverPhone || '').trim() === phone)
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, limit);
+    }
     const raws = await this.redis.client.mget(ids.map((id) => this.orderKey(id)));
     return raws
       .filter((raw): raw is string => typeof raw === 'string')
@@ -866,7 +952,13 @@ export class OrdersService {
 
   async listOrdersForClient(clientId: string, limit = 50): Promise<Order[]> {
     const ids = await this.redis.client.lrange(this.clientOrdersKey(clientId), 0, Math.max(0, limit - 1));
-    if (!ids.length) return [];
+    if (!ids.length) {
+      const fallback = await this.getAllOrdersForStats(2000);
+      return fallback
+        .filter((o) => (o.clientId || '').trim() === clientId)
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, limit);
+    }
     const raws = await this.redis.client.mget(ids.map((id) => this.orderKey(id)));
     return raws
       .filter((raw): raw is string => typeof raw === 'string')
@@ -957,6 +1049,7 @@ export class OrdersService {
         acceptedAt: new Date().toISOString(),
       };
       await this.redis.client.set(this.orderKey(orderId), JSON.stringify(next), 'EX', 60 * 60 * 24 * 30);
+      await this.unmarkOrderSearching(orderId);
       await this.drivers.setStatus(normalizedDriverPhone, 'busy');
       await this.pushOrderIndex(this.driverOrdersKey(normalizedDriverPhone), orderId);
       await this.redis.client.sadd('drivers:active_order', normalizedDriverPhone);

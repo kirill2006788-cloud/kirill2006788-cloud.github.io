@@ -13,6 +13,7 @@ import jwt from 'jsonwebtoken';
 
 import { Order, OrdersService } from './orders.service';
 import { DriversService } from './drivers.service';
+import { RedisService } from './redis.service';
 
 /** Расширяющиеся радиусы поиска (метры) */
 const SEARCH_RADII = [2000, 4000, 6000, 8000, 15000];
@@ -34,6 +35,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   constructor(
     private readonly orders: OrdersService,
     private readonly drivers: DriversService,
+    private readonly redis: RedisService,
   ) {}
 
   @WebSocketServer()
@@ -47,6 +49,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   private autoCancelTimers = new Map<string, ReturnType<typeof setTimeout>>();
   /** Интервал периодической очистки Maps */
   private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+  private notifiedSetKey(orderId: string) {
+    return `order:notified:${orderId}`;
+  }
 
   async onModuleInit() {
     // Запуск периодической очистки стухших записей в Maps
@@ -100,8 +106,20 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   private async restoreSearchingOrders() {
     try {
-      const recent = await this.orders.listRecentOrders(200);
-      const activeSearches = recent.filter((order) => order.status === 'searching');
+      const searchingIds = await this.orders.listSearchingOrderIds();
+      const activeSearches: Order[] = [];
+      for (const orderId of searchingIds) {
+        try {
+          const order = await this.orders.getOrder(orderId);
+          if (order.status === 'searching') {
+            activeSearches.push(order);
+          } else {
+            await this.orders.unmarkOrderSearching(orderId);
+          }
+        } catch {
+          await this.orders.unmarkOrderSearching(orderId);
+        }
+      }
       if (!activeSearches.length) return;
       activeSearches.forEach((order) => this.startExpandingSearch(order));
       this.logger.log(`Restored ${activeSearches.length} searching orders after restart`);
@@ -122,6 +140,17 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       } catch (err) {
         this.logger.warn(`Failed to retry searching order ${orderId} after driver disconnect ${phone}: ${err}`);
       }
+    }
+  }
+
+  private async deliverNearbySearchingOrderToDriver(phone: string) {
+    try {
+      const nearby = await this.orders.findNearbySearchingOrderForDriver(phone, 8);
+      if (nearby) {
+        this.server.to(`driver:${phone}`).emit('order:nearby', { order: nearby });
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to deliver nearby searching order to ${phone}: ${err}`);
     }
   }
 
@@ -168,7 +197,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     const user = (client.data as any).user as undefined | { phone?: string; role?: string };
     if (user?.role === 'driver' && typeof user.phone === 'string') {
       this.drivers.setStatus(user.phone, 'offline');
-      void this.retrySearchingOrdersForDriver(user.phone);
     }
   }
 
@@ -253,6 +281,16 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   }
 
   private async runSearchRound(order: Order, roundIndex: number, notified: Set<string>) {
+    try {
+      const persisted = await this.redis.client.smembers(this.notifiedSetKey(order.id));
+      (persisted || []).forEach((phone: string) => {
+        const p = String(phone || '').trim();
+        if (p) notified.add(p);
+      });
+    } catch {
+      // ignore redis issues, in-memory dedupe still works within process lifetime
+    }
+
     // Проверяем актуальность заказа
     try {
       const current = await this.orders.getOrder(order.id);
@@ -312,6 +350,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     if (candidateDrivers.length > 0) {
       deliveredDrivers = this.emitOrderNew(order, candidateDrivers);
       deliveredDrivers.forEach((phone) => notified.add(phone));
+      if (deliveredDrivers.length) {
+        await this.redis.client.sadd(this.notifiedSetKey(order.id), ...deliveredDrivers);
+        await this.redis.client.expire(this.notifiedSetKey(order.id), 60 * 60 * 2);
+      }
 
       // Чистим "зависшие online" статусы (ключ есть, но сокета уже нет),
       // чтобы заказ не терялся на фальшиво-онлайн водителях.
@@ -362,6 +404,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     if (order.status === 'accepted' && order.driverPhone) {
       this.stopExpandingSearch(order.id);
       this.stopAutoCancel(order.id);
+      void this.redis.client.del(this.notifiedSetKey(order.id));
       // Дополнительно — отправить order:taken всем водителям чтобы убрали заказ с экрана
       this.server.to('drivers').emit('order:taken', {
         orderId: order.id,
@@ -373,6 +416,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     if (order.status === 'canceled') {
       this.stopExpandingSearch(order.id);
       this.stopAutoCancel(order.id);
+      void this.redis.client.del(this.notifiedSetKey(order.id));
       if (order.driverPhone) {
         this.server.to(`driver:${order.driverPhone}`).emit('order:canceled', {
           orderId: order.id,
@@ -498,6 +542,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       }
     }
     await this.drivers.setStatus(user.phone, status);
+    if (status === 'online') {
+      void this.retrySearchingOrdersForDriver(user.phone);
+      void this.deliverNearbySearchingOrderToDriver(user.phone);
+    }
     return { ok: true };
   }
 

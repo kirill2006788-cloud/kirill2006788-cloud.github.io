@@ -9,6 +9,10 @@ services:
     depends_on:
       - redis
     environment:
+      - SMS_PROVIDER=smsaero
+      - SMSAERO_EMAIL=${SMSAERO_EMAIL}
+      - SMSAERO_API_KEY=${SMSAERO_API_KEY}
+      - SMSAERO_USE_HTTP=1
       - SMSC_LOGIN=${SMSC_LOGIN}
       - SMSC_PASSWORD=${SMSC_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -21,6 +25,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - BODY_LIMIT=50mb
 
   redis:
     image: redis:7-alpine
@@ -38,9 +43,12 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./prosto_taxi_driver/android/admin.html:/usr/share/nginx/html/index.html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/messenger:/var/www/messenger:ro
     depends_on:
       - api
 

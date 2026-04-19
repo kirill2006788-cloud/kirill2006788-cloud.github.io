@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, Headers, Post, Query, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, Post, Query, TooManyRequestsException, UnauthorizedException } from '@nestjs/common';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { RedisService } from './redis.service';
@@ -32,6 +32,14 @@ export class ClientsController {
 
   private promoUsedKey(clientId: string, code: string) {
     return `client:promo_used:${clientId}:${code.toLowerCase()}`;
+  }
+
+  private promoActivateRateKey(clientId: string) {
+    return `client:promo_rate:${clientId}`;
+  }
+
+  private referralApplyLockKey(clientId: string) {
+    return `client:referral_lock:${clientId}`;
   }
 
   private pushTokenKey(clientId: string) {
@@ -122,29 +130,44 @@ export class ClientsController {
     try { if (existingRaw) existing = JSON.parse(existingRaw); } catch { /* corrupted */ }
 
     // Обработка реферального кода: ищем владельца кода (уникальный код или номер телефона)
-    let referrerId: string | null = null;
     if (referralCodeInput && !existing.usedReferralCode) {
-      const codeUpper = referralCodeInput.toUpperCase().replace(/\s/g, '');
-      const digitsOnly = referralCodeInput.replace(/\D/g, '');
-      if (codeUpper.length >= 4 && codeUpper.length <= 12) {
-        const byCode = await this.redis.client.get(this.referralCodeLookupKey(codeUpper));
-        if (byCode) referrerId = byCode;
+      const lockKey = this.referralApplyLockKey(id);
+      const lockOk = await (this.redis.client as any).set(lockKey, '1', 'EX', 8, 'NX');
+      if (!lockOk) {
+        throw new ConflictException('Referral update already in progress, retry');
       }
-      if (!referrerId && digitsOnly.length >= 10 && digitsOnly.length <= 11) {
-        referrerId = digitsOnly.startsWith('7') ? digitsOnly : `7${digitsOnly}`;
-      }
-      if (referrerId) {
-        const idNorm = id.replace(/\D/g, '');
-        const referrerNorm = referrerId.replace(/\D/g, '');
-        if (referrerNorm !== idNorm) {
-          const refKey = this.referralKey(referrerId);
-          const countRes = await this.redis.client.hincrby(refKey, 'count', 1);
-          if (countRes % 3 === 0) {
-            await this.redis.client.hincrby(this.bonusKey(referrerId), 'available', 500);
-            await this.redis.client.hincrby(this.bonusKey(referrerId), 'earned', 500);
+      try {
+        const latestRaw = await this.redis.client.get(this.profileKey(id));
+        let latest: any = {};
+        try { if (latestRaw) latest = JSON.parse(latestRaw); } catch { latest = {}; }
+
+        if (!latest.usedReferralCode) {
+          let referrerId: string | null = null;
+          const codeUpper = referralCodeInput.toUpperCase().replace(/\s/g, '');
+          const digitsOnly = referralCodeInput.replace(/\D/g, '');
+          if (codeUpper.length >= 4 && codeUpper.length <= 12) {
+            const byCode = await this.redis.client.get(this.referralCodeLookupKey(codeUpper));
+            if (byCode) referrerId = byCode;
           }
-          existing.usedReferralCode = referrerId;
+          if (!referrerId && digitsOnly.length >= 10 && digitsOnly.length <= 11) {
+            referrerId = digitsOnly.startsWith('7') ? digitsOnly : `7${digitsOnly}`;
+          }
+          if (referrerId) {
+            const idNorm = id.replace(/\D/g, '');
+            const referrerNorm = referrerId.replace(/\D/g, '');
+            if (referrerNorm !== idNorm) {
+              const refKey = this.referralKey(referrerId);
+              const countRes = await this.redis.client.hincrby(refKey, 'count', 1);
+              if (countRes % 3 === 0) {
+                await this.redis.client.hincrby(this.bonusKey(referrerId), 'available', 500);
+                await this.redis.client.hincrby(this.bonusKey(referrerId), 'earned', 500);
+              }
+              existing.usedReferralCode = referrerId;
+            }
+          }
         }
+      } finally {
+        await this.redis.client.del(lockKey);
       }
     }
 
@@ -210,6 +233,18 @@ export class ClientsController {
       throw new ForbiddenException('Client token mismatch');
     }
     if (!code) throw new BadRequestException('code required');
+    if (!/^[a-z0-9_-]{4,32}$/i.test(code)) {
+      throw new BadRequestException('invalid promo code format');
+    }
+
+    const rateKey = this.promoActivateRateKey(id);
+    const attempt = await this.redis.client.incr(rateKey);
+    if (attempt === 1) {
+      await this.redis.client.expire(rateKey, 60);
+    }
+    if (attempt > 20) {
+      throw new TooManyRequestsException('Too many promo activation attempts');
+    }
 
     const promoRaw = await this.redis.client.hgetall(this.promoKey(code));
     if (!promoRaw || Object.keys(promoRaw).length === 0) {
@@ -226,8 +261,8 @@ export class ClientsController {
     }
 
     const usedKey = this.promoUsedKey(id, code);
-    const alreadyUsed = await this.redis.client.get(usedKey);
-    if (alreadyUsed) {
+    const reserved = await (this.redis.client as any).set(usedKey, '1', 'EX', 60 * 60 * 24 * 365 * 10, 'NX');
+    if (!reserved) {
       throw new BadRequestException('Промокод уже был использован вами ранее');
     }
 
@@ -238,7 +273,6 @@ export class ClientsController {
     profile.promoDiscountPercent = discount;
     profile.updatedAt = new Date().toISOString();
     await this.redis.client.set(this.profileKey(id), JSON.stringify(profile));
-    await this.redis.client.set(usedKey, '1', 'EX', 60 * 60 * 24 * 365 * 10);
 
     return { ok: true, code, discount };
   }

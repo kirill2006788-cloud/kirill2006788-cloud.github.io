@@ -96,7 +96,7 @@ const _accentDark = Color(0xFFFF3D00);
 const _activeOrderPrefsKey = 'driver_active_order_v1';
 const _activeOrderStateKey = 'driver_active_order_state_v1';
 const _preorderPrefsKey = 'driver_preorder_v1';
-const _iosPushChannel = MethodChannel('ru.prostotaxi.driver/push');
+const _iosPushChannel = MethodChannel('ru.nolpromille.driver/push');
 
 final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
 final AudioPlayer _orderNotificationPlayer = AudioPlayer();
@@ -1041,6 +1041,27 @@ class _DriverProfilePageState extends State<_DriverProfilePage> {
   );
   late bool _online;
 
+  bool _hasFullVerificationPacket(_DriverProfileData d) {
+    return d.docsSigned &&
+        d.fullName.trim().isNotEmpty &&
+        d.inn.trim().isNotEmpty &&
+        d.passport.trim().isNotEmpty &&
+        d.passportFrontBytes != null &&
+        d.passportRegBytes != null &&
+        d.driverLicenseBackBytes != null &&
+        d.selfieBytes != null;
+  }
+
+  bool _isVerificationInconsistent(_DriverProfileData d) {
+    if (d.registrationStatus == 'completed') {
+      return !_hasFullVerificationPacket(d);
+    }
+    if (d.registrationStatus == 'pending') {
+      return !_hasFullVerificationPacket(d);
+    }
+    return false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1240,7 +1261,7 @@ class _DriverProfilePageState extends State<_DriverProfilePage> {
   }
 
   Future<void> _openEdit() async {
-    if (_data.registrationStatus == 'pending') {
+    if (_data.registrationStatus == 'pending' && !_isVerificationInconsistent(_data)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Заявка на проверке. Редактирование недоступно.')),
@@ -1263,7 +1284,9 @@ class _DriverProfilePageState extends State<_DriverProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isPending = _data.registrationStatus == 'pending';
+    final inconsistentVerification = _isVerificationInconsistent(_data);
+    final isPendingLocked = _data.registrationStatus == 'pending' && !inconsistentVerification;
+    final canEditVerification = !isPendingLocked;
     return Scaffold(
       backgroundColor: const Color(0xFF05060A),
       body: SafeArea(
@@ -1291,7 +1314,7 @@ class _DriverProfilePageState extends State<_DriverProfilePage> {
                   const SizedBox(width: 8),
                   _TopTextButton(
                     title: 'Изменить',
-                    onTap: isPending ? null : _openEdit,
+                    onTap: canEditVerification ? _openEdit : null,
                   ),
                 ],
               ),
@@ -1431,7 +1454,9 @@ class _DriverProfilePageState extends State<_DriverProfilePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _data.registrationStatus == 'completed'
+                            inconsistentVerification
+                                ? 'Требуется повторная отправка документов'
+                                : _data.registrationStatus == 'completed'
                                 ? 'Регистрация завершена'
                                 : _data.registrationStatus == 'pending'
                                     ? 'Ожидает подтверждения'
@@ -1443,7 +1468,9 @@ class _DriverProfilePageState extends State<_DriverProfilePage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _data.docsSigned ? 'Документы подписаны' : 'Документы не подписаны',
+                            inconsistentVerification
+                                ? 'Обнаружен рассинхрон статуса. Нажмите «Изменить» и отправьте документы заново.'
+                                : (_data.docsSigned ? 'Документы подписаны' : 'Документы не подписаны'),
                             style: TextStyle(
                               color: _white60,
                               fontWeight: FontWeight.w700,
@@ -1454,7 +1481,7 @@ class _DriverProfilePageState extends State<_DriverProfilePage> {
                       ),
                     ),
                     TextButton(
-                      onPressed: isPending ? null : _openEdit,
+                      onPressed: canEditVerification ? _openEdit : null,
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         minimumSize: Size.zero,
@@ -2168,8 +2195,20 @@ class _DriverProfileEditPageState extends State<_DriverProfileEditPage> {
   }
 
   void _save() {
-    // Если регистрация уже подтверждена админом — не трогаем статус
-    if (_serverRegistrationStatus == 'completed') {
+    final hasRequired = _fioController.text.trim().isNotEmpty &&
+        _innController.text.trim().isNotEmpty &&
+        _passportController.text.trim().isNotEmpty;
+    final hasPhotos = _passportFrontBytes != null &&
+        _passportRegBytes != null &&
+        _driverLicenseBackBytes != null &&
+        _selfieBytes != null;
+    final hasFullPacket = _docsSigned && hasRequired && hasPhotos;
+    final inconsistentServerStatus =
+        (_serverRegistrationStatus == 'completed' || _serverRegistrationStatus == 'pending') &&
+            !hasFullPacket;
+
+    // Если регистрация уже подтверждена и пакет консистентный — статус не меняем.
+    if (_serverRegistrationStatus == 'completed' && !inconsistentServerStatus) {
       final next = widget.initial.copyWith(
         fullName: _fioController.text,
         phone: _phoneController.text,
@@ -2186,13 +2225,6 @@ class _DriverProfileEditPageState extends State<_DriverProfileEditPage> {
       Navigator.of(context).pop(next);
       return;
     }
-    final hasRequired = _fioController.text.trim().isNotEmpty &&
-        _innController.text.trim().isNotEmpty &&
-        _passportController.text.trim().isNotEmpty;
-    final hasPhotos = _passportFrontBytes != null &&
-        _passportRegBytes != null &&
-        _driverLicenseBackBytes != null &&
-        _selfieBytes != null;
     final nextStatus = _docsSigned && hasRequired && hasPhotos ? 'pending' : 'incomplete';
     if (!hasPhotos && _docsSigned && hasRequired) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2217,8 +2249,17 @@ class _DriverProfileEditPageState extends State<_DriverProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final locked = _serverRegistrationStatus == 'pending';
-    final photosOnlyMode = _serverRegistrationStatus == 'completed';
+    final hasRequired = _fioController.text.trim().isNotEmpty &&
+        _innController.text.trim().isNotEmpty &&
+        _passportController.text.trim().isNotEmpty;
+    final hasPhotos = _passportFrontBytes != null &&
+        _passportRegBytes != null &&
+        _driverLicenseBackBytes != null &&
+        _selfieBytes != null;
+    final hasFullPacket = _docsSigned && hasRequired && hasPhotos;
+    final inconsistentServerStatus = (_serverRegistrationStatus == 'completed' || _serverRegistrationStatus == 'pending') && !hasFullPacket;
+    final locked = _serverRegistrationStatus == 'pending' && !inconsistentServerStatus;
+    final photosOnlyMode = _serverRegistrationStatus == 'completed' && !inconsistentServerStatus;
     return Scaffold(
       backgroundColor: const Color(0xFF05060A),
       body: SafeArea(
@@ -2295,7 +2336,9 @@ class _DriverProfileEditPageState extends State<_DriverProfileEditPage> {
                       ],
                     ),
                     Text(
-                      _serverRegistrationStatus == 'completed'
+                      inconsistentServerStatus
+                          ? 'Статус заявки рассинхронизирован. Отправьте документы заново.'
+                          : _serverRegistrationStatus == 'completed'
                           ? 'Регистрация завершена'
                           : _serverRegistrationStatus == 'pending'
                               ? 'Ожидает подтверждения'
@@ -3184,12 +3227,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_syncDriverPushToken(widget.token));
-      // Восстанавливаем сокет-соединение, но НЕ меняем онлайн-статус:
-      // пользователь мог выбрать «оффлайн» перед сворачиванием.
-      // Просто повторно отправляем текущий статус на сервер.
-      _emitDriverStatusGuarded(_driverOnline ? 'online' : 'offline');
-      unawaited(_recoverActiveOrderState());
-      unawaited(_checkBlockStatus());
+      unawaited(() async {
+        await _recoverActiveOrderState();
+        _emitDriverStatusGuarded(_currentSocketStatus());
+        await _checkBlockStatus();
+      }());
       // Проверяем предзаказ при возобновлении
       if (_preorder != null) _checkPreorderTiming();
     }
@@ -3276,7 +3318,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void _emitDriverStatusGuarded(String status, {IO.Socket? socket}) {
     final target = socket ?? _socket;
     if (target == null) return;
-    if (status == 'online') {
+    final resolvedStatus = status == 'online' && _hasActiveInProgressOrder() ? 'busy' : status;
+    if (resolvedStatus == 'online') {
       target.emitWithAck('driver:status', {'status': status}, ack: (response) {
         if (!mounted) return;
         if (response is Map && response['error'] == 'EARNINGS_LIMIT_REACHED') {
@@ -3298,7 +3341,20 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       });
       return;
     }
-    target.emit('driver:status', {'status': status});
+    target.emit('driver:status', {'status': resolvedStatus});
+  }
+
+  bool _hasActiveInProgressOrder() {
+    return _order != null &&
+        (_orderState == _DriverOrderUiState.accepted ||
+            _orderState == _DriverOrderUiState.enroute ||
+            _orderState == _DriverOrderUiState.arrived ||
+            _orderState == _DriverOrderUiState.started);
+  }
+
+  String _currentSocketStatus() {
+    if (!_driverOnline) return 'offline';
+    return _hasActiveInProgressOrder() ? 'busy' : 'online';
   }
 
   void _setDriverOnline(bool value) {
@@ -4372,8 +4428,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         _socketConnected = true;
         _socketEverConnected = true;
       });
-      _emitDriverStatusGuarded(_driverOnline ? 'online' : 'offline', socket: s);
-      unawaited(_loadActiveOrder());
+      unawaited(() async {
+        await _recoverActiveOrderState();
+        _emitDriverStatusGuarded(_currentSocketStatus(), socket: s);
+      }());
     });
     s.onDisconnect((_) {
       if (!mounted) return;
@@ -4385,8 +4443,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         _socketConnected = true;
         _socketEverConnected = true;
       });
-      _emitDriverStatusGuarded(_driverOnline ? 'online' : 'offline', socket: s);
-      unawaited(_recoverActiveOrderState());
+      unawaited(() async {
+        await _recoverActiveOrderState();
+        _emitDriverStatusGuarded(_currentSocketStatus(), socket: s);
+      }());
     });
     s.on('order:new', (data) {
       if (!mounted) return;
@@ -4521,16 +4581,33 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     s.on('driver:blocked', (data) {
       if (!mounted) return;
       final payload = data is Map ? Map<String, dynamic>.from(data) : const <String, dynamic>{};
+      final hasActiveOrder = _order != null &&
+          (_orderState == _DriverOrderUiState.accepted ||
+              _orderState == _DriverOrderUiState.enroute ||
+              _orderState == _DriverOrderUiState.arrived ||
+              _orderState == _DriverOrderUiState.started);
       setState(() {
         _driverBlocked = true;
         _driverBlockReason = payload['reason']?.toString();
         _driverBlockUntil = DateTime.tryParse(payload['until']?.toString() ?? '');
         _driverOnline = false;
-        _order = null;
-        _orderState = _DriverOrderUiState.incoming;
+        if (!hasActiveOrder) {
+          _order = null;
+          _orderState = _DriverOrderUiState.incoming;
+        }
       });
-      _clearRouteState();
-      _refreshRoutePreview();
+      if (!hasActiveOrder) {
+        _clearRouteState();
+        _refreshRoutePreview();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Вы заблокированы, но текущий заказ можно завершить'),
+            backgroundColor: Color(0xFFD32F2F),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
     });
     // Водитель разблокирован админом
     s.on('driver:unblocked', (_) {
@@ -4918,21 +4995,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           _showAlreadyTakenOverlay();
         }
       });
-      // Фолбэк: если ack не пришёл за 5 сек — считаем принятым
-      Future<void>.delayed(const Duration(seconds: 5), () {
-        if (!mounted) return;
-        if (_preorder?.id == order.id) {
-          // Предзаказ уже в _preorder — всё ок, просто возвращаем онлайн-статус
-          _socket?.emit('driver:status', {'status': _driverOnline ? 'online' : 'offline'});
-        }
-      });
     } else {
       // ── Обычный заказ ──
-      _socket?.emit('driver:status', {'status': 'busy'});
       _socket?.emitWithAck('order:accept', {'orderId': order.id}, ack: (response) {
         if (!mounted) return;
         final data = response is Map ? response : (response is List && response.isNotEmpty ? response[0] : null);
         if (data is Map && data['ok'] == true) {
+          _socket?.emit('driver:status', {'status': 'busy'});
           setState(() {
             _orderState = _DriverOrderUiState.accepted;
             _shouldFitRoute = true;
@@ -4951,21 +5020,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           _showEarningsLimitOverlay();
         } else {
           _showAlreadyTakenOverlay();
-        }
-      });
-      // Фолбэк для обычного заказа
-      Future<void>.delayed(const Duration(seconds: 5), () {
-        if (!mounted) return;
-        if (_order?.id == order.id && _orderState == _DriverOrderUiState.incoming && _resultOverlay == _ActionResultOverlay.accepted) {
-          setState(() {
-            _orderState = _DriverOrderUiState.accepted;
-            _shouldFitRoute = true;
-            _resultOverlay = _ActionResultOverlay.none;
-          });
-          _sendCurrentLocationNow();
-          unawaited(_ensureDriverPoint().then((_) => _refreshRoutePreview()));
-          unawaited(_fetchOrderDetails(order.id));
-          _refreshRoutePreview();
         }
       });
     }
@@ -5171,24 +5225,41 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void _updateOrderStatus(String status) {
     final order = _order;
     if (order == null) return;
-    _socket?.emit('order:update', {'orderId': order.id, 'status': status});
-    setState(() {
-      _orderState = switch (status) {
-        'enroute' => _DriverOrderUiState.enroute,
-        'arrived' => _DriverOrderUiState.arrived,
-        'started' => _DriverOrderUiState.started,
-        'completed' => _DriverOrderUiState.completed,
-        _ => _orderState,
-      };
-      _shouldFitRoute = status == 'enroute' || status == 'arrived' || status == 'started';
+    _socket?.emitWithAck('order:update', {'orderId': order.id, 'status': status}, ack: (response) {
+      if (!mounted) return;
+      final data = response is Map ? response : (response is List && response.isNotEmpty ? response[0] : null);
+      if (data is Map && data['ok'] == true) {
+        setState(() {
+          _orderState = switch (status) {
+            'enroute' => _DriverOrderUiState.enroute,
+            'arrived' => _DriverOrderUiState.arrived,
+            'started' => _DriverOrderUiState.started,
+            'completed' => _DriverOrderUiState.completed,
+            _ => _orderState,
+          };
+          _shouldFitRoute = status == 'enroute' || status == 'arrived' || status == 'started';
+        });
+        _sendCurrentLocationNow();
+        _syncTripTimer(_orderState, order);
+        _persistActiveOrder();
+        unawaited(_ensureDriverPoint().then((_) => _refreshRoutePreview()));
+        unawaited(_fetchOrderDetails(order.id));
+        _refreshRoutePreview();
+        return;
+      }
+
+      final message = data is Map
+          ? (data['message']?.toString() ?? data['error']?.toString() ?? 'Не удалось обновить статус заказа')
+          : 'Не удалось обновить статус заказа';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: const Color(0xFFD32F2F),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      unawaited(_recoverActiveOrderState());
     });
-    // При смене статуса отправить позицию, чтобы клиент сразу получил ETA
-    _sendCurrentLocationNow();
-    _syncTripTimer(_orderState, order);
-    _persistActiveOrder();
-    unawaited(_ensureDriverPoint().then((_) => _refreshRoutePreview()));
-    unawaited(_fetchOrderDetails(order.id));
-    _refreshRoutePreview();
   }
 
   @override

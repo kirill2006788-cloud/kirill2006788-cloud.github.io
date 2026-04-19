@@ -10,6 +10,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY tsconfig.json ./
 COPY src ./src
+# Гарантированная подстановка текста SMS при сборке (на случай старого кэша/контекста)
+RUN sed -i 's/Код: \${code}/Ваш код для входа в Трезвый водитель: \${code}/' /app/src/sms.service.ts
 RUN npm run build
 
 FROM node:20-alpine

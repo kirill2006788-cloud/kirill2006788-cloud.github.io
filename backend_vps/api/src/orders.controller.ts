@@ -2,6 +2,7 @@ import { Body, Controller, ForbiddenException, Get, Headers, Param, Post, Query,
 import { EventsGateway } from './events.gateway';
 import { DriversService } from './drivers.service';
 import { CreateOrderInput, OrdersService } from './orders.service';
+import { RedisService } from './redis.service';
 import jwt from 'jsonwebtoken';
 
 @Controller('orders')
@@ -10,6 +11,7 @@ export class OrdersController {
     private readonly orders: OrdersService,
     private readonly events: EventsGateway,
     private readonly drivers: DriversService,
+    private readonly redis: RedisService,
   ) {}
 
   private verifyToken(auth?: string) {
@@ -30,6 +32,14 @@ export class OrdersController {
       throw new UnauthorizedException('Admin token required');
     }
     return payload;
+  }
+
+  private driverProfileKey(phone: string) {
+    return `driver:profile:${phone}`;
+  }
+
+  private clientProfileKey(id: string) {
+    return `client:profile:${id}`;
   }
 
   private requireClientId(auth?: string) {
@@ -172,6 +182,39 @@ export class OrdersController {
       priceMin: priceMin ? Number(priceMin) : undefined,
       priceMax: priceMax ? Number(priceMax) : undefined,
     });
-    return { ok: true, orders };
+    const driverPhones = Array.from(new Set(orders.map((o) => String(o.driverPhone || '').trim()).filter(Boolean)));
+    const clientIds = Array.from(new Set(orders.map((o) => String(o.clientId || '').trim()).filter(Boolean)));
+    const pipeline = this.redis.client.pipeline();
+    driverPhones.forEach((phone) => pipeline.get(this.driverProfileKey(phone)));
+    clientIds.forEach((id) => pipeline.get(this.clientProfileKey(id)));
+    const res = await pipeline.exec();
+    const driverProfiles = new Map<string, any>();
+    const clientProfiles = new Map<string, any>();
+    driverPhones.forEach((phone, idx) => {
+      const raw = typeof res?.[idx]?.[1] === 'string' ? (res?.[idx]?.[1] as string) : null;
+      if (!raw) return;
+      try {
+        driverProfiles.set(phone, JSON.parse(raw));
+      } catch {}
+    });
+    clientIds.forEach((id, idx) => {
+      const raw = typeof res?.[driverPhones.length + idx]?.[1] === 'string' ? (res?.[driverPhones.length + idx]?.[1] as string) : null;
+      if (!raw) return;
+      try {
+        clientProfiles.set(id, JSON.parse(raw));
+      } catch {}
+    });
+    const enriched = orders.map((order) => {
+      const driverProfile = order.driverPhone ? driverProfiles.get(order.driverPhone) : null;
+      const clientProfile = order.clientId ? clientProfiles.get(order.clientId) : null;
+      return {
+        ...order,
+        driverName: driverProfile?.fullName || '',
+        driverPhone: order.driverPhone || driverProfile?.phone || '',
+        clientName: clientProfile?.fullName || clientProfile?.name || '',
+        clientPhone: clientProfile?.phone || order.clientId || '',
+      };
+    });
+    return { ok: true, orders: enriched };
   }
 }

@@ -1,4 +1,4 @@
-package ru.prostotaxi.driver
+package ru.nolpromille.driver
 
 import android.app.Application
 import android.util.Log

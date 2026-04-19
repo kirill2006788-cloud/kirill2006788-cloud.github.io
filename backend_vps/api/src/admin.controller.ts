@@ -66,6 +66,10 @@ export class AdminController {
     return `client:block:${id}`;
   }
 
+  private clientBlockMetaKey(id: string) {
+    return `client:block_meta:${id}`;
+  }
+
   private driversSet() {
     return 'drivers:all';
   }
@@ -86,8 +90,16 @@ export class AdminController {
     return `driver:push_token:${phone}`;
   }
 
+  private driverAdminCommentKey(phone: string) {
+    return `driver:admin_comment:${phone}`;
+  }
+
   private clientsSet() {
     return 'clients:all';
+  }
+
+  private clientAdminCommentKey(id: string) {
+    return `client:admin_comment:${id}`;
   }
 
   private promoSet() {
@@ -138,38 +150,110 @@ export class AdminController {
     };
   }
 
+  private async saveAdminDriverProfile(originalPhone: string, body: Partial<DriverProfile> & Record<string, any>) {
+    const targetPhone = String(body?.phone || originalPhone || '').trim();
+    if (!targetPhone) return { ok: false, error: 'phone required' };
+
+    const existingRaw = await this.redis.client.get(this.driverProfileKey(originalPhone));
+    const targetRaw = targetPhone !== originalPhone ? await this.redis.client.get(this.driverProfileKey(targetPhone)) : null;
+    let existing: any = {};
+    try {
+      if (existingRaw) existing = JSON.parse(existingRaw);
+      else if (targetRaw) existing = JSON.parse(targetRaw);
+    } catch {
+      existing = {};
+    }
+
+    const profile = {
+      ...existing,
+      ...body,
+      phone: targetPhone,
+      fullName: typeof body?.fullName === 'string' ? body.fullName : (existing.fullName || ''),
+      email: typeof body?.email === 'string' ? body.email : (existing.email || ''),
+      rating: Number.isFinite(Number(body?.rating)) ? Number(body.rating) : (existing.rating ?? undefined),
+      inn: typeof body?.inn === 'string' ? body.inn : (existing.inn || ''),
+      passport: typeof body?.passport === 'string' ? body.passport : (existing.passport || ''),
+      docsSigned: typeof body?.docsSigned === 'boolean' ? body.docsSigned : Boolean(existing.docsSigned),
+      registrationStatus: typeof body?.registrationStatus === 'string' && body.registrationStatus.trim()
+        ? body.registrationStatus.trim()
+        : (existing.registrationStatus || 'incomplete'),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.drivers.saveProfile(targetPhone, profile);
+
+    if (targetPhone !== originalPhone) {
+      const backupRaw = await this.redis.client.get(this.driverPhotosBackupKey(originalPhone));
+      const adminComment = await this.redis.client.get(this.driverAdminCommentKey(originalPhone));
+      if (backupRaw) await this.redis.client.set(this.driverPhotosBackupKey(targetPhone), backupRaw);
+      if (adminComment) await this.redis.client.set(this.driverAdminCommentKey(targetPhone), adminComment);
+      await this.redis.client.del(this.driverProfileKey(originalPhone));
+      await this.redis.client.del(this.driverPhotosBackupKey(originalPhone));
+      await this.redis.client.del(this.driverAdminCommentKey(originalPhone));
+      await this.redis.client.srem(this.driversSet(), originalPhone);
+    }
+
+    return { ok: true, phone: targetPhone, profile };
+  }
+
   @Get('drivers')
-  async listDrivers(@Headers('authorization') auth?: string) {
+  async listDrivers(
+    @Headers('authorization') auth?: string,
+    @Query('includePhotos') includePhotos?: string,
+  ) {
     this.requireAdmin(auth);
+    const includeAllPhotos = includePhotos === '1' || includePhotos === 'true';
     const base = await this.drivers.listDrivers();
     const earningsLimit = await this.orders.getEarningsLimit();
     const pipeline = this.redis.client.pipeline();
-    base.forEach((d) => pipeline.get(this.driverProfileKey(d.phone)));
-    base.forEach((d) => pipeline.get(this.driverPhotosBackupKey(d.phone)));
-    base.forEach((d) => pipeline.hgetall(`driver:earnings:${d.phone}`));
-    base.forEach((d) => pipeline.get(`driver:sub:paid_until:${d.phone}`));
+    base.forEach((d: any) => pipeline.get(this.driverProfileKey(d.phone)));
+    base.forEach((d: any) => pipeline.get(this.driverPhotosBackupKey(d.phone)));
+    base.forEach((d: any) => pipeline.hgetall(`driver:earnings:${d.phone}`));
+    base.forEach((d: any) => pipeline.get(`driver:sub:paid_until:${d.phone}`));
+    base.forEach((d: any) => pipeline.get(this.driverAdminCommentKey(d.phone)));
     const res = await pipeline.exec();
     const half = base.length;
-    const profiles = res?.slice(0, half).map((r) => r?.[1]) || [];
-    const backups = res?.slice(half, half * 2).map((r) => r?.[1]) || [];
-    const earningsRaw = res?.slice(half * 2, half * 3).map((r) => r?.[1]) || [];
-    const subPaidRaw = res?.slice(half * 3).map((r) => r?.[1]) || [];
+    const profiles = res?.slice(0, half).map((r: any) => r?.[1]) || [];
+    const backups = res?.slice(half, half * 2).map((r: any) => r?.[1]) || [];
+    const earningsRaw = res?.slice(half * 2, half * 3).map((r: any) => r?.[1]) || [];
+    const subPaidRaw = res?.slice(half * 3, half * 4).map((r: any) => r?.[1]) || [];
+    const adminComments = res?.slice(half * 4).map((r: any) => r?.[1]) || [];
     const subSettings = await this.drivers.getSubscriptionSettings();
     const currentDue = this.drivers.getCurrentPeriodDueDate(subSettings.dayOfMonth);
-    const drivers = base.map((d, idx) => {
+    const drivers = base.map((d: any, idx: number) => {
       const raw = typeof profiles[idx] === 'string' ? profiles[idx] : null;
       let profile: any = {};
       try { if (raw) profile = JSON.parse(raw) as DriverProfile; } catch { /* skip corrupted */ }
       const backupRaw = typeof backups[idx] === 'string' ? backups[idx] : null;
       let backup: any = {};
       try { if (backupRaw) backup = JSON.parse(backupRaw); } catch { /* skip corrupted */ }
+      const hasVerificationPhotos = !!(
+        profile.passportFrontBase64 ||
+        profile.passportRegBase64 ||
+        profile.driverLicenseBackBase64 ||
+        profile.selfieBase64 ||
+        backup.passportFrontBase64 ||
+        backup.passportRegBase64 ||
+        backup.driverLicenseBackBase64 ||
+        backup.selfieBase64
+      );
+      const shouldIncludeVerificationPhotos = includeAllPhotos;
       profile = {
         ...profile,
+        hasVerificationPhotos,
         avatarBase64: profile.avatarBase64 || backup.avatarBase64 || null,
-        passportFrontBase64: profile.passportFrontBase64 || backup.passportFrontBase64 || null,
-        passportRegBase64: profile.passportRegBase64 || backup.passportRegBase64 || null,
-        driverLicenseBackBase64: profile.driverLicenseBackBase64 || backup.driverLicenseBackBase64 || null,
-        selfieBase64: profile.selfieBase64 || backup.selfieBase64 || null,
+        passportFrontBase64: shouldIncludeVerificationPhotos
+          ? (profile.passportFrontBase64 || backup.passportFrontBase64 || null)
+          : null,
+        passportRegBase64: shouldIncludeVerificationPhotos
+          ? (profile.passportRegBase64 || backup.passportRegBase64 || null)
+          : null,
+        driverLicenseBackBase64: shouldIncludeVerificationPhotos
+          ? (profile.driverLicenseBackBase64 || backup.driverLicenseBackBase64 || null)
+          : null,
+        selfieBase64: shouldIncludeVerificationPhotos
+          ? (profile.selfieBase64 || backup.selfieBase64 || null)
+          : null,
       };
       const e = (earningsRaw[idx] || {}) as Record<string, string>;
       const gross = Number(e.gross || 0);
@@ -181,6 +265,7 @@ export class AdminController {
       return {
         ...d,
         profile,
+        adminComment: typeof adminComments[idx] === 'string' ? (adminComments[idx] as string) : '',
         earnings: { gross, commission, net, paid, available: net - paid },
         limitReached: commission >= earningsLimit,
         earningsLimit,
@@ -198,19 +283,35 @@ export class AdminController {
     this.requireAdmin(auth);
     const phone = (body.phone || '').trim();
     if (!phone) return { ok: false, error: 'phone required' };
-    await this.redis.client.set(this.driverProfileKey(phone), JSON.stringify(body));
-    await this.redis.client.sadd(this.driversSet(), phone);
-    return { ok: true };
+    return this.saveAdminDriverProfile(phone, body as any);
+  }
+
+  @Post('drivers/:phone')
+  async updateDriverProfile(
+    @Param('phone') phoneRaw: string,
+    @Body() body: Partial<DriverProfile> & Record<string, any>,
+    @Headers('authorization') auth?: string,
+  ) {
+    this.requireAdmin(auth);
+    const phone = (phoneRaw || '').trim();
+    if (!phone) return { ok: false, error: 'phone required' };
+    return this.saveAdminDriverProfile(phone, body as any);
   }
 
   @Post('drivers/:phone/block')
-  async blockDriver(@Param('phone') phoneRaw: string, @Headers('authorization') auth?: string) {
+  async blockDriver(
+    @Param('phone') phoneRaw: string,
+    @Body() body: { reason?: string },
+    @Headers('authorization') auth?: string,
+  ) {
     this.requireAdmin(auth);
     const phone = (phoneRaw || '').trim();
     if (!phone) return { ok: false };
-    await this.drivers.blockTemporarily(phone, 'manual', 24 * 365);
-    this.events.emitDriverBlocked(phone);
-    return { ok: true };
+    const reason = (body?.reason || '').trim() || 'manual';
+    await this.drivers.blockTemporarily(phone, reason, 24 * 365);
+    const meta = await this.drivers.getBlockMeta(phone);
+    this.events.emitDriverBlocked(phone, { reason: meta?.reason || reason, until: meta?.until || null });
+    return { ok: true, reason: meta?.reason || reason, until: meta?.until || null };
   }
 
   @Post('drivers/:phone/unblock')
@@ -224,10 +325,18 @@ export class AdminController {
   }
 
   @Post('drivers/:phone/delete')
-  async deleteDriver(@Param('phone') phoneRaw: string, @Headers('authorization') auth?: string) {
+  async deleteDriver(
+    @Param('phone') phoneRaw: string,
+    @Body() body: { comment?: string },
+    @Headers('authorization') auth?: string,
+  ) {
     this.requireAdmin(auth);
     const phone = (phoneRaw || '').trim();
     if (!phone) return { ok: false };
+    const comment = (body?.comment || '').trim();
+    if (comment) {
+      await this.redis.client.set(this.driverAdminCommentKey(phone), comment);
+    }
     await this.drivers.clearBlock(phone);
     await this.redis.client.del(this.driverProfileKey(phone));
     await this.redis.client.del(this.driverPhotosBackupKey(phone));
@@ -365,6 +474,56 @@ export class AdminController {
     return { ok: true, earnings };
   }
 
+  @Get('drivers/:phone')
+  async getDriverProfile(
+    @Param('phone') phoneRaw: string,
+    @Query('includePhotos') includePhotos?: string,
+    @Headers('authorization') auth?: string,
+  ) {
+    this.requireAdmin(auth);
+    const phone = (phoneRaw || '').trim();
+    if (!phone) return { ok: false, error: 'phone required' };
+
+    const includeAllPhotos = includePhotos === '1' || includePhotos === 'true';
+    const raw = await this.redis.client.get(this.driverProfileKey(phone));
+    const backupRaw = await this.redis.client.get(this.driverPhotosBackupKey(phone));
+    if (!raw && !backupRaw) return { ok: false, error: 'not found' };
+
+    let profile: any = {};
+    try { if (raw) profile = JSON.parse(raw); } catch { /* skip */ }
+    let backup: any = {};
+    try { if (backupRaw) backup = JSON.parse(backupRaw); } catch { /* skip */ }
+    const blockMeta = await this.drivers.getBlockMeta(phone);
+    const adminComment = await this.redis.client.get(this.driverAdminCommentKey(phone));
+
+    const regStatus = profile.registrationStatus || 'incomplete';
+    const shouldIncludeVerificationPhotos = includeAllPhotos || regStatus === 'pending';
+    const safeProfile = {
+      ...profile,
+      avatarBase64: profile.avatarBase64 || backup.avatarBase64 || null,
+      passportFrontBase64: shouldIncludeVerificationPhotos
+        ? (profile.passportFrontBase64 || backup.passportFrontBase64 || null)
+        : null,
+      passportRegBase64: shouldIncludeVerificationPhotos
+        ? (profile.passportRegBase64 || backup.passportRegBase64 || null)
+        : null,
+      driverLicenseBackBase64: shouldIncludeVerificationPhotos
+        ? (profile.driverLicenseBackBase64 || backup.driverLicenseBackBase64 || null)
+        : null,
+      selfieBase64: shouldIncludeVerificationPhotos
+        ? (profile.selfieBase64 || backup.selfieBase64 || null)
+        : null,
+    };
+
+    return {
+      ok: true,
+      profile: safeProfile,
+      blockReason: blockMeta?.reason || null,
+      blockUntil: blockMeta?.until || null,
+      adminComment: adminComment || '',
+    };
+  }
+
   /** Погасить комиссию: обнуляем earnings водителя */
   @Post('drivers/:phone/commission/clear')
   async clearCommission(@Param('phone') phoneRaw: string, @Headers('authorization') auth?: string) {
@@ -386,19 +545,36 @@ export class AdminController {
     const ids = await this.redis.client.smembers(this.clientsSet());
     if (!ids.length) return { ok: true, clients: [] };
     const pipeline = this.redis.client.pipeline();
-    ids.forEach((id) => pipeline.get(this.clientProfileKey(id)));
-    ids.forEach((id) => pipeline.exists(this.clientBlockKey(id)));
-    ids.forEach((id) => pipeline.llen(`client:orders:${id}`));
+    ids.forEach((id: string) => pipeline.get(this.clientProfileKey(id)));
+    ids.forEach((id: string) => pipeline.get(this.clientBlockKey(id)));
+    ids.forEach((id: string) => pipeline.get(this.clientBlockMetaKey(id)));
+    ids.forEach((id: string) => pipeline.llen(`client:orders:${id}`));
+    ids.forEach((id: string) => pipeline.get(this.clientAdminCommentKey(id)));
     const res = await pipeline.exec();
     const split = ids.length;
-    const clients = ids.map((id, idx) => {
+    const clients = ids.map((id: string, idx: number) => {
       const raw = typeof res?.[idx]?.[1] === 'string' ? (res?.[idx]?.[1] as string) : null;
       let profile: any = { id };
       try { if (raw) profile = JSON.parse(raw) as ClientProfile; } catch { /* skip corrupted */ }
-      const blocked = res?.[split + idx]?.[1] === 1;
-      const orderCountRaw = res?.[split * 2 + idx]?.[1];
+      const blockRaw = typeof res?.[split + idx]?.[1] === 'string' ? (res?.[split + idx]?.[1] as string) : null;
+      const blockMetaRaw = typeof res?.[split * 2 + idx]?.[1] === 'string' ? (res?.[split * 2 + idx]?.[1] as string) : null;
+      let legacyBlock: any = null;
+      try { if (blockRaw) legacyBlock = JSON.parse(blockRaw); } catch { legacyBlock = null; }
+      let blockMeta: any = null;
+      try { if (blockMetaRaw) blockMeta = JSON.parse(blockMetaRaw); } catch { blockMeta = null; }
+      const blocked = !!blockRaw;
+      const orderCountRaw = res?.[split * 3 + idx]?.[1];
       const orderCount = Number(orderCountRaw) || 0;
-      return { ...profile, blocked, orderCount };
+      const adminComment = typeof res?.[split * 4 + idx]?.[1] === 'string' ? (res?.[split * 4 + idx]?.[1] as string) : '';
+      return {
+        ...profile,
+        blocked,
+        blockReason: blockMeta?.reason || legacyBlock?.reason || null,
+        blockUntil: blockMeta?.until || legacyBlock?.until || null,
+        blockedAt: blockMeta?.blockedAt || legacyBlock?.blockedAt || null,
+        adminComment,
+        orderCount,
+      };
     });
     return { ok: true, clients };
   }
@@ -414,12 +590,24 @@ export class AdminController {
   }
 
   @Post('clients/:id/block')
-  async blockClient(@Param('id') idRaw: string, @Headers('authorization') auth?: string) {
+  async blockClient(
+    @Param('id') idRaw: string,
+    @Body() body: { reason?: string },
+    @Headers('authorization') auth?: string,
+  ) {
     this.requireAdmin(auth);
     const id = (idRaw || '').trim();
     if (!id) return { ok: false };
-    await this.redis.client.set(this.clientBlockKey(id), '1', 'EX', 60 * 60 * 24 * 365);
-    return { ok: true };
+    const reason = (body?.reason || '').trim() || 'manual';
+    const ttlSec = 60 * 60 * 24 * 365;
+    await this.redis.client.set(this.clientBlockKey(id), '1', 'EX', ttlSec);
+    await this.redis.client.set(
+      this.clientBlockMetaKey(id),
+      JSON.stringify({ reason, blockedAt: new Date().toISOString() }),
+      'EX',
+      ttlSec,
+    );
+    return { ok: true, reason };
   }
 
   @Get('promos')
@@ -428,9 +616,9 @@ export class AdminController {
     const codes = await this.redis.client.smembers(this.promoSet());
     if (!codes.length) return { ok: true, promos: [] };
     const pipeline = this.redis.client.pipeline();
-    codes.forEach((code) => pipeline.hgetall(this.promoKey(code)));
+    codes.forEach((code: string) => pipeline.hgetall(this.promoKey(code)));
     const res = await pipeline.exec();
-    const promos = codes.map((code, idx) => {
+    const promos = codes.map((code: string, idx: number) => {
       const raw = (res?.[idx]?.[1] as Record<string, string>) || {};
       return {
         code,
@@ -489,6 +677,7 @@ export class AdminController {
     const id = (idRaw || '').trim();
     if (!id) return { ok: false };
     await this.redis.client.del(this.clientBlockKey(id));
+    await this.redis.client.del(this.clientBlockMetaKey(id));
     return { ok: true };
   }
 
@@ -776,5 +965,61 @@ export class AdminController {
       orderId: body.orderId?.trim(),
     });
     return { ok: true, payout };
+  }
+
+  // Driver admin comments
+  @Get('drivers/:phone/comment')
+  async getDriverComment(@Param('phone') phoneRaw: string, @Headers('authorization') auth?: string) {
+    this.requireAdmin(auth);
+    const phone = (phoneRaw || '').trim();
+    if (!phone) return { ok: false, error: 'phone required' };
+    const comment = await this.redis.client.get(this.driverAdminCommentKey(phone));
+    return { ok: true, comment: comment || '' };
+  }
+
+  @Post('drivers/:phone/comment')
+  async setDriverComment(
+    @Param('phone') phoneRaw: string,
+    @Body() body: { comment?: string },
+    @Headers('authorization') auth?: string,
+  ) {
+    this.requireAdmin(auth);
+    const phone = (phoneRaw || '').trim();
+    if (!phone) return { ok: false, error: 'phone required' };
+    const key = this.driverAdminCommentKey(phone);
+    if (!body?.comment || !body.comment.trim()) {
+      await this.redis.client.del(key);
+      return { ok: true, comment: '' };
+    }
+    await this.redis.client.set(key, body.comment.trim());
+    return { ok: true, comment: body.comment.trim() };
+  }
+
+  // Client admin comments
+  @Get('clients/:id/comment')
+  async getClientComment(@Param('id') idRaw: string, @Headers('authorization') auth?: string) {
+    this.requireAdmin(auth);
+    const id = (idRaw || '').trim();
+    if (!id) return { ok: false, error: 'id required' };
+    const comment = await this.redis.client.get(this.clientAdminCommentKey(id));
+    return { ok: true, comment: comment || '' };
+  }
+
+  @Post('clients/:id/comment')
+  async setClientComment(
+    @Param('id') idRaw: string,
+    @Body() body: { comment?: string },
+    @Headers('authorization') auth?: string,
+  ) {
+    this.requireAdmin(auth);
+    const id = (idRaw || '').trim();
+    if (!id) return { ok: false, error: 'id required' };
+    const key = this.clientAdminCommentKey(id);
+    if (!body?.comment || !body.comment.trim()) {
+      await this.redis.client.del(key);
+      return { ok: true, comment: '' };
+    }
+    await this.redis.client.set(key, body.comment.trim());
+    return { ok: true, comment: body.comment.trim() };
   }
 }

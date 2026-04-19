@@ -35,11 +35,8 @@ val releaseSigningReady = listOf("storeFile", "storePassword", "keyAlias", "keyP
     .all { !releaseKeyProperties.getProperty(it).isNullOrBlank() }
 val isReleaseTask = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
 
-if (isReleaseTask && !releaseSigningReady) {
-    throw GradleException(
-        "Release signing is not configured. Create android/key.properties with storeFile, storePassword, keyAlias, keyPassword."
-    )
-}
+// Для клиента подпись не обязательна при сборке: без key.properties используется debug-ключ.
+// Для загрузки в Play Console нужен ключ загрузки (key.properties с нужным .jks или сброс ключа в консоли).
 
 val yandexMapsKey = (secrets.getProperty("YANDEX_MAPS_KEY")
     ?: secrets.getProperty("\uFEFFYANDEX_MAPS_KEY")
@@ -51,7 +48,7 @@ if (yandexMapsKey.isBlank()) {
 }
 
 android {
-    namespace = "ru.prostotaxi.client"
+    namespace = "ru.prostotaxi.driver"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -76,13 +73,14 @@ android {
     }
 
     defaultConfig {
-        applicationId = "ru.prostotaxi.client"
+        applicationId = "ru.prostotaxi.driver"
         minSdk = 26
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
+        // Явный versionCode для Play Console (должен быть больше всех уже загруженных)
+        versionCode = 10
         versionName = flutter.versionName
 
-        manifestPlaceholders["applicationName"] = "ru.prostotaxi.client.MainApplication"
+        manifestPlaceholders["applicationName"] = "ru.prostotaxi.driver.MainApplication"
         manifestPlaceholders["YANDEX_MAPS_KEY"] = yandexMapsKey
 
         buildConfigField("String", "YANDEX_MAPS_KEY", "\"$yandexMapsKey\"")
@@ -94,12 +92,7 @@ android {
         buildConfig = true
     }
 
-    packaging {
-        jniLibs {
-            // Some bundled native libraries fail symbol stripping on Windows/CI.
-            keepDebugSymbols += setOf("**/*.so")
-        }
-    }
+    // keepDebugSymbols for **/*.so was removed: it breaks appbundle (strip step) on Flutter 3.32+.
 
     buildTypes {
         release {

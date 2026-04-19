@@ -20,6 +20,41 @@ export class DriversController {
     return `driver:photos_backup:${phone}`;
   }
 
+  private normalizePhoneForCompare(raw?: string | null) {
+    const digits = (raw || '').toString().replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length === 10) return `7${digits}`;
+    if (digits.length === 11 && (digits.startsWith('7') || digits.startsWith('8'))) {
+      return `7${digits.slice(1)}`;
+    }
+    return digits;
+  }
+
+  private hasVerificationRequiredFields(profile: Record<string, any>) {
+    return Boolean(
+      (profile.fullName || '').toString().trim() &&
+      (profile.inn || '').toString().trim() &&
+      (profile.passport || '').toString().trim(),
+    );
+  }
+
+  private hasVerificationPhotos(profile: Record<string, any>) {
+    return Boolean(
+      profile.passportFrontBase64 &&
+      profile.passportRegBase64 &&
+      profile.driverLicenseBackBase64 &&
+      profile.selfieBase64,
+    );
+  }
+
+  private isVerificationConsistent(profile: Record<string, any>) {
+    return Boolean(
+      profile.docsSigned === true &&
+      this.hasVerificationRequiredFields(profile) &&
+      this.hasVerificationPhotos(profile),
+    );
+  }
+
   private requireDriverPhone(auth?: string) {
     const token = auth?.replace(/^Bearer\s+/i, '').trim();
     if (!token) throw new UnauthorizedException('Driver token required');
@@ -40,7 +75,7 @@ export class DriversController {
   @Get('profile')
   async getProfile(@Query('phone') phone?: string, @Headers('authorization') auth?: string) {
     const normalized = this.requireDriverPhone(auth);
-    if (phone && phone.trim() && phone.trim() !== normalized) {
+    if (phone && phone.trim() && this.normalizePhoneForCompare(phone) !== this.normalizePhoneForCompare(normalized)) {
       throw new ForbiddenException('Driver token mismatch');
     }
     const profile = await this.drivers.getProfile(normalized);
@@ -58,7 +93,7 @@ export class DriversController {
     const subSettings = await this.drivers.getSubscriptionSettings();
     const subscriptionPaidUntil = await this.drivers.getSubscriptionPaidUntil(normalized);
     const subscriptionOverdue = await this.drivers.isSubscriptionOverdue(normalized);
-    const safeProfile = {
+    const safeProfile: Record<string, any> = {
       ...baseProfile,
       avatarBase64: (baseProfile as any).avatarBase64 || photosBackup.avatarBase64 || null,
       passportFrontBase64: (baseProfile as any).passportFrontBase64 || photosBackup.passportFrontBase64 || null,
@@ -84,6 +119,38 @@ export class DriversController {
       subscriptionAmount: subSettings.amount,
       subscriptionDayOfMonth: subSettings.dayOfMonth,
     };
+
+    const statusRaw = (safeProfile.registrationStatus || '').toString().trim().toLowerCase();
+    const profileForCheck = safeProfile;
+    const isConsistent = this.isVerificationConsistent(profileForCheck);
+    const hasAnyVerificationData = Boolean(
+      (profileForCheck.fullName || '').toString().trim() ||
+      (profileForCheck.inn || '').toString().trim() ||
+      (profileForCheck.passport || '').toString().trim() ||
+      profileForCheck.docsSigned === true ||
+      profileForCheck.passportFrontBase64 ||
+      profileForCheck.passportRegBase64 ||
+      profileForCheck.driverLicenseBackBase64 ||
+      profileForCheck.selfieBase64,
+    );
+
+    let healedStatus = statusRaw || 'incomplete';
+    if (statusRaw === 'completed' && !isConsistent) {
+      healedStatus = hasAnyVerificationData ? 'incomplete' : 'incomplete';
+    } else if (statusRaw === 'pending' && !hasAnyVerificationData) {
+      healedStatus = 'incomplete';
+    }
+
+    if (healedStatus !== statusRaw) {
+      const toSave = {
+        ...baseProfile,
+        registrationStatus: healedStatus,
+        updatedAt: new Date().toISOString(),
+      };
+      await this.drivers.saveProfile(normalized, toSave);
+      (safeProfile as any).registrationStatus = healedStatus;
+    }
+
     return { ok: true, profile: safeProfile, bonus };
   }
 
@@ -94,7 +161,7 @@ export class DriversController {
     @Headers('authorization') auth?: string,
   ) {
     const normalized = this.requireDriverPhone(auth);
-    if (phone && phone.trim() && phone.trim() !== normalized) {
+    if (phone && phone.trim() && this.normalizePhoneForCompare(phone) !== this.normalizePhoneForCompare(normalized)) {
       throw new ForbiddenException('Driver token mismatch');
     }
     const limit = Math.min(100, Math.max(1, Number(limitRaw) || 50));
@@ -164,9 +231,6 @@ export class DriversController {
     },
   ) {
     const phone = this.requireDriverPhone(auth);
-    if (body.phone && body.phone.trim() && body.phone.trim() !== phone) {
-      throw new ForbiddenException('Driver token mismatch');
-    }
     const requestedRegistrationStatus = (body.registrationStatus || '').toString().trim().toLowerCase();
     const referralCode = (body.referralCode || '').toString().trim().replace(/\D/g, '');
     const existing = await this.drivers.getProfile(phone);
@@ -182,13 +246,49 @@ export class DriversController {
       }
     }
     const existingRegistrationStatus = ((existing as any)?.registrationStatus || '').toString().trim().toLowerCase();
+    const mergedForValidation = {
+      ...(existing as any),
+      fullName: (body.fullName ?? (existing as any)?.fullName ?? '').toString(),
+      inn: (body.inn ?? (existing as any)?.inn ?? '').toString(),
+      passport: (body.passport ?? (existing as any)?.passport ?? '').toString(),
+      passportFrontBase64: body.passportFrontBase64 ?? (existing as any)?.passportFrontBase64 ?? null,
+      passportRegBase64: body.passportRegBase64 ?? (existing as any)?.passportRegBase64 ?? null,
+      driverLicenseBackBase64: body.driverLicenseBackBase64 ?? (existing as any)?.driverLicenseBackBase64 ?? null,
+      selfieBase64: body.selfieBase64 ?? (existing as any)?.selfieBase64 ?? null,
+      docsSigned: body.docsSigned ?? (existing as any)?.docsSigned ?? false,
+    } as Record<string, any>;
+    const verificationConsistent = this.isVerificationConsistent(mergedForValidation);
     let nextRegistrationStatus = existingRegistrationStatus || 'incomplete';
-    // Водитель может перевести заявку только в pending/incomplete.
-    // completed/rejected выставляет только админ.
-    if (requestedRegistrationStatus === 'pending' || requestedRegistrationStatus === 'incomplete') {
-      nextRegistrationStatus = requestedRegistrationStatus;
-    } else if (!nextRegistrationStatus) {
-      nextRegistrationStatus = 'incomplete';
+    // completed — только admin меняет, статус не трогаем.
+    // pending   — пока заявка на проверке, не сбрасываем в incomplete при обновлении профиля/фото.
+    // rejected  — водитель может переподать заявку (→ pending).
+    // incomplete — водитель может установить pending или остаться incomplete.
+    if (existingRegistrationStatus === 'completed') {
+      if (!verificationConsistent) {
+        nextRegistrationStatus = requestedRegistrationStatus === 'pending' && verificationConsistent
+          ? 'pending'
+          : 'incomplete';
+      } else if (requestedRegistrationStatus === 'pending' && verificationConsistent) {
+        nextRegistrationStatus = 'pending';
+      } else {
+        nextRegistrationStatus = 'completed';
+      }
+    } else if (existingRegistrationStatus === 'pending') {
+      if (!verificationConsistent || requestedRegistrationStatus === 'incomplete') {
+        nextRegistrationStatus = 'incomplete';
+      } else {
+        nextRegistrationStatus = 'pending';
+      }
+    } else if (existingRegistrationStatus === 'rejected') {
+      nextRegistrationStatus = requestedRegistrationStatus === 'pending' && verificationConsistent
+        ? 'pending'
+        : 'rejected';
+    } else {
+      if (requestedRegistrationStatus === 'pending' && verificationConsistent) {
+        nextRegistrationStatus = 'pending';
+      } else {
+        nextRegistrationStatus = 'incomplete';
+      }
     }
     const profile = {
       phone,

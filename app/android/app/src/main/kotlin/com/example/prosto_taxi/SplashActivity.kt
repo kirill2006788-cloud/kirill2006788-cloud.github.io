@@ -1,4 +1,4 @@
-package ru.prostotaxi.client
+package ru.prostotaxi.driver
 
 import android.content.Intent
 import android.net.Uri

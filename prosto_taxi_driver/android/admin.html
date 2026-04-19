@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http: https:; img-src 'self' data: http: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http: https:; img-src 'self' data: http: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';" />
   <title>Admin Panel</title>
   <style>
     :root{
@@ -269,12 +269,21 @@
     #pagePrices{
       overflow: visible;
     }
-
+    #pricesTariffCards{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:16px;
+      margin-bottom:24px;
+    }
+    @media(max-width:600px){
+      #pricesTariffCards{
+        grid-template-columns:1fr;
+      }
+    }
     #pricesTariffCards .priceCard:hover{
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0,0,0,.4);
     }
-
     #pricesTariffCards .priceCard:active{
       transform: scale(.98);
     }
@@ -417,6 +426,26 @@
          1px -1px 0 var(--stroke),
         -1px  1px 0 var(--stroke),
          1px  1px 0 var(--stroke);
+    }
+
+    .statusBar{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin:0 0 14px;
+    }
+    .statusChip{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding:6px 14px;
+      border-radius:20px;
+      font-size:13px;
+      font-weight:800;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      color:rgba(255,255,255,.72);
+      white-space:nowrap;
     }
 
     .searchRow{
@@ -669,6 +698,184 @@
       color: rgba(255,178,74,.95);
     }
 
+    .driverCommissionCard{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 128px;
+      align-items:center;
+      gap:14px;
+      padding:14px;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.24));
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 12px 26px rgba(0,0,0,.22);
+    }
+    .driverCommissionMain{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .driverCommissionAvatarSlot{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex:0 0 auto;
+    }
+    .driverCommissionAvatarImage,
+    .driverCommissionAvatarFallback{
+      width:46px;
+      height:46px;
+      border-radius:50%;
+    }
+    .driverCommissionAvatarImage{
+      object-fit:cover;
+      border:1px solid rgba(255,255,255,.14);
+      display:block;
+    }
+    .driverCommissionAvatarFallback{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(255,255,255,.08);
+      color:rgba(255,255,255,.45);
+      font-size:18px;
+      font-weight:900;
+    }
+    .driverCommissionBody{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+    .driverCommissionName{
+      font-size:15px;
+      font-weight:900;
+      color:#fff;
+      line-height:1.18;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .driverCommissionPhone{
+      font-size:13px;
+      font-weight:800;
+      color:rgba(255,255,255,.88);
+      line-height:1.1;
+    }
+    .driverCommissionMinor{
+      font-size:11px;
+      color:rgba(255,255,255,.58);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      line-height:1.2;
+    }
+    .driverCommissionEarnings{
+      font-size:11px;
+      color:rgba(255,255,255,.74);
+      line-height:1.2;
+    }
+    .driverCommissionLimit{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      color:#ff7e7e;
+      font-weight:900;
+      line-height:1.2;
+    }
+    .driverCommissionMeta{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      justify-content:center;
+      gap:8px;
+      min-width:0;
+    }
+    .driverCommissionAmountBlock{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:2px;
+      min-width:0;
+    }
+    .driverCommissionAmountLabel{
+      font-size:10px;
+      color:rgba(255,255,255,.54);
+      text-transform:uppercase;
+      letter-spacing:.28px;
+      line-height:1.1;
+    }
+    .driverCommissionAmount{
+      font-size:16px;
+      font-weight:900;
+      color:rgba(255,178,74,.98);
+      line-height:1;
+    }
+    .driverCommissionAmount.is-limit{
+      color:#ffb26d;
+    }
+    .driverCommissionAmount.is-zero{
+      font-size:14px;
+      color:rgba(255,255,255,.42);
+    }
+    .driverCommissionAction{
+      min-width:104px;
+      padding:8px 12px;
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+      background:linear-gradient(135deg, rgba(255,198,94,1), rgba(255,165,52,1));
+      color:#050505 !important;
+      -webkit-text-fill-color:#050505;
+      box-shadow:0 8px 18px rgba(255,178,74,.14), 0 0 0 1px rgba(255,230,172,.22) inset;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      font-size:11px;
+      font-weight:900;
+      line-height:1;
+      white-space:nowrap;
+    }
+    .driverCommissionAction.is-limit{
+      background:linear-gradient(135deg, rgba(255,150,72,1), rgba(255,98,46,1));
+      box-shadow:0 8px 18px rgba(255,92,42,.16), 0 0 0 1px rgba(255,184,124,.24) inset;
+    }
+    .driverCommissionAction:disabled{
+      cursor:default;
+      opacity:.8;
+    }
+    .driverCommissionActionIcon{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:15px;
+      height:15px;
+      border-radius:999px;
+      background:rgba(15,10,4,.12);
+      color:#050505 !important;
+      -webkit-text-fill-color:#050505;
+      font-size:8px;
+      font-weight:900;
+      flex:0 0 auto;
+    }
+    .driverCommissionActionText{
+      color:#050505 !important;
+      -webkit-text-fill-color:#050505;
+      text-shadow:none;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.02em;
+      opacity:1 !important;
+    }
+    .driverCommissionNoDebt{
+      font-size:10px;
+      color:rgba(255,255,255,.42);
+      font-weight:800;
+      line-height:1.1;
+    }
+
     .orderRow{
       display:flex;
       flex-direction:column;
@@ -857,6 +1064,10 @@
       display:none;
     }
 
+    [hidden]{
+      display:none !important;
+    }
+
     .modal{
       width: min(620px, 100%);
       background: rgba(0,0,0,.62);
@@ -937,6 +1148,21 @@
       gap: 14px;
     }
 
+    .modalBody textarea.input{
+      min-height:160px !important;
+      font-size:16px;
+      line-height:1.45;
+    }
+
+    .modalFooter{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.28);
+    }
+
     .field{
       display:grid;
       gap:8px;
@@ -980,6 +1206,111 @@
       padding: 14px 16px;
       border-top: 1px solid rgba(255,255,255,.08);
       background: rgba(0,0,0,.28);
+    }
+
+    .mobileNoteBlock{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:rgba(255,178,74,.08);
+      border:1px solid rgba(255,178,74,.18);
+      text-align:left;
+    }
+
+    .mobileNoteBlock .mobileNoteTitle{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.3px;
+      color:rgba(255,178,74,.92);
+      text-transform:uppercase;
+    }
+
+    .mobileNoteBlock .mobileNoteText{
+      font-size:12px;
+      line-height:1.45;
+      color:rgba(255,255,255,.9);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .adminNoteCard{
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      margin-top:8px;
+      padding:9px 10px;
+      border-radius:10px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      text-align:left;
+    }
+
+    .adminNoteCard.compact{
+      padding:8px 10px;
+    }
+
+    .adminNoteCard.is-empty{
+      opacity:.78;
+    }
+
+    .adminNoteCardTitle{
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.35px;
+      text-transform:uppercase;
+      color:rgba(255,178,74,.9);
+    }
+
+    .adminNoteCardText{
+      font-size:12px;
+      line-height:1.4;
+      color:rgba(255,255,255,.92);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .reasonCommentCell{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:220px;
+    }
+
+    .mobileInfoGrid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+
+    .mobileInfoItem{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.08);
+      text-align:left;
+      min-width:0;
+    }
+
+    .mobileInfoItemTitle{
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.3px;
+      text-transform:uppercase;
+      color:rgba(255,178,74,.85);
+    }
+
+    .mobileInfoItemValue{
+      font-size:12px;
+      line-height:1.35;
+      color:rgba(255,255,255,.92);
+      white-space:pre-wrap;
+      word-break:break-word;
     }
 
     .btn{
@@ -1152,6 +1483,13 @@
       text-align: center;
     }
 
+    #pageBlocks .table thead th:nth-child(7),
+    #pageBlocks .table tbody td:nth-child(7){
+      min-width:260px;
+      vertical-align:top;
+      text-align:left;
+    }
+
     .colN{ width:70px; text-align:center; }
     .stars{
       display:flex;
@@ -1166,12 +1504,184 @@
     .star.on svg{ fill: var(--yellow); stroke: rgba(0,0,0,.35); stroke-width:1; }
     .star.off svg{ fill: #7b7b86; stroke: rgba(0,0,0,.35); stroke-width:1; }
 
+    /* ─── Hamburger button ─── */
+    .hamburger{
+      display:none;
+      position:fixed;
+      top:12px; right:12px;
+      z-index:25;
+      width:44px; height:44px;
+      border-radius:12px;
+      background:rgba(0,0,0,.65);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(8px);
+      cursor:pointer;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:5px;
+      padding:10px 8px;
+    }
+    .hamburger span{
+      display:block;
+      width:100%;
+      height:2.5px;
+      border-radius:2px;
+      background:rgba(255,255,255,.85);
+      transition:transform .25s, opacity .25s;
+    }
+    .hamburger.open span:nth-child(1){ transform:rotate(45deg) translate(5px,5px); }
+    .hamburger.open span:nth-child(2){ opacity:0; }
+    .hamburger.open span:nth-child(3){ transform:rotate(-45deg) translate(5px,-5px); }
+
+    /* ─── Mobile sidebar overlay ─── */
+    .sidebarOverlay{
+      display:none;
+      position:fixed;
+      top:0; bottom:0; left:0;
+      right:280px;
+      background:rgba(0,0,0,.55);
+      z-index:14;
+    }
+    @media (min-width:281px){
+      .sidebarOverlay{ right:20vw; }
+    }
+    .sidebarOverlay.show{ display:block; }
+
+    /* ─── Bottom mobile nav ─── */
+    .bottomNav{
+      display:none;
+      position:fixed;
+      bottom:0; left:0; right:0;
+      z-index:20;
+      background:rgba(15,15,20,.96);
+      border-top:1px solid rgba(255,43,43,.25);
+      backdrop-filter:blur(12px);
+      padding:4px 0 env(safe-area-inset-bottom, 4px);
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .bottomNav::after{
+      content:'';
+      position:absolute;
+      right:0; top:0; bottom:0;
+      width:32px;
+      background:linear-gradient(to right, transparent, rgba(15,15,20,.96));
+      pointer-events:none;
+    }
+    .bottomNav::-webkit-scrollbar{ display:none; }
+    .bottomNavInner{
+      display:flex;
+      gap:2px;
+      min-width:max-content;
+      padding:0 6px;
+    }
+    .bottomNavItem{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:2px;
+      padding:6px 12px 4px;
+      border-radius:10px;
+      cursor:pointer;
+      white-space:nowrap;
+      min-width:60px;
+      color:rgba(255,255,255,.55);
+      transition:color .15s, background .15s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .bottomNavItem:active{ background:rgba(255,255,255,.06); }
+    .bottomNavItem.active{
+      color:var(--yellow);
+      background:rgba(255,178,74,.10);
+    }
+    .bottomNavItem svg{ width:20px; height:20px; fill:currentColor; stroke:currentColor; stroke-width:1.8; }
+    .bottomNavItem span{ font-size:9px; font-weight:800; letter-spacing:.2px; }
+
     /* responsive */
     @media (max-width: 900px){
       .app{ grid-template-columns: 1fr; }
       .glowVert{ display:none; }
-      .sidebar{ position:sticky; top:0; z-index:10; }
+      .hamburger{ display:flex; }
+      .bottomNav{ display:block; }
+      .sidebar{
+        position:fixed;
+        top:0; right:0; bottom:0;
+        left:auto;
+        z-index:16;
+        transform:translateX(100%);
+        transition:transform .3s ease;
+        width:min(280px, 80vw);
+        overflow-y:auto;
+        -webkit-overflow-scrolling:touch;
+        overscroll-behavior:contain;
+        padding-bottom:20px;
+      }
+      .sideBottom{
+        position:static;
+        margin-top:20px;
+        padding-top:14px;
+        border-top:1px solid rgba(255,255,255,.08);
+      }
+      .sidebar.open{ transform:translateX(0); }
+      .content{
+        grid-column:1;
+        padding:14px 12px 80px;
+        width:100%;
+        max-width:100%;
+      }
       .glowTop{ top: var(--topH); }
+      .title{ font-size:24px; }
+      .tableCardScroll{
+        max-height:none;
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+      }
+      .card.tableCard{
+        max-height:none;
+        overflow-x:auto;
+        width:100%;
+      }
+      .tableCardScroll{
+        width:100%;
+      }
+      .mobileCardTable{
+        width:100% !important;
+      }
+      .ordersFilterBar{
+        flex-wrap:wrap;
+        gap:6px;
+      }
+      .oFilter, .oFilterWide{
+        min-width:0;
+        flex:1 1 100px;
+        max-width:none;
+      }
+      .oFilterBtn{
+        flex:1 1 auto;
+      }
+      .ordersToolbarTabs{
+        flex-wrap:wrap;
+        gap:6px;
+      }
+      .ordersToolbarTabs .actionBtn{
+        flex:1 1 auto;
+      }
+      .statsPeriodRow{
+        flex-wrap:wrap;
+        gap:6px;
+      }
+      .statsPeriodRow .actionBtn{
+        flex:1 1 auto;
+      }
+      .barChart, .groupChart{
+        height:180px;
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+      }
+      .toastContainer{ top:auto; bottom:80px; right:8px; left:8px; }
+      .admin-toast{ min-width:0; max-width:100%; }
     }
 
     @media (max-width: 560px){
@@ -1180,14 +1690,629 @@
         align-items:stretch;
       }
 
+      .driverCommissionCard{
+        grid-template-columns:minmax(0,1fr) 100px;
+        gap:10px;
+        padding:12px;
+        border-radius:14px;
+      }
+      .driverCommissionMain{
+        align-items:flex-start;
+        gap:10px;
+      }
+      .driverCommissionAvatarImage,
+      .driverCommissionAvatarFallback{
+        width:42px;
+        height:42px;
+      }
+      .driverCommissionAvatarFallback{
+        font-size:16px;
+      }
+      .driverCommissionName{
+        font-size:14px;
+        white-space:normal;
+        display:-webkit-box;
+        line-clamp:2;
+        -webkit-line-clamp:2;
+        -webkit-box-orient:vertical;
+      }
+      .driverCommissionPhone{
+        font-size:12px;
+      }
+      .driverCommissionMinor,
+      .driverCommissionEarnings,
+      .driverCommissionLimit{
+        font-size:10px;
+      }
+      .driverCommissionMeta{
+        gap:7px;
+      }
+      .driverCommissionAmount{
+        font-size:14px;
+      }
+      .driverCommissionAmount.is-zero{
+        font-size:12px;
+      }
+      .driverCommissionAction{
+        min-width:92px;
+        width:92px;
+        padding:7px 8px;
+        border-radius:11px;
+        gap:5px;
+        font-size:10px;
+      }
+      .driverCommissionActionIcon{
+        width:14px;
+        height:14px;
+        font-size:8px;
+      }
+      .driverCommissionActionText{
+        font-size:10px;
+      }
+      .driverCommissionNoDebt{
+        font-size:9px;
+      }
+
       .actions{
         width:100%;
+        flex-wrap:wrap;
       }
 
       .actionBtn{
-        flex: 1 1 0;
+        flex: 1 1 auto;
+        min-width:0;
+        padding:10px 10px;
+      }
+
+      .btn{
+        padding:10px 12px;
+      }
+
+      .input{
+        padding:12px 14px;
+        font-size:16px; /* prevent iOS zoom */
+      }
+
+      .oFilter{
+        height:40px;
+        font-size:14px;
+      }
+
+      .modal{
+        width:min(100%, 100vw);
+        border-radius:0;
+        max-height:100vh;
+        height:100vh;
+        overflow-y:auto;
+      }
+      .modalOverlay{
+        padding:0;
+        align-items:flex-end;
+      }
+      .modalBody textarea.input{
+        min-height:160px !important;
+        font-size:16px;
+        line-height:1.45;
+      }
+      .modalFooter{
+        flex-wrap:wrap;
+        padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+      }
+      .modalFooter .btn{
+        flex:1 1 160px;
+        min-height:44px;
+      }
+
+      .promoGrid{
+        grid-template-columns:1fr;
+      }
+
+      body{
+        padding-bottom:60px;
+      }
+
+      /* ─── Responsive tables on mobile ─── */
+      .tableCardScroll{
+        overflow:visible;
+      }
+      .mobileCardTable{
+        display:block;
+        width:100%;
+      }
+      .mobileCardTable thead{
+        display:none;
+      }
+      .mobileCardTable tbody{
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        align-items:center;
+      }
+      .mobileCardTable tbody tr{
+        display:block;
+        min-width:0;
+        width:100%;
+        border:1px solid rgba(255,43,43,.28);
+        border-radius:14px;
+        background:rgba(255,255,255,.02);
+        overflow:hidden;
+        box-shadow:0 10px 26px rgba(0,0,0,.18);
+        margin:0 auto;
+      }
+      .mobileCardTable tbody td{
+        display:block !important;
+        width:100%;
+        min-height:0;
+        padding:10px 12px 11px;
+        white-space:normal;
+        overflow:visible;
+        text-overflow:unset;
+        border-right:none;
+        border-bottom:1px solid rgba(255,255,255,.06);
+        font-size:13px;
+        text-align:left;
+      }
+      .mobileCardTable tbody td:not(.mobile-actions):not(.mobile-status){
+        text-align:center;
+      }
+      .mobileCardTable tbody td:last-child{
+        border-bottom:none;
+      }
+      .mobileCardTable tbody td::before{
+        content:attr(data-label);
+        display:block;
+        margin-bottom:6px;
+        color:rgba(255,255,255,.52);
+        font-size:11px;
+        font-weight:900;
+        line-height:1.3;
+        text-transform:uppercase;
+        letter-spacing:.3px;
+        text-align:left;
+      }
+      .mobileCardTable tbody td > *{
+        min-width:0;
+      }
+      .mobileCardTable tbody td.mobile-primary{
+        padding-top:14px;
+      }
+      .mobileCardTable tbody td.mobile-primary::before{
+        color:rgba(255,178,74,.92);
+      }
+      .mobileCardTable tbody td.mobile-primary,
+      .mobileCardTable tbody td.mobile-primary *{
+        font-size:15px;
+        font-weight:900;
+        line-height:1.35;
+      }
+      .mobileCardTable tbody td.mobile-phone,
+      .mobileCardTable tbody td.mobile-id{
+        font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing:.2px;
+      }
+      .mobileCardTable tbody td.mobile-meta,
+      .mobileCardTable tbody td.mobile-meta *{
+        color:rgba(255,255,255,.82);
+      }
+      .mobileCardTable tbody td.mobile-status{
+        background:rgba(255,255,255,.025);
+      }
+      .mobileCardTable tbody td.mobile-actions{
+        background:rgba(255,255,255,.035);
+        padding-top:12px;
+        text-align:left;
+      }
+      .mobileCardTable tbody td.mobile-actions::before{
+        color:rgba(255,178,74,.92);
+      }
+      .mobileCardTable tbody td .statusBadge,
+      .mobileCardTable tbody td .orderStatusBadge,
+      .mobileCardTable tbody td .orderIdBadge,
+      .mobileCardTable tbody td .preorderBadge{
+        display:inline-flex;
+      }
+      .mobileCardTable tbody td .btn{
+        flex:0 0 auto;
+        margin:4px 6px 0 0;
+      }
+      .mobileCardTable tbody tr td:first-child{
+        background:rgba(255,255,255,.015);
+      }
+      .mobileCardTable tbody tr td:first-child::before{
+        color:rgba(255,178,74,.86);
+      }
+      .mobileCardTable tbody td img{
+        max-width:72px;
+        height:auto;
+      }
+      .mobileCardTable tbody td[style*='color:']{
+        font-weight:800;
+      }
+      .mobileCardTable tbody td:last-child .btn,
+      .mobileCardTable tbody td:last-child button{
+        display:inline-flex;
+        margin-right:8px;
+        margin-bottom:8px;
+      }
+      .mobileCardTable tbody td.mobile-actions .btn,
+      .mobileCardTable tbody td.mobile-actions button{
+        min-height:38px;
+        padding:9px 12px;
+      }
+      .mobileCardTable tbody td.mobile-actions > *:not(:first-child){
+        justify-content:center;
+      }
+      .mobileCardTable tbody td.mobile-status{
+        text-align:center;
+      }
+      .mobileCardTable tbody td.mobile-status::before{
+        text-align:left;
+      }
+      .mobileCardTable tbody td.mobile-primary,
+      .mobileCardTable tbody td.mobile-phone,
+      .mobileCardTable tbody td.mobile-id{
+        word-break:break-word;
+      }
+      .mobileInfoGrid{
+        grid-template-columns:1fr 1fr;
+        gap:6px;
+        margin-top:6px;
+      }
+      .mobileInfoItem{
+        padding:7px 9px;
+        border-radius:9px;
+      }
+      .mobileInfoItemTitle{
+        font-size:9px;
+      }
+      .mobileInfoItemValue{
+        font-size:11px;
+      }
+      .mobileNoteBlock{
+        padding:8px 10px;
+        gap:5px;
+      }
+      .mobileNoteBlock .mobileNoteTitle{
+        font-size:10px;
+      }
+      .mobileNoteBlock .mobileNoteText{
+        font-size:11px;
+        line-height:1.35;
+      }
+      .tableCardScroll{
+        padding:0;
+      }
+      #pageClients .mobileCardTable tbody td,
+      #pageBlocks .mobileCardTable tbody td,
+      #pageVerification .mobileCardTable tbody td{
+        padding:12px 14px 13px;
+      }
+      #pageClients .mobileCardTable tbody td.mobile-primary,
+      #pageBlocks .mobileCardTable tbody td.mobile-primary,
+      #pageVerification .mobileCardTable tbody td.mobile-primary{
+        padding-top:16px;
+      }
+      #pageClients .mobileCardTable tbody td.mobile-phone,
+      #pageBlocks .mobileCardTable tbody td.mobile-phone,
+      #pageVerification .mobileCardTable tbody td.mobile-phone,
+      #pageClients .mobileCardTable tbody td.mobile-id,
+      #pageBlocks .mobileCardTable tbody td.mobile-id,
+      #pageVerification .mobileCardTable tbody td.mobile-id{
+        font-size:15px;
+        font-weight:800;
+      }
+      #pageClients .mobileCardTable tbody td.mobile-actions,
+      #pageBlocks .mobileCardTable tbody td.mobile-actions,
+      #pageVerification .mobileCardTable tbody td.mobile-actions{
+        text-align:center;
+        padding-top:14px;
+        padding-bottom:14px;
+        display:flex !important;
+        flex-wrap:wrap;
+        gap:8px;
+        justify-content:flex-start;
+        align-items:center;
+      }
+      #pageClients .mobileCardTable tbody td.mobile-actions::before,
+      #pageBlocks .mobileCardTable tbody td.mobile-actions::before,
+      #pageVerification .mobileCardTable tbody td.mobile-actions::before{
+        text-align:left;
+      }
+      #pageClients .mobileCardTable tbody td.mobile-actions .btn,
+      #pageBlocks .mobileCardTable tbody td.mobile-actions .btn,
+      #pageVerification .mobileCardTable tbody td.mobile-actions .btn,
+      #pageClients .mobileCardTable tbody td.mobile-actions button,
+      #pageBlocks .mobileCardTable tbody td.mobile-actions button,
+      #pageVerification .mobileCardTable tbody td.mobile-actions button{
+        min-width:112px;
+        justify-content:center;
+        border-radius:12px;
+      }
+
+      #pageClients .mobileCardTable tbody td.mobile-meta .mobileNoteBlock,
+      #pageBlocks .mobileCardTable tbody td:nth-child(7) .mobileNoteBlock,
+      #pageDrivers .mobileCardTable tbody td:nth-child(6) .mobileNoteBlock{
+        margin-top:8px;
+      }
+
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row){
+        border-radius:12px;
+        display:grid;
+        grid-template-columns:88px minmax(0,1fr);
+        grid-template-areas:
+          'photo name'
+          'photo phone'
+          'photo status'
+          'actions actions';
+        gap:2px 6px;
+        align-items:center;
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(1),
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(4),
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(7),
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(8),
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(9),
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(10){
+        display:none !important;
+      }
+      #pageDrivers .mobileCardTable tbody td{
+        border-bottom:none;
+        padding:0;
+      }
+      #pageDrivers .mobileCardTable tbody td::before{
+        display:none;
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(2){
+        grid-area:photo;
+        display:flex !important;
+        justify-content:center;
+        align-items:center;
+        padding:8px 0;
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(2) img,
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(2) span{
+        width:80px !important;
+        height:80px !important;
+        border-radius:50% !important;
+        object-fit:cover;
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(2) img{
+        border:2px solid rgba(255,178,74,.55);
+        box-shadow:0 0 0 2px rgba(0,0,0,.22);
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(3){
+        grid-area:name;
+        text-align:left;
+        font-size:14px;
+        font-weight:900;
+        line-height:1.25;
+        padding-top:8px;
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(5){
+        grid-area:phone;
+        text-align:left;
+        font-size:13px;
+        font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+        color:rgba(255,255,255,.86);
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(6){
+        grid-area:status;
+        text-align:left;
+        font-size:12px;
+        color:rgba(255,255,255,.68);
+        padding-bottom:6px;
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(6) .mobileNoteBlock{
+        margin-top:6px;
+        padding:6px 8px;
+        border-radius:9px;
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(6) .mobileNoteBlock .mobileNoteTitle{
+        font-size:9px;
+      }
+      #pageDrivers .mobileCardTable tbody tr:not(.info-row):not(.photo-row) td:nth-child(6) .mobileNoteBlock .mobileNoteText{
+        font-size:10px;
+        line-height:1.25;
+      }
+      #pageDrivers .mobileCardTable tbody tr.info-row,
+      #pageDrivers .mobileCardTable tbody tr.photo-row{
+        display:table-row !important;
+      }
+      #pageDrivers .mobileCardTable tbody tr.info-row td,
+      #pageDrivers .mobileCardTable tbody tr.photo-row td{
+        display:table-cell !important;
+        padding:10px !important;
+      }
+      #pageDrivers .mobileCardTable tbody td.mobile-actions{
+        grid-area:actions;
+        display:flex !important;
+        flex-wrap:wrap;
+        gap:6px;
+        justify-content:flex-start;
+        align-items:center;
+        padding:8px 8px 10px;
+        border-top:1px solid rgba(255,255,255,.08);
+        background:rgba(255,255,255,.035);
+      }
+      #pageDrivers .mobileCardTable tbody td.mobile-actions .btn,
+      #pageDrivers .mobileCardTable tbody td.mobile-actions button{
+        min-height:34px;
+        min-width:74px;
+        padding:7px 10px;
+        margin:0;
+        border-radius:10px;
+        font-size:12px;
+      }
+
+      #pageClients .mobileCardTable tbody tr,
+      #pageBlocks .mobileCardTable tbody tr,
+      #pageVerification .mobileCardTable tbody tr{
+        border-radius:12px;
+      }
+      #pageClients .mobileCardTable tbody td,
+      #pageBlocks .mobileCardTable tbody td,
+      #pageVerification .mobileCardTable tbody td{
+        padding:8px 10px;
+      }
+      #pageClients .mobileCardTable tbody td.mobile-actions .btn,
+      #pageBlocks .mobileCardTable tbody td.mobile-actions .btn,
+      #pageVerification .mobileCardTable tbody td.mobile-actions .btn,
+      #pageClients .mobileCardTable tbody td.mobile-actions button,
+      #pageBlocks .mobileCardTable tbody td.mobile-actions button,
+      #pageVerification .mobileCardTable tbody td.mobile-actions button{
+        min-height:34px;
+        min-width:82px;
+        font-size:12px;
+        padding:7px 10px;
+      }
+
+      #pageClients .mobileCardTable tbody tr{
+        display:grid;
+        grid-template-areas:
+          'avatar name'
+          'avatar phone'
+          'meta meta'
+          'actions actions';
+        grid-template-columns:48px 1fr;
+        gap:2px;
+      }
+      #pageClients .mobileCardTable tbody td:nth-child(1){ display:none !important; }
+      #pageClients .mobileCardTable tbody td:nth-child(2){
+        grid-area:avatar;
+        padding-top:10px;
+      }
+      #pageClients .mobileCardTable tbody td:nth-child(3){
+        grid-area:name;
+        font-size:14px;
+        font-weight:900;
+        text-align:left;
+        padding-top:10px;
+      }
+      #pageClients .mobileCardTable tbody td:nth-child(4){
+        grid-area:phone;
+        font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+        color:rgba(255,255,255,.86);
+        text-align:left;
+      }
+      #pageClients .mobileCardTable tbody td:nth-child(5){
+        grid-area:meta;
+        font-size:12px;
+        color:rgba(255,255,255,.66);
+        text-align:left;
+        white-space:pre-wrap;
+      }
+      #pageClients .mobileCardTable tbody td.mobile-actions{
+        grid-area:actions;
+        justify-content:flex-start;
+      }
+      #pageClients .mobileCardTable tbody td::before{ display:none; }
+
+      #pageBlocks .mobileCardTable tbody tr{
+        display:grid;
+        grid-template-areas:
+          'avatar name'
+          'avatar phone'
+          'id id'
+          'reason reason'
+          'actions actions';
+        grid-template-columns:48px 1fr;
+        gap:2px;
+      }
+      #pageBlocks .mobileCardTable tbody td:nth-child(1),
+      #pageBlocks .mobileCardTable tbody td:nth-child(4){
+        display:none !important;
+      }
+      #pageBlocks .mobileCardTable tbody td:nth-child(2){
+        grid-area:avatar;
+        padding-top:10px;
+      }
+      #pageBlocks .mobileCardTable tbody td:nth-child(3){
+        grid-area:name;
+        font-size:14px;
+        font-weight:900;
+        text-align:left;
+        padding-top:10px;
+      }
+      #pageBlocks .mobileCardTable tbody td:nth-child(5){
+        grid-area:phone;
+        font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+        color:rgba(255,255,255,.86);
+        text-align:left;
+      }
+      #pageBlocks .mobileCardTable tbody td:nth-child(6){
+        grid-area:id;
+        font-size:12px;
+        color:rgba(255,255,255,.64);
+        text-align:left;
+      }
+      #pageBlocks .mobileCardTable tbody td:nth-child(7){
+        grid-area:reason;
+        font-size:12px;
+        color:rgba(255,255,255,.72);
+        text-align:left;
+        white-space:pre-wrap;
+        word-break:break-word;
+      }
+      #pageBlocks .mobileCardTable tbody td.mobile-actions{
+        grid-area:actions;
+        justify-content:flex-start;
+      }
+      #pageBlocks .mobileCardTable tbody td::before{ display:none; }
+
+      .orderRow{
+        padding:10px 12px;
+        gap:6px;
+        border-radius:12px;
+      }
+      .orderRow .orderRoute{
+        font-size:12px;
+      }
+      .orderRow .orderDetails{
+        gap:4px 10px;
+        font-size:11px;
+      }
+      .orderRow .orderActions .btn,
+      .orderRow .orderActions button{
+        min-height:34px;
+        padding:7px 10px;
+        font-size:12px;
       }
     }
+
+    /* ─── Order ID search ─── */
+    .orderIdSearchRow{
+      display:flex;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .orderIdSearchRow input{
+      flex:1;
+      padding:12px 14px;
+      border-radius:10px;
+      background:rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      font-weight:800;
+      font-size:15px;
+      outline:none;
+    }
+    .orderIdSearchRow input:focus{
+      border-color:rgba(255,178,74,.55);
+      box-shadow:0 0 0 1px rgba(255,178,74,.14) inset, 0 0 18px rgba(255,178,74,.12);
+    }
+    .orderIdSearchRow input::placeholder{ color:rgba(255,255,255,.45); font-weight:700; }
+    .orderIdSearchRow button{
+      padding:12px 18px;
+      border-radius:10px;
+      border:none;
+      background:linear-gradient(135deg, rgba(255,178,74,.85), rgba(255,140,20,.95));
+      color:#000;
+      font-weight:900;
+      font-size:14px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .orderIdSearchRow button:active{ transform:scale(.97); }
   </style>
 </head>
 
@@ -1195,7 +2320,14 @@
   <div class="glowTop"></div>
   <div class="glowVert"></div>
 
+  <!-- Hamburger button (mobile) -->
+  <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
   <div class="app">
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebarOverlay" id="sidebarOverlay"></div>
+
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="avatarBox">
@@ -1220,6 +2352,16 @@
             </svg>
           </div>
           <span>Управление водителями</span>
+        </div>
+
+        <div class="navBtn" data-page="driversCommission">
+          <div class="icoWrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v18" fill="none"/>
+              <path d="M17 7.5c0-1.8-2.24-3.25-5-3.25S7 5.7 7 7.5 9.24 10.75 12 10.75 17 12.2 17 14s-2.24 3.25-5 3.25S7 15.8 7 14" fill="none"/>
+            </svg>
+          </div>
+          <span>Комиссия водителей</span>
         </div>
 
         <div class="navBtn" data-page="clients">
@@ -1342,6 +2484,7 @@
     <main class="content">
       <section id="pageDrivers" class="page">
         <h1 class="title">Управление водителями</h1>
+        <div class="statusBar" id="driverStatusBar"></div>
 
         <div class="searchRow">
           <div class="searchWrap">
@@ -1353,6 +2496,9 @@
           <div class="actions">
             <select class="input" id="driversFilter">
               <option value="all">Фильтр: все</option>
+              <option value="online">Только online</option>
+              <option value="offline">Только offline</option>
+              <option value="busy">Только busy</option>
               <option value="pendingDocs">Ожидают проверки</option>
               <option value="completed">Подтвержденные</option>
               <option value="rejected">Отклоненные</option>
@@ -1363,7 +2509,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card" style="margin-bottom:18px;">
           <h3 class="title" style="margin:0 0 10px 0; font-size:18px;">Заявки на подтверждение</h3>
           <div class="pendingList" id="pendingDriversList">
             <div class="pendingItem">
@@ -1397,8 +2543,19 @@
         </div>
       </section>
 
+      <section id="pageDriversCommission" class="page" hidden>
+        <h1 class="title">Комиссия водителей</h1>
+        <div class="card" style="margin:0 0 18px 0;">
+          <div class="statusBar" id="driversCommissionStatusBar"></div>
+          <div class="statList" id="driversCommissionList">
+            <div class="statItem"><span>Загрузка...</span><span></span></div>
+          </div>
+        </div>
+      </section>
+
       <section id="pageClients" class="page" hidden>
         <h1 class="title">Клиенты</h1>
+        <div class="statusBar" id="clientStatusBar"></div>
         <div class="searchRow">
           <div class="searchWrap">
             <input placeholder="поиск по имени или номеру" id="clientsSearch" />
@@ -1413,6 +2570,7 @@
               <thead>
                 <tr>
                   <th class="colN">№</th>
+                  <th></th>
                   <th>ФИО / Имя</th>
                   <th>Номер</th>
                   <th>Заказов</th>
@@ -1430,7 +2588,7 @@
         <h1 class="title">Управление ценами</h1>
 
         <!-- Карточки тарифов -->
-        <div id="pricesTariffCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px;">
+        <div id="pricesTariffCards">
           <div style="color:rgba(255,255,255,.4);padding:24px;text-align:center;">Загрузка...</div>
         </div>
 
@@ -1440,6 +2598,12 @@
 
       <section id="pageOrders" class="page" hidden>
         <h1 class="title">Просмотр заказов</h1>
+
+        <!-- Быстрый поиск по ID заказа -->
+        <div class="orderIdSearchRow">
+          <input type="text" id="orderIdSearchInput" placeholder="ID заказа или телефон водителя" inputmode="text" autocomplete="off" />
+          <button type="button" id="orderIdSearchBtn">Найти</button>
+        </div>
 
         <div class="ordersToolbar">
           <div class="ordersToolbarTabs">
@@ -1530,15 +2694,14 @@
               <thead>
                 <tr>
                   <th class="colN">№</th>
-                  <th>Номер</th>
-                  <th>ФИО</th>
+                  <th>Водитель</th>
                   <th>Оплачено до</th>
                   <th>Статус</th>
                   <th>Действия</th>
                 </tr>
               </thead>
               <tbody id="abonplataTbody">
-                <tr><td colspan="6">Загрузка…</td></tr>
+                <tr><td colspan="5">Загрузка…</td></tr>
               </tbody>
             </table>
           </div>
@@ -1589,10 +2752,12 @@
               <thead>
                 <tr>
                   <th class="colN">№</th>
+                  <th></th>
                   <th>ФИО</th>
                   <th>E-mail</th>
                   <th>Номер</th>
                   <th>ID</th>
+                  <th>Причина / комментарий</th>
                   <th>Действия</th>
                 </tr>
               </thead>
@@ -1608,10 +2773,12 @@
               <thead>
                 <tr>
                   <th class="colN">№</th>
+                  <th></th>
                   <th>ФИО</th>
                   <th>E-mail</th>
                   <th>Номер</th>
-                  <th>ID</th>
+                  <th>Статус / комиссия</th>
+                  <th>Причина / комментарий</th>
                   <th>Действия</th>
                 </tr>
               </thead>
@@ -1690,6 +2857,52 @@
       </section>
     </main>
 
+    <!-- Bottom mobile nav -->
+    <nav class="bottomNav" id="bottomNav">
+      <div class="bottomNavInner">
+        <div class="bottomNavItem active" data-page="drivers">
+          <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8Z" fill="currentColor"/><path d="M4 22c1-6 5-8 8-8s7 2 8 8" fill="none" stroke="currentColor"/></svg>
+          <span>Водители</span>
+        </div>
+        <div class="bottomNavItem" data-page="driversCommission">
+          <svg viewBox="0 0 24 24"><path d="M12 3v18" fill="none" stroke="currentColor"/><path d="M17 7.5c0-1.8-2.24-3.25-5-3.25S7 5.7 7 7.5 9.24 10.75 12 10.75 17 12.2 17 14s-2.24 3.25-5 3.25S7 15.8 7 14" fill="none" stroke="currentColor"/></svg>
+          <span>Комис.</span>
+        </div>
+        <div class="bottomNavItem" data-page="clients">
+          <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z" fill="none" stroke="currentColor"/><path d="M20 20a6 6 0 0 0-12 0" fill="none" stroke="currentColor"/></svg>
+          <span>Клиенты</span>
+        </div>
+        <div class="bottomNavItem" data-page="orders">
+          <svg viewBox="0 0 24 24"><path d="M7 3h10v18H7z" fill="none" stroke="currentColor"/><path d="M9 7h6M9 10h6M9 13h4" stroke="currentColor"/></svg>
+          <span>Заказы</span>
+        </div>
+        <div class="bottomNavItem" data-page="prices">
+          <svg viewBox="0 0 24 24"><path d="M12 2v20" fill="none" stroke="currentColor"/><path d="M17 6.5c0-1.9-2.2-3.5-5-3.5S7 4.6 7 6.5 9.2 10 12 10s5 1.6 5 3.5-2.2 3.5-5 3.5-5-1.6-5-3.5" fill="none" stroke="currentColor"/></svg>
+          <span>Цены</span>
+        </div>
+        <div class="bottomNavItem" data-page="promos">
+          <svg viewBox="0 0 24 24"><path d="M3 7h18v10H3z" fill="none" stroke="currentColor"/><path d="M7 7v10M17 7v10" fill="none" stroke="currentColor"/><circle cx="8.5" cy="12" r="1.5" fill="currentColor"/><circle cx="15.5" cy="12" r="1.5" fill="currentColor"/></svg>
+          <span>Промо</span>
+        </div>
+        <div class="bottomNavItem" data-page="blocks">
+          <svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3" fill="none" stroke="currentColor"/><path d="M6 11h12v10H6z" fill="none" stroke="currentColor"/></svg>
+          <span>Блок</span>
+        </div>
+        <div class="bottomNavItem" data-page="abonplata">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2"/></svg>
+          <span>Абон</span>
+        </div>
+        <div class="bottomNavItem" data-page="verification">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Вериф</span>
+        </div>
+        <div class="bottomNavItem" data-page="stats">
+          <svg viewBox="0 0 24 24"><path d="M4 20h3V12H4v8Zm5 0h3V14H9v6Zm5 0h3V10h-3v10Zm5 0h3V6h-3v14Z" fill="currentColor" stroke="none"/></svg>
+          <span>Стат</span>
+        </div>
+      </div>
+    </nav>
+
     <div class="modalOverlay" id="addModal" hidden>
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
         <div class="modalHeader">
@@ -1745,6 +2958,32 @@
               <label class="label" for="editEmail">E-mail</label>
               <input class="input" id="editEmail" type="email" placeholder="Введите e-mail" />
             </div>
+            <div id="driverOnlyFields" hidden>
+              <div class="field">
+                <label class="label" for="editInn">ИНН</label>
+                <input class="input" id="editInn" type="text" placeholder="Введите ИНН" />
+              </div>
+              <div class="field">
+                <label class="label" for="editPassport">Паспорт</label>
+                <input class="input" id="editPassport" type="text" placeholder="Введите серию и номер паспорта" />
+              </div>
+              <div class="field">
+                <label class="label" for="editRegistrationStatus">Статус регистрации</label>
+                <select class="input" id="editRegistrationStatus">
+                  <option value="incomplete">Черновик / не завершена</option>
+                  <option value="pending">Ожидает проверки</option>
+                  <option value="completed">Подтверждён</option>
+                  <option value="rejected">Отклонён</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="label" for="editDocsSigned">Документы подписаны</label>
+                <select class="input" id="editDocsSigned">
+                  <option value="true">Да</option>
+                  <option value="false">Нет</option>
+                </select>
+              </div>
+            </div>
             <div class="resultActions">
               <button class="btn small" type="button" id="editCancel">Отмена</button>
               <button class="btn small primary" type="button" id="editSave">Сохранить</button>
@@ -1797,6 +3036,10 @@
             <div class="field">
               <label class="label" for="blockId">ID</label>
               <input class="input" id="blockId" name="id" type="text" placeholder="Введите ID" required />
+            </div>
+            <div class="field">
+              <label class="label" for="blockReason">Причина блокировки / комментарий</label>
+              <textarea class="input" id="blockReason" name="reason" placeholder="Укажите причину или комментарий" rows="3" style="resize:vertical;"></textarea>
             </div>
           </div>
           <div class="modalFooter">
@@ -1885,6 +3128,260 @@
         }
       }
 
+      function askConfirm(message, options = {}) {
+        const title = String(options.title || 'Подтверждение');
+        const supportsNativeConfirm = typeof window.confirm === 'function';
+        const preferCustomModal =
+          ('ontouchstart' in window) ||
+          Number(navigator.maxTouchPoints || 0) > 0 ||
+          window.matchMedia('(max-width: 760px)').matches;
+
+        if (supportsNativeConfirm && !preferCustomModal) {
+          return Promise.resolve(window.confirm(message));
+        }
+
+        return new Promise((resolve) => {
+          const overlay = document.createElement('div');
+          overlay.className = 'modalOverlay';
+
+          const modal = document.createElement('div');
+          modal.className = 'modal';
+          modal.setAttribute('role', 'dialog');
+          modal.setAttribute('aria-modal', 'true');
+
+          modal.innerHTML = `
+            <div class="modalHeader">
+              <div class="modalTitle">${esc(title)}</div>
+              <button class="closeBtn" type="button" aria-label="Закрыть">×</button>
+            </div>
+            <div class="modalBody">
+              <div style="line-height:1.45;white-space:pre-wrap;">${esc(String(message || ''))}</div>
+            </div>
+            <div class="modalFooter">
+              <button class="btn" type="button" data-action="cancel">Отмена</button>
+              <button class="btn primary" type="button" data-action="ok">Подтвердить</button>
+            </div>
+          `;
+
+          const closeBtn = modal.querySelector('.closeBtn');
+          const cancelBtn = modal.querySelector('[data-action="cancel"]');
+          const okBtn = modal.querySelector('[data-action="ok"]');
+          let settled = false;
+
+          const finish = (value) => {
+            if (settled) return;
+            settled = true;
+            document.body.classList.remove('modalOpen');
+            overlay.remove();
+            resolve(value);
+          };
+
+          overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) finish(false);
+          });
+          closeBtn?.addEventListener('click', () => finish(false));
+          cancelBtn?.addEventListener('click', () => finish(false));
+          okBtn?.addEventListener('click', () => finish(true));
+
+          document.body.appendChild(overlay);
+          overlay.appendChild(modal);
+          document.body.classList.add('modalOpen');
+          okBtn?.focus();
+        });
+      }
+
+      function askText(message, options = {}) {
+        const title = String(options.title || 'Комментарий');
+        const placeholder = String(options.placeholder || 'Введите текст');
+        const initialValue = String(options.initialValue || '');
+        const submitLabel = String(options.submitLabel || 'Сохранить');
+
+        return new Promise((resolve) => {
+          const overlay = document.createElement('div');
+          overlay.className = 'modalOverlay';
+
+          const modal = document.createElement('div');
+          modal.className = 'modal';
+          modal.setAttribute('role', 'dialog');
+          modal.setAttribute('aria-modal', 'true');
+
+          modal.innerHTML = `
+            <div class="modalHeader">
+              <div class="modalTitle">${esc(title)}</div>
+              <button class="closeBtn" type="button" aria-label="Закрыть">×</button>
+            </div>
+            <div class="modalBody">
+              <div style="line-height:1.45;white-space:pre-wrap;margin-bottom:10px;">${esc(String(message || ''))}</div>
+              <textarea class="input" rows="4" placeholder="${esc(placeholder)}" style="resize:vertical;min-height:110px;">${esc(initialValue)}</textarea>
+            </div>
+            <div class="modalFooter">
+              <button class="btn" type="button" data-action="cancel">Отмена</button>
+              <button class="btn primary" type="button" data-action="ok">${esc(submitLabel)}</button>
+            </div>
+          `;
+
+          const closeBtn = modal.querySelector('.closeBtn');
+          const cancelBtn = modal.querySelector('[data-action="cancel"]');
+          const okBtn = modal.querySelector('[data-action="ok"]');
+          const input = modal.querySelector('textarea');
+          let settled = false;
+
+          const finish = (value) => {
+            if (settled) return;
+            settled = true;
+            document.body.classList.remove('modalOpen');
+            overlay.remove();
+            resolve(value);
+          };
+
+          overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) finish(null);
+          });
+          closeBtn?.addEventListener('click', () => finish(null));
+          cancelBtn?.addEventListener('click', () => finish(null));
+          okBtn?.addEventListener('click', () => finish((input?.value || '').trim()));
+          input?.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+              e.preventDefault();
+              finish((input?.value || '').trim());
+            }
+          });
+
+          document.body.appendChild(overlay);
+          overlay.appendChild(modal);
+          document.body.classList.add('modalOpen');
+          input?.focus();
+          if (input) {
+            input.selectionStart = input.value.length;
+            input.selectionEnd = input.value.length;
+          }
+        });
+      }
+
+      function formatReasonComment(reason, comment) {
+        const parts = [];
+        const reasonText = String(reason || '').trim();
+        const commentText = String(comment || '').trim();
+        if (reasonText) parts.push(`Причина: ${reasonText}`);
+        if (commentText) parts.push(`Комментарий: ${commentText}`);
+        return parts.length ? parts.join('\n') : '—';
+      }
+
+      function renderMobileNoteBlock(reason, comment, title = 'Причина / комментарий') {
+        const text = formatReasonComment(reason, comment);
+        return `
+          <div class="mobileNoteBlock">
+            <div class="mobileNoteTitle">${esc(title)}</div>
+            <div class="mobileNoteText">${esc(text)}</div>
+          </div>
+        `;
+      }
+
+      function renderAdminNoteCard(title, text, emptyText = '—', extraClass = '') {
+        const value = String(text || '').trim();
+        const classes = ['adminNoteCard'];
+        if (extraClass) classes.push(extraClass);
+        if (!value) classes.push('is-empty');
+        return `
+          <div class="${classes.join(' ')}">
+            <div class="adminNoteCardTitle">${esc(title)}</div>
+            <div class="adminNoteCardText">${esc(value || emptyText)}</div>
+          </div>
+        `;
+      }
+
+      function renderReasonCommentCards(reason, comment) {
+        return `
+          <div class="reasonCommentCell">
+            ${renderAdminNoteCard('Причина', reason, '—', 'compact')}
+            ${renderAdminNoteCard('Комментарий', comment, '—', 'compact')}
+          </div>
+        `;
+      }
+
+      function renderManagementNote(reason, comment) {
+        return renderAdminNoteCard('Заметки', formatReasonComment(reason, comment), '—', 'compact');
+      }
+
+      function renderMobileInfoLines(items = []) {
+        const visible = items.filter((item) => item && item.title && item.value != null && item.value !== '');
+        if (!visible.length) return '';
+        return `
+          <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:1.35;color:rgba(255,255,255,.78);text-align:left;">
+            ${visible.map((item) => `<div><span style="color:rgba(255,178,74,.86);font-weight:800;">${esc(item.title)}:</span> <span style="color:#fff;">${esc(item.value)}</span></div>`).join('')}
+          </div>
+        `;
+      }
+
+      function renderMobileDriverTopMeta(name, phone, statusLabel) {
+        return `
+          <div style="display:flex;flex-direction:column;gap:4px;text-align:left;">
+            <div style="font-size:14px;font-weight:900;line-height:1.2;color:#fff;">${esc(name || '—')}</div>
+            <div style="font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(255,255,255,.88);">${esc(phone || '—')}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.7);">— • ${esc(statusLabel || 'offline')}</div>
+          </div>
+        `;
+      }
+
+      function renderMobileInfoGrid(items = []) {
+        const visible = items.filter((item) => item && item.title);
+        if (!visible.length) return '';
+        return `
+          <div class="mobileInfoGrid">
+            ${visible.map((item) => `
+              <div class="mobileInfoItem">
+                <div class="mobileInfoItemTitle">${esc(item.title)}</div>
+                <div class="mobileInfoItemValue">${esc(item.value == null || item.value === '' ? '—' : item.value)}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      function updateCommentButtonState(button, comment) {
+        if (!button) return;
+        button.style.cssText = String(comment || '').trim()
+          ? 'background:rgba(255,178,74,.18);color:#ffcc7a;'
+          : '';
+      }
+
+      function setDriverEditMode(isDriver) {
+        if (driverOnlyFields) driverOnlyFields.hidden = !isDriver;
+      }
+
+      async function openDriverEditPanel(phone, fallback = {}) {
+        if (!phone) return;
+        currentClientId = null;
+        currentEditDriverPhone = phone;
+        currentEditTr = null;
+        setDriverEditMode(true);
+        if (editPanel) editPanel.hidden = false;
+        if (!editModal.hidden) {
+          document.body.classList.add('modalOpen');
+        } else {
+          editModal.hidden = false;
+          document.body.classList.add('modalOpen');
+        }
+
+        let profile = { ...fallback, phone };
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}?includePhotos=1`);
+          const data = await res.json();
+          if (data?.ok && data?.profile) profile = { ...profile, ...data.profile };
+        } catch (_) {
+          // keep fallback values
+        }
+
+        if (editFio) editFio.value = profile.fullName || fallback.fullName || '';
+        if (editPhone) editPhone.value = profile.phone || phone || '';
+        if (editEmail) editEmail.value = profile.email || fallback.email || '';
+        if (editInn) editInn.value = profile.inn || '';
+        if (editPassport) editPassport.value = profile.passport || '';
+        if (editRegistrationStatus) editRegistrationStatus.value = profile.registrationStatus || 'incomplete';
+        if (editDocsSigned) editDocsSigned.value = String(Boolean(profile.docsSigned));
+        if (editFio) editFio.focus();
+      }
+
       async function adminFetch(url, options = {}) {
         if (!adminToken) {
           openLoginModal();
@@ -1943,6 +3440,11 @@
       const editFio = document.getElementById('editFio');
       const editPhone = document.getElementById('editPhone');
       const editEmail = document.getElementById('editEmail');
+      const driverOnlyFields = document.getElementById('driverOnlyFields');
+      const editInn = document.getElementById('editInn');
+      const editPassport = document.getElementById('editPassport');
+      const editRegistrationStatus = document.getElementById('editRegistrationStatus');
+      const editDocsSigned = document.getElementById('editDocsSigned');
       const editSave = document.getElementById('editSave');
       const editCancel = document.getElementById('editCancel');
       const historyModal = document.getElementById('historyModal');
@@ -1969,6 +3471,7 @@
       const blockPhone = document.getElementById('blockPhone');
       const blockEmail = document.getElementById('blockEmail');
       const blockId = document.getElementById('blockId');
+      const blockReasonInput = document.getElementById('blockReason');
 
       const openLoginModalBtn = document.getElementById('openLoginModal');
       const loginModal = document.getElementById('loginModal');
@@ -2042,8 +3545,10 @@
       const payoutOrder = payoutsWrap.querySelector('#payoutOrder');
 
       const navButtons = Array.from(document.querySelectorAll('.nav .navBtn'));
+      const bottomNavItems = Array.from(document.querySelectorAll('.bottomNavItem'));
       const pages = {
         drivers: document.getElementById('pageDrivers'),
+        driversCommission: document.getElementById('pageDriversCommission'),
         clients: document.getElementById('pageClients'),
         prices: document.getElementById('pagePrices'),
         orders: document.getElementById('pageOrders'),
@@ -2054,10 +3559,183 @@
         stats: document.getElementById('pageStats'),
       };
 
+      // ─── Hamburger menu (mobile) ───
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+      const sidebar = document.querySelector('.sidebar');
+
+      function openSidebar() {
+        if (sidebar) sidebar.classList.add('open');
+        if (sidebarOverlay) sidebarOverlay.classList.add('show');
+        if (hamburgerBtn) hamburgerBtn.classList.add('open');
+      }
+      function closeSidebar() {
+        if (sidebar) sidebar.classList.remove('open');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+        if (hamburgerBtn) hamburgerBtn.classList.remove('open');
+      }
+      hamburgerBtn?.addEventListener('click', () => {
+        if (sidebar?.classList.contains('open')) closeSidebar();
+        else openSidebar();
+      });
+      sidebarOverlay?.addEventListener('click', closeSidebar);
+
+      // ─── Order ID search ───
+      const orderIdSearchInput = document.getElementById('orderIdSearchInput');
+      const orderIdSearchBtn = document.getElementById('orderIdSearchBtn');
+
+      function bindRenderedOrderActions(onReload = loadOrders) {
+        if (!ordersRealList) return;
+        ordersRealList.querySelectorAll('button[data-cancel]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            const cid = b.getAttribute('data-cancel');
+            if (!cid) return;
+            const reason = prompt('Причина отмены?') || '';
+            await adminFetch(`${API_BASE}/admin/orders/${cid}/cancel`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason }),
+            });
+            onReload();
+          });
+        });
+        ordersRealList.querySelectorAll('button[data-assign]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            const cid = b.getAttribute('data-assign');
+            if (!cid) return;
+            const driverPhone = (prompt('Телефон водителя для назначения?') || '').replace(/\D/g, '');
+            if (!driverPhone) return;
+            await adminFetch(`${API_BASE}/admin/orders/${cid}/assign`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ driverPhone }),
+            });
+            onReload();
+          });
+        });
+        ordersRealList.querySelectorAll('button[data-pay]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            const cid = b.getAttribute('data-pay');
+            if (!cid) return;
+            await adminFetch(`${API_BASE}/admin/orders/${cid}/pay`, { method: 'POST' });
+            onReload();
+          });
+        });
+      }
+
+      function renderOrdersCollection(list) {
+        if (!ordersRealList) return;
+        ordersRealList.innerHTML = '';
+        if (!Array.isArray(list) || !list.length) {
+          ordersRealList.innerHTML = '<div class="statItem"><span>Ничего не найдено</span><span></span></div>';
+          return;
+        }
+        list.forEach((o) => {
+          const from = o?.fromAddress || (o?.from ? `${o.from.lat?.toFixed?.(4)}, ${o.from.lng?.toFixed?.(4)}` : '—');
+          const to = o?.toAddress || (o?.to ? `${o.to.lat?.toFixed?.(4)}, ${o.to.lng?.toFixed?.(4)}` : '—');
+          const status = o?.status || '-';
+          const price = formatMoney(o?.priceFrom);
+          const driver = o?.driverName
+            ? `${o.driverName} · ${o?.driverPhone || '—'}`
+            : (o?.driverPhone || '—');
+          const client = o?.clientName
+            ? `${o.clientName} · ${o?.clientPhone || o?.clientId || '—'}`
+            : (o?.clientPhone || o?.clientId || '—');
+          const pay = o?.paymentStatus || '—';
+          const created = o?.createdAt ? formatDate(o.createdAt) : '';
+          const shortId = (o.id || '').slice(0, 8);
+          const stClass = `st-${status}`;
+          const cancelBtn = status === 'canceled' || status === 'completed'
+            ? ''
+            : `<button class="btn" data-cancel="${esc(o.id)}">Отменить</button>`;
+          const assignBtn = status === 'completed' || status === 'canceled'
+            ? ''
+            : `<button class="btn" data-assign="${esc(o.id)}">${o.driverPhone ? 'Переназн.' : 'Назначить'}</button>`;
+          const payBtn = pay === 'paid'
+            ? '<span style="font-size:11px;color:rgba(100,220,140,.85);font-weight:800;">✓ Оплачен</span>'
+            : `<button class="btn" data-pay="${esc(o.id)}">Оплата</button>`;
+          const schedAt = o?.scheduledAt;
+          const preorderBadge = schedAt
+            ? `<span class="preorderBadge">⏰ Предзаказ на ${formatDate(schedAt)}</span>`
+            : '';
+          const row = document.createElement('div');
+          row.className = 'orderRow';
+          row.innerHTML = `
+            <div class="orderHeader">
+              <span class="orderIdBadge">#${esc(shortId)}</span>
+              ${preorderBadge}
+              <span class="orderStatusBadge ${esc(stClass)}">${esc(status)}</span>
+            </div>
+            <div class="orderRoute">${esc(from)}<span class="routeArrow">→</span>${esc(to)}</div>
+            <div class="orderDetails">
+              <span class="orderPrice">${price}</span>
+              <span>Водитель: ${esc(driver)}</span>
+              <span>Клиент: ${esc(client)}</span>
+              <span>Оплата: ${esc(pay)}</span>
+              ${o?.comment ? `<span>Комментарий заказа: ${esc(o.comment)}</span>` : ''}
+              ${created ? `<span>${esc(created)}</span>` : ''}
+            </div>
+            <div class="orderActions">
+              ${payBtn}
+              ${cancelBtn}
+              ${assignBtn}
+            </div>
+          `;
+          ordersRealList.appendChild(row);
+        });
+        bindRenderedOrderActions(searchOrderById);
+      }
+
+      async function searchOrderById() {
+        let query = (orderIdSearchInput?.value || '').trim();
+        if (!query) return;
+        query = query.replace(/^#/, '');
+        const queryLower = query.toLowerCase();
+        const phoneClean = query.replace(/\D/g, '');
+        if (!ordersRealList) return;
+        ordersRealList.innerHTML = '<div class="statItem"><span>Поиск заказа...</span><span></span></div>';
+        if (ordersStatsWrap) ordersStatsWrap.hidden = true;
+        if (ordersRealListWrap) ordersRealListWrap.hidden = false;
+        if (ordersFeesWrap) ordersFeesWrap.hidden = true;
+        try {
+          const res = await adminFetch(`${API_BASE}/orders?limit=200`);
+          const data = await res.json();
+          const orders = Array.isArray(data?.orders) ? data.orders : [];
+          const matches = orders.filter((o) => {
+            const fullId = String(o?.id || '').toLowerCase();
+            const shortId = fullId.slice(0, 8);
+            const driverPhone = String(o?.driverPhone || '').replace(/\D/g, '');
+            const clientId = String(o?.clientId || '').replace(/\D/g, '');
+            if (queryLower && (fullId === queryLower || shortId === queryLower || fullId.startsWith(queryLower) || shortId.startsWith(queryLower))) {
+              return true;
+            }
+            if (phoneClean && (driverPhone.includes(phoneClean) || clientId.includes(phoneClean))) {
+              return true;
+            }
+            return false;
+          });
+          if (!matches.length) {
+            ordersRealList.innerHTML = '<div class="statItem"><span>Заказ не найден</span><span></span></div>';
+            return;
+          }
+          renderOrdersCollection(matches);
+        } catch (e) {
+          ordersRealList.innerHTML = '<div class="statItem"><span>Заказ не найден или ошибка</span><span></span></div>';
+        }
+      }
+
+      orderIdSearchBtn?.addEventListener('click', searchOrderById);
+      orderIdSearchInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchOrderById();
+      });
+
       const clientsSearch = document.getElementById('clientsSearch');
       const clientsTbody = document.getElementById('clientsTbody');
+      const driversCommissionList = document.getElementById('driversCommissionList');
+      const driversCommissionStatusBar = document.getElementById('driversCommissionStatusBar');
 
       let currentEditTr = null;
+      let currentEditDriverPhone = null;
 
       function esc(value) {
         return String(value ?? '')
@@ -2081,15 +3759,269 @@
         return /^[A-Za-z0-9+/=]+$/.test(raw) ? raw : '';
       }
 
-      async function loadDrivers() {
-        const tbody = getTbody();
-        if (!tbody) return;
-        tbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Загрузка...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+      let _driversHash = '', _driversCommissionHash = '', _clientsPageHash = '', _blocksClientsHash = '', _blocksDriversHash = '', _verifyHash = '', _promosHash = '', _abonHash = '', _ordersHash = '', _statsHash = '';
+      let _driversCommissionItems = [];
+
+      function initialsAvatar(name, phone) {
+        const label = (name && name !== '—') ? name : (phone || '?');
+        const letter = label.charAt(0).toUpperCase();
+        const colors = ['#e91e63','#9c27b0','#673ab7','#3f51b5','#2196f3','#009688','#4caf50','#ff9800','#ff5722','#795548'];
+        let hash = 0;
+        for (let k = 0; k < label.length; k++) hash = label.charCodeAt(k) + ((hash << 5) - hash);
+        const bg = colors[Math.abs(hash) % colors.length];
+        return `<td style="vertical-align:middle;"><span style="display:inline-block;width:40px;height:40px;border-radius:50%;background:${bg};color:#fff;font-size:16px;font-weight:900;line-height:40px;text-align:center;">${letter}</span></td>`;
+      }
+
+      async function fetchJsonWithTimeout(url, timeoutMs = 8000) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const res = await adminFetch(url, { signal: controller.signal });
+          return await res.json();
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      const _driversPhotosByPhone = new Map();
+      let _driversPhotosListPromise = null;
+      const _commissionAvatarByPhone = new Map();
+
+      async function getDriverFromPhotosList(phone) {
+        if (!phone) return null;
+        if (_driversPhotosByPhone.has(phone)) return _driversPhotosByPhone.get(phone) || null;
+        if (!_driversPhotosListPromise) {
+          _driversPhotosListPromise = (async () => {
+            try {
+              const listData = await fetchJsonWithTimeout(`${API_BASE}/admin/drivers?includePhotos=1`, 15000);
+              const arr = Array.isArray(listData?.drivers) ? listData.drivers : [];
+              arr.forEach((x) => {
+                if (x?.phone) _driversPhotosByPhone.set(x.phone, x.profile || {});
+              });
+            } catch (_) {
+              // ignore
+            }
+          })();
+        }
+        try {
+          await _driversPhotosListPromise;
+        } catch (_) {
+          // ignore
+        }
+        return _driversPhotosByPhone.get(phone) || null;
+      }
+
+      async function getDriverProfileWithPhotos(phone, fallbackProfile = {}, options = {}) {
+        const allowListFallback = options.allowListFallback === true;
+        const fastTimeout = Number.isFinite(Number(options.fastTimeoutMs)) ? Number(options.fastTimeoutMs) : 2800;
+        let profile = { ...(fallbackProfile || {}) };
+        try {
+          const fullData = await fetchJsonWithTimeout(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}?includePhotos=1`, fastTimeout);
+          if (fullData && fullData.profile) profile = { ...profile, ...fullData.profile };
+        } catch (_) {
+          // ignore and fallback below
+        }
+        const hasDocs = !!(profile.passportFrontBase64 || profile.passportRegBase64 || profile.driverLicenseBackBase64 || profile.selfieBase64);
+        if (!hasDocs && allowListFallback) {
+          try {
+            const listProfile = await getDriverFromPhotosList(phone);
+            if (listProfile) profile = { ...profile, ...listProfile };
+          } catch (_) {
+            // keep current profile
+          }
+        }
+        return profile;
+      }
+
+      function getCommissionAvatarMarkup(name, phone, avatarBase64) {
+        const avatar = safeBase64(avatarBase64);
+        if (avatar) {
+          return `<img src="data:image/jpeg;base64,${avatar}" alt="" class="driverCommissionAvatarImage">`;
+        }
+        const label = String((name && name !== '—') ? name : (phone || '—')).trim();
+        const letter = (label.charAt(0) || '—').toUpperCase();
+        return `<span class="driverCommissionAvatarFallback">${esc(letter)}</span>`;
+      }
+
+      async function hydrateCommissionAvatars(drivers = []) {
+        const topDrivers = drivers.filter((d) => d?.phone).slice(0, 12);
+        await Promise.all(topDrivers.map(async (d) => {
+          const phone = String(d.phone || '').trim();
+          if (!phone || _commissionAvatarByPhone.has(phone)) return;
+          try {
+            const fp = await getDriverProfileWithPhotos(phone, d.profile || {}, { allowListFallback: false, fastTimeoutMs: 1200 });
+            const avatar = safeBase64(fp.avatarBase64 || fp.selfieBase64 || fp.passportFrontBase64);
+            if (!avatar) return;
+            _commissionAvatarByPhone.set(phone, avatar);
+            document.querySelectorAll('[data-commission-avatar]').forEach((node) => {
+              if (!(node instanceof HTMLElement)) return;
+              if ((node.dataset.commissionAvatar || '') !== phone) return;
+              node.innerHTML = getCommissionAvatarMarkup(d.profile?.fullName || d.phone || '—', phone, avatar);
+            });
+          } catch (_) {
+            // ignore lazy avatar errors
+          }
+        }));
+      }
+
+      function renderDriversCommissionList(drivers = []) {
+        if (!driversCommissionList) return;
+        const isCompactMobile = window.matchMedia('(max-width: 560px)').matches;
+        const sortedByCommission = [...drivers]
+          .sort((a, b) => Number(b?.earnings?.commission || 0) - Number(a?.earnings?.commission || 0));
+        driversCommissionList.innerHTML = '';
+        if (driversCommissionStatusBar) {
+          const totalCommission = sortedByCommission.reduce((sum, d) => sum + Number(d?.earnings?.commission || 0), 0);
+          const totalGross = sortedByCommission.reduce((sum, d) => sum + Number(d?.earnings?.gross || 0), 0);
+          const onlineCount = sortedByCommission.filter((d) => (d?.status || '').toLowerCase() === 'online').length;
+          driversCommissionStatusBar.innerHTML = [
+            `<span class="statusChip">👥 Водителей: ${sortedByCommission.length}</span>`,
+            `<span class="statusChip" style="color:rgba(100,220,140,.92);border-color:rgba(100,220,140,.22);">🟢 Онлайн: ${onlineCount}</span>`,
+            `<span class="statusChip">💸 Заработок: ${formatMoney(totalGross)}</span>`,
+            `<span class="statusChip" style="color:rgba(255,178,74,.92);border-color:rgba(255,178,74,.22);">💰 Комиссия: ${formatMoney(totalCommission)}</span>`,
+          ].join('');
+        }
+        if (!sortedByCommission.length) {
+          driversCommissionList.innerHTML = '<div class="statItem"><span>Нет водителей</span><span>—</span></div>';
+          return;
+        }
+        sortedByCommission.forEach((d) => {
+          const profile = d.profile || {};
+          const avB64 = _commissionAvatarByPhone.get(d.phone) || profile.avatarBase64 || profile.selfieBase64 || profile.passportFrontBase64;
+          const statusRaw = String(d.status || 'offline').toLowerCase();
+          const statusLabel = statusRaw === 'online'
+            ? 'Онлайн'
+            : statusRaw === 'busy'
+              ? 'Занят'
+              : statusRaw === 'blocked'
+                ? 'Заблокирован'
+                : 'Офлайн';
+          const emailText = String(profile.email || '').trim();
+          const earningsGrossRaw = Number(d?.earnings?.gross || 0);
+          const commissionRaw = Number(d?.earnings?.commission || 0);
+          const earningsGross = formatMoney(earningsGrossRaw);
+          const commission = formatMoney(commissionRaw);
+          const limitReached = d.limitReached === true;
+          const canClearCommission = commissionRaw > 0;
+          const amountClass = `driverCommissionAmount${limitReached ? ' is-limit' : ''}${!canClearCommission ? ' is-zero' : ''}`;
+          const actionClass = `driverCommissionAction${limitReached ? ' is-limit' : ''}`;
+          const row = document.createElement('div');
+          row.className = 'statItem driverCommissionCard';
+          row.innerHTML = `
+            <div class="driverCommissionMain">
+              <div class="driverCommissionAvatarSlot" data-commission-avatar="${esc(d.phone || '')}">${getCommissionAvatarMarkup(profile.fullName || d.phone || '—', d.phone || '', avB64)}</div>
+              <div class="driverCommissionBody">
+                <div class="driverCommissionName">${esc(profile.fullName || d.phone || '—')}</div>
+                <div class="driverCommissionPhone">${esc(d.phone || '—')}</div>
+                <div class="driverCommissionMinor">${esc(statusLabel)}${emailText ? ` · ${esc(emailText)}` : ''}</div>
+                <div class="driverCommissionEarnings">Заработок: ${esc(earningsGross)}</div>
+                ${limitReached ? '<div class="driverCommissionLimit">⚠ Лимит комиссии</div>' : ''}
+              </div>
+            </div>
+            <div class="driverCommissionMeta">
+              <div class="driverCommissionAmountBlock">
+                <div class="driverCommissionAmountLabel">Комиссия</div>
+                <div class="${amountClass}">${esc(commission)}</div>
+              </div>
+              ${canClearCommission ? `<button type="button" data-commission-clear="${esc(d.phone || '')}" class="${actionClass}"><span class="driverCommissionActionIcon">₽</span><span class="driverCommissionActionText">Оплатить</span></button>` : '<div class="driverCommissionNoDebt">Нет долга</div>'}
+            </div>
+          `;
+          const clearBtn = row.querySelector('[data-commission-clear]');
+          clearBtn?.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const shouldClear = await askConfirm(`Погасить комиссию для ${d.phone}?\nЗаработок: ₽${formatMoney(earningsGrossRaw)}\nКомиссия: ₽${formatMoney(commissionRaw)}`, {
+              title: limitReached ? 'Погашение комиссии (лимит)' : 'Погашение комиссии',
+            });
+            if (!shouldClear) return;
+            const cachedDriver = _driversCommissionItems.find((item) => String(item?.phone || '') === String(d.phone || ''));
+            const prevCommission = Number(cachedDriver?.earnings?.commission || commissionRaw);
+            const prevLimitReached = cachedDriver?.limitReached === true;
+            if (cachedDriver) {
+              cachedDriver.earnings = Object.assign({}, cachedDriver.earnings || {}, { commission: 0 });
+              cachedDriver.limitReached = false;
+              renderDriversCommissionList(_driversCommissionItems);
+            }
+            try {
+              if (clearBtn instanceof HTMLButtonElement) {
+                clearBtn.disabled = true;
+                clearBtn.style.opacity = '0.8';
+              }
+              await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/commission/clear`, {
+                method: 'POST',
+              });
+              showToast('✅', `Комиссия погашена: ${d.phone}`);
+              await Promise.all([
+                loadDriversCommission({ showLoading: false }),
+                loadDrivers({ showLoading: false }),
+              ]);
+            } catch (err) {
+              if (cachedDriver) {
+                cachedDriver.earnings = Object.assign({}, cachedDriver.earnings || {}, { commission: prevCommission });
+                cachedDriver.limitReached = prevLimitReached;
+                renderDriversCommissionList(_driversCommissionItems);
+              }
+              if (clearBtn instanceof HTMLButtonElement) {
+                clearBtn.disabled = false;
+                clearBtn.style.opacity = '1';
+              }
+              showToast('❌', `Не удалось погасить комиссию: ${err?.message || err}`);
+            }
+          });
+          driversCommissionList.appendChild(row);
+        });
+        setTimeout(() => {
+          hydrateCommissionAvatars(sortedByCommission);
+        }, 0);
+      }
+
+      async function loadDriversCommission(options = {}) {
+        if (!driversCommissionList) return;
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          driversCommissionList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+          if (driversCommissionStatusBar) driversCommissionStatusBar.innerHTML = '';
+        }
         try {
           const res = await adminFetch(`${API_BASE}/admin/drivers`);
           const data = await res.json();
           if (!data || data.ok !== true) throw new Error('bad response');
           const drivers = Array.isArray(data.drivers) ? data.drivers : [];
+          const _newHash = JSON.stringify(drivers.map(d => [d.phone, d.status || '', d.profile?.fullName || '', d.profile?.email || '', d.earnings?.gross || 0, d.earnings?.commission || 0]));
+          if (!showLoading && _newHash === _driversCommissionHash) return;
+          _driversCommissionHash = _newHash;
+          _driversCommissionItems = drivers.map((d) => ({
+            ...d,
+            profile: { ...(d.profile || {}) },
+            earnings: { ...(d.earnings || {}) },
+          }));
+          renderDriversCommissionList(_driversCommissionItems);
+        } catch (_) {
+          driversCommissionList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
+          if (driversCommissionStatusBar) driversCommissionStatusBar.innerHTML = '';
+        }
+      }
+
+      async function loadDrivers(options = {}) {
+        const tbody = getTbody();
+        if (!tbody) return;
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          tbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Загрузка...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        }
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/drivers`);
+          const data = await res.json();
+          if (!data || data.ok !== true) throw new Error('bad response');
+          const drivers = Array.isArray(data.drivers) ? data.drivers : [];
+          // Skip DOM update entirely if nothing changed (silent refresh optimization)
+          const _newHash = JSON.stringify(drivers.map(d => [d.phone, d.status||'', !!d.blocked, d.blockReason||'', d.adminComment||'', d.profile?.registrationStatus||'', d.earnings?.gross||0, d.profile?.fullName||'']));
+          if (!showLoading && _newHash === _driversHash) return;
+          _driversHash = _newHash;
+          // Save scroll before any DOM update
+          const _pgScrollY = window.scrollY;
+          const _tblScroll = document.querySelector('#pageDrivers .tableCardScroll');
+          const _tblScrollLeft = _tblScroll?.scrollLeft || 0;
+
           if (pendingDriversList) {
             const pending = drivers.filter((d) => {
               const profile = d.profile || {};
@@ -2103,7 +4035,7 @@
                 const profile = d.profile || {};
                 const meta = document.createElement('div');
                 meta.className = 'pendingMeta';
-                const pHasPhotos = profile.passportFrontBase64 || profile.selfieBase64;
+                const pHasPhotos = profile.hasVerificationPhotos || profile.passportFrontBase64 || profile.selfieBase64;
                 meta.innerHTML = `
                   ${esc(profile.fullName || '—')} · ${esc(d.phone || '—')}
                   <small>ИНН: ${esc(profile.inn || '—')} · Паспорт: ${esc(profile.passport || '—')}</small>
@@ -2119,7 +4051,7 @@
                   await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/approve`, {
                     method: 'POST',
                   });
-                  loadDrivers();
+                  loadDrivers({ showLoading: false });
                 });
                 const rejectBtn = document.createElement('button');
                 rejectBtn.className = 'btn';
@@ -2128,7 +4060,7 @@
                   await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/reject`, {
                     method: 'POST',
                   });
-                  loadDrivers();
+                  loadDrivers({ showLoading: false });
                 });
                 actions.appendChild(approveBtn);
                 actions.appendChild(rejectBtn);
@@ -2140,6 +4072,23 @@
               });
             }
           }
+          // --- Driver Status Bar ---
+          const driverStatusBar = document.getElementById('driverStatusBar');
+          if (driverStatusBar) {
+            const statOnline  = drivers.filter(d => !d.blocked && (d.status||'') === 'online').length;
+            const statBusy    = drivers.filter(d => !d.blocked && (d.status||'') === 'busy').length;
+            const statBlocked = drivers.filter(d => d.blocked).length;
+            const statPending = drivers.filter(d => (d.profile?.registrationStatus||'') === 'pending').length;
+            const statOffline = drivers.length - statOnline - statBusy - statBlocked;
+            driverStatusBar.innerHTML = [
+              `<span class="statusChip" style="color:rgba(100,220,140,.92);border-color:rgba(100,220,140,.22);">🟢 Онлайн: ${statOnline}</span>`,
+              `<span class="statusChip" style="color:rgba(255,178,74,.92);border-color:rgba(255,178,74,.22);">🚖 Заняты: ${statBusy}</span>`,
+              `<span class="statusChip">⚫ Офлайн: ${statOffline}</span>`,
+              statBlocked ? `<span class="statusChip" style="color:rgba(225,27,34,.85);border-color:rgba(225,27,34,.22);">⛔ Заблок: ${statBlocked}</span>` : '',
+              statPending ? `<span class="statusChip" style="color:rgba(255,178,74,.92);border-color:rgba(255,178,74,.3);">⏳ Ожидают: ${statPending}</span>` : '',
+              `<span class="statusChip">👥 Всего: ${drivers.length}</span>`,
+            ].join('');
+          }
           tbody.innerHTML = '';
           if (!drivers.length) {
             tbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Нет водителей</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
@@ -2149,6 +4098,10 @@
           const filtered = drivers.filter((d) => {
             const profile = d.profile || {};
             const regStatus = profile.registrationStatus || 'incomplete';
+            const liveStatus = (d.status || 'offline').toLowerCase();
+            if (filterValue === 'online') return liveStatus === 'online';
+            if (filterValue === 'offline') return liveStatus === 'offline';
+            if (filterValue === 'busy') return liveStatus === 'busy';
             if (filterValue === 'pendingDocs') {
               return regStatus === 'pending' && profile.docsSigned === true;
             }
@@ -2172,6 +4125,7 @@
           }
           filtered.forEach((d, i) => {
             const tr = document.createElement('tr');
+            const isCompactMobile = window.matchMedia('(max-width: 560px)').matches;
             const profile = d.profile || {};
             const status = d.blocked ? 'blocked' : (d.status || 'offline');
             const statusLabel = status === 'blocked' ? 'blocked' : status;
@@ -2188,17 +4142,18 @@
             const earnNet = Number(earn.net || 0);
             const earnComm = Number(earn.commission || 0);
             const limitReached = d.limitReached === true;
+            const mobileDriverTopHtml = isCompactMobile ? renderMobileDriverTopMeta(profile.fullName || '—', d.phone || '—', statusLabel) : '';
             const avatarB64 = safeBase64(profile.avatarBase64 || profile.selfieBase64 || profile.passportFrontBase64);
             const avatarCell = avatarB64
-              ? `<td style="vertical-align:middle;"><img src="data:image/jpeg;base64,${avatarB64}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.12);" title="Фото водителя"></td>`
-              : '<td style="vertical-align:middle;width:52px;"><span style="display:inline-block;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.35);font-size:18px;line-height:40px;text-align:center;">—</span></td>';
+              ? `<td style="vertical-align:middle;"><img src="data:image/jpeg;base64,${avatarB64}" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,178,74,.4);" title="Фото водителя"></td>`
+              : '<td style="vertical-align:middle;width:88px;"><span style="display:inline-block;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.35);font-size:26px;line-height:80px;text-align:center;">—</span></td>';
             tr.innerHTML = `
               <td class="colN">${i + 1}</td>
               ${avatarCell}
-              <td>${esc(profile.fullName || '—')}</td>
+              <td>${!isCompactMobile ? `${esc(profile.fullName || '—')}${renderManagementNote(d.blockReason, d.adminComment)}` : mobileDriverTopHtml}</td>
               <td>${esc(profile.email || '—')}</td>
               <td>${esc(d.phone || '—')}</td>
-              <td>${esc(profile.rating || '—')} · ${esc(statusLabel)}</td>
+              <td>${esc(profile.rating || '—')} · ${esc(statusLabel)}${isCompactMobile ? `<div style="margin-top:6px;">${renderMobileNoteBlock(d.blockReason, d.adminComment, 'Комментарий')}</div>` : ''}</td>
               <td>${esc(profile.inn || '—')}</td>
               <td>${esc(profile.passport || '—')}</td>
               <td>${regLabel} / ${profile.docsSigned ? 'Да' : 'Нет'}</td>
@@ -2220,126 +4175,236 @@
                 clearBtn.className = 'btn';
                 clearBtn.style.background = '#1B7F3A';
                 clearBtn.style.color = '#fff';
-                clearBtn.textContent = 'Погашено';
+                clearBtn.textContent = isCompactMobile ? '✅ Комиссия' : 'Погашено';
                 clearBtn.addEventListener('click', async (e) => {
                   e.stopPropagation();
                   if (!confirm(`Погасить комиссию для ${d.phone}?\nЗаработок: ₽${formatMoney(earnGross)}, комиссия: ₽${formatMoney(earnComm)}`)) return;
                   await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/commission/clear`, {
                     method: 'POST',
                   });
-                  loadDrivers();
+                  loadDrivers({ showLoading: false });
                 });
                 td.appendChild(clearBtn);
               }
               const historyBtn = document.createElement('button');
               historyBtn.className = 'btn';
-              historyBtn.textContent = 'История';
+              historyBtn.textContent = isCompactMobile ? '📜 История' : 'История';
               historyBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 await openHistory('driver', d.phone);
               });
               const btn = document.createElement('button');
               btn.className = 'btn';
-              btn.textContent = d.blocked ? 'Разблок' : 'Блок';
+              btn.textContent = d.blocked
+                ? (isCompactMobile ? '🔓 Разблок' : 'Разблок')
+                : (isCompactMobile ? '⛔ Блок' : 'Блок');
               btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
+                let body;
+                if (!d.blocked) {
+                  const reason = await askText(`Укажите причину блокировки для ${d.phone}`, {
+                    title: 'Блокировка водителя',
+                    placeholder: 'Причина блокировки',
+                    initialValue: d.blockReason || '',
+                    submitLabel: 'Заблокировать',
+                  });
+                  if (reason === null) return;
+                  body = JSON.stringify({ reason });
+                }
                 await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/${d.blocked ? 'unblock' : 'block'}`, {
                   method: 'POST',
+                  headers: body ? { 'Content-Type': 'application/json' } : undefined,
+                  body,
                 });
-                loadDrivers();
+                loadDrivers({ showLoading: false });
+                loadBlockedDrivers({ showLoading: false });
+              });
+              const commentBtn = document.createElement('button');
+              commentBtn.className = 'btn';
+              commentBtn.textContent = isCompactMobile ? '📝 Комм' : '📝 Коммент.';
+              if (d.adminComment) {
+                commentBtn.style.cssText = 'background:rgba(255,178,74,.18);color:#ffcc7a;';
+              }
+              commentBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const comment = await askText(`Комментарий для водителя ${d.phone}`, {
+                  title: 'Комментарий водителя',
+                  placeholder: 'Например: дубликат, плохие документы, хороший водитель',
+                  initialValue: d.adminComment || '',
+                  submitLabel: 'Сохранить',
+                });
+                if (comment === null) return;
+                await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/comment`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ comment }),
+                });
+                d.adminComment = comment;
+                updateCommentButtonState(commentBtn, comment);
+                const nameCell = tr.children[2];
+                if (nameCell) {
+                  nameCell.innerHTML = !isCompactMobile ? `${esc(profile.fullName || '—')}${renderManagementNote(d.blockReason, d.adminComment)}` : mobileDriverTopHtml;
+                }
+                const statusCell = tr.children[5];
+                if (statusCell) {
+                  statusCell.innerHTML = `${esc(profile.rating || '—')} · ${esc(statusLabel)}${isCompactMobile ? `<div style="margin-top:6px;">${renderMobileNoteBlock(d.blockReason, d.adminComment, 'Комментарий')}</div>` : ''}`;
+                }
+                loadBlockedDrivers({ showLoading: false });
               });
               const deleteBtn = document.createElement('button');
               deleteBtn.className = 'btn';
               deleteBtn.title = 'Удалить водителя';
-              deleteBtn.textContent = '🗑';
+              deleteBtn.textContent = isCompactMobile ? '🗑 Удалить' : '🗑';
               deleteBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                if (!confirm(`Удалить водителя ${d.phone}?`)) return;
+                const shouldDelete = await askConfirm(`Удалить водителя ${d.phone}?`, { title: 'Удаление водителя' });
+                if (!shouldDelete) return;
+                const comment = await askText('Необязательно: укажите комментарий, почему водитель удалён.', {
+                  title: 'Комментарий к удалению',
+                  placeholder: 'Например: дубль, фейк, нарушение правил',
+                  initialValue: d.adminComment || '',
+                  submitLabel: 'Удалить',
+                });
+                if (comment === null) return;
                 await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/delete`, {
                   method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ comment }),
                 });
-                loadDrivers();
+                loadDrivers({ showLoading: false });
+                loadBlockedDrivers({ showLoading: false });
               });
               if (regStatus === 'pending') {
                 const approveBtn = document.createElement('button');
                 approveBtn.className = 'btn';
-                approveBtn.textContent = 'Подтвердить';
+                approveBtn.textContent = isCompactMobile ? '✅ Принять' : 'Подтвердить';
                 approveBtn.addEventListener('click', async (e) => {
                   e.stopPropagation();
                   await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/approve`, {
                     method: 'POST',
                   });
-                  loadDrivers();
+                  loadDrivers({ showLoading: false });
                 });
                 const rejectBtn = document.createElement('button');
                 rejectBtn.className = 'btn';
-                rejectBtn.textContent = 'Отклонить';
+                rejectBtn.textContent = isCompactMobile ? '❌ Отклонить' : 'Отклонить';
                 rejectBtn.addEventListener('click', async (e) => {
                   e.stopPropagation();
                   await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/reject`, {
                     method: 'POST',
                   });
-                  loadDrivers();
+                  loadDrivers({ showLoading: false });
                 });
                 td.appendChild(approveBtn);
                 td.appendChild(rejectBtn);
               }
-              if (profile.passportFrontBase64 || profile.passportRegBase64 || profile.driverLicenseBackBase64 || profile.selfieBase64) {
-                const photoBtn = document.createElement('button');
-                photoBtn.className = 'btn';
-                photoBtn.textContent = '📷 Фото';
-                photoBtn.style.cssText = 'background:rgba(100,180,255,.15);color:rgba(100,180,255,.9);';
-                photoBtn.addEventListener('click', (e) => {
-                  e.stopPropagation();
-                  let existingRow = tr.nextElementSibling;
-                  if (existingRow && existingRow.classList.contains('photo-row')) {
-                    existingRow.remove();
-                    return;
-                  }
-                  const photoTr = document.createElement('tr');
-                  photoTr.className = 'photo-row';
-                  const photoTd = document.createElement('td');
-                  photoTd.colSpan = 10;
-                  photoTd.style.cssText = 'padding:12px 16px;background:rgba(255,255,255,.03);';
-                  let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
-                  const passportFront = safeBase64(profile.passportFrontBase64);
-                  const passportReg = safeBase64(profile.passportRegBase64);
-                  const driverLicenseBack = safeBase64(profile.driverLicenseBackBase64);
-                  const selfie = safeBase64(profile.selfieBase64);
-                  if (passportFront) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${passportFront}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Паспорт (главная)"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Паспорт</div></div>`;
-                  if (passportReg) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${passportReg}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Вод. удостоверение (перед)"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Права спереди</div></div>`;
-                  if (driverLicenseBack) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${driverLicenseBack}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Вод. удостоверение (оборот)"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Права сзади</div></div>`;
-                  if (selfie) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${selfie}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Селфи с правами"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Селфи с правами</div></div>`;
-                  html += '</div>';
-                  photoTd.innerHTML = html;
-                  photoTr.appendChild(photoTd);
-                  tr.after(photoTr);
-                });
-                td.appendChild(photoBtn);
-              }
               td.appendChild(historyBtn);
+              const infoBtn = document.createElement('button');
+              infoBtn.className = 'btn';
+              infoBtn.textContent = isCompactMobile ? 'ℹ️ Инфо' : 'ℹ️ Информация';
+              infoBtn.style.cssText = 'background:rgba(100,180,255,.15);color:rgba(100,180,255,.9);';
+              infoBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                let existingRow = tr.nextElementSibling;
+                if (existingRow && existingRow.classList.contains('info-row')) {
+                  existingRow.remove();
+                  return;
+                }
+                const infoTr = document.createElement('tr');
+                infoTr.className = 'info-row';
+                const infoTd = document.createElement('td');
+                infoTd.colSpan = 11;
+                infoTd.style.cssText = 'padding:16px;background:rgba(255,255,255,.03);';
+                infoTd.innerHTML = '<div style="color:rgba(255,255,255,.4);text-align:center;">Загрузка данных…</div>';
+                infoTr.appendChild(infoTd);
+                tr.after(infoTr);
+                try {
+                  const fp = await getDriverProfileWithPhotos(d.phone, profile, { allowListFallback: false, fastTimeoutMs: 2500 });
+                  let html = '<div style="display:flex;gap:16px;flex-wrap:wrap;">';
+                  html += '<div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:8px;">';
+                  html += `<div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:4px;">📋 Данные водителя</div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Телефон: <b style="color:#fff;">${esc(d.phone || '—')}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">ФИО: <b style="color:#fff;">${esc(fp.fullName || profile.fullName || '—')}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Email: <b style="color:#fff;">${esc(fp.email || profile.email || '—')}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">ИНН: <b style="color:#fff;">${esc(fp.inn || profile.inn || '—')}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Паспорт: <b style="color:#fff;">${esc(fp.passport || profile.passport || '—')}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Рейтинг: <b style="color:#fff;">${esc(fp.rating || profile.rating || '—')}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Статус: <b style="color:#fff;">${esc(statusLabel)}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Верификация: <b style="color:#fff;">${regLabel}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Документы подписаны: <b style="color:#fff;">${(fp.docsSigned != null ? fp.docsSigned : profile.docsSigned) ? 'Да' : 'Нет'}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Причина блокировки: <b style="color:#fff;">${esc(d.blockReason || '—')}</b></div>`;
+                  html += `<div style="font-size:12px;color:rgba(255,255,255,.55);">Комментарий: <b style="color:#fff;white-space:pre-wrap;">${esc(d.adminComment || '—')}</b></div>`;
+                  html += '</div>';
+                  const pf = safeBase64(fp.passportFrontBase64);
+                  const pr = safeBase64(fp.passportRegBase64);
+                  const dl = safeBase64(fp.driverLicenseBackBase64);
+                  const sf = safeBase64(fp.selfieBase64);
+                  const av = safeBase64(fp.avatarBase64 || fp.selfieBase64);
+                  if (pf || pr || dl || sf || av) {
+                    html += '<div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:8px;">';
+                    html += '<div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:4px;">📷 Документы</div>';
+                    html += '<div style="display:flex;gap:10px;flex-wrap:wrap;">';
+                    if (av) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${av}" target="_blank"><img src="data:image/jpeg;base64,${av}" style="height:120px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Аватар</div></div>`;
+                    if (pf) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${pf}" target="_blank"><img src="data:image/jpeg;base64,${pf}" style="height:120px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Паспорт</div></div>`;
+                    if (pr) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${pr}" target="_blank"><img src="data:image/jpeg;base64,${pr}" style="height:120px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Права спереди</div></div>`;
+                    if (dl) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${dl}" target="_blank"><img src="data:image/jpeg;base64,${dl}" style="height:120px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Права сзади</div></div>`;
+                    if (sf) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${sf}" target="_blank"><img src="data:image/jpeg;base64,${sf}" style="height:120px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Селфи</div></div>`;
+                    html += '</div></div>';
+                  } else {
+                    html += '<div style="flex:1;min-width:200px;"><div style="font-size:11px;color:rgba(255,178,74,.6);font-weight:700;">⚠ Фото документов не загружены</div></div>';
+                  }
+                  html += '</div>';
+                  infoTd.innerHTML = html;
+                } catch (_) {
+                  infoTd.innerHTML = '<div style="color:rgba(255,100,100,.7);text-align:center;">Ошибка загрузки данных</div>';
+                }
+              });
+              td.appendChild(commentBtn);
+              td.appendChild(infoBtn);
               td.appendChild(btn);
               td.appendChild(deleteBtn);
               tr.appendChild(td);
             }
+            if (d.phone) {
+              tr.style.cursor = 'pointer';
+              tr.addEventListener('click', async (e) => {
+                const target = e.target;
+                if (target && target.closest('button, a, input, select, textarea')) return;
+                await openHistory('driver', d.phone);
+              });
+            }
             tbody.appendChild(tr);
+          });
+          // Restore scroll position after render
+          requestAnimationFrame(() => {
+            window.scrollTo(0, _pgScrollY);
+            if (_tblScroll) _tblScroll.scrollLeft = _tblScrollLeft;
           });
         } catch (e) {
           tbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Ошибка загрузки</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
         }
       }
 
-      async function loadClients() {
+      async function loadClients(options = {}) {
         if (!blocksClientsTbody) return;
-        blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Загрузка...</td><td></td><td></td><td></td><td></td></tr>';
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Загрузка...</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        }
         try {
           const res = await adminFetch(`${API_BASE}/admin/clients`);
           const data = await res.json();
           if (!data || data.ok !== true) throw new Error('bad response');
           const clients = Array.isArray(data.clients) ? data.clients : [];
+          const _newHash = JSON.stringify(clients.map(c => [c.id, !!c.blocked, c.blockReason || '', c.adminComment || '']));
+          if (!showLoading && _newHash === _blocksClientsHash) return;
+          _blocksClientsHash = _newHash;
+          const _pgScrollY = window.scrollY;
+          const _tScroll = document.querySelector('#pageBlocks .tableCardScroll');
+          const _tScrollLeft = _tScroll?.scrollLeft || 0;
           blocksClientsTbody.innerHTML = '';
           if (!clients.length) {
-            blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Нет клиентов</td><td></td><td></td><td></td><td></td></tr>';
+            blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Нет клиентов</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
             return;
           }
           clients.forEach((c, i) => {
@@ -2349,10 +4414,12 @@
               : '<span style="font-size:11px;font-weight:800;color:#64dc8c;background:rgba(100,220,140,.15);padding:2px 8px;border-radius:6px;">Актив</span>';
             tr.innerHTML = `
               <td class="colN">${i + 1}</td>
+              ${initialsAvatar(c.fullName || c.name, c.phone || c.id)}
               <td>${esc(c.fullName || '—')}</td>
               <td>${esc(c.email || '—')}</td>
               <td>${esc(c.phone || '—')}</td>
               <td>${esc(c.id || '—')}</td>
+              <td>${renderReasonCommentCards(c.blockReason, c.adminComment)}</td>
             `;
             const actTd = document.createElement('td');
             actTd.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
@@ -2370,47 +4437,119 @@
               btn.textContent = c.blocked ? 'Разблок' : 'Блок';
               btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
+                let body;
+                if (!c.blocked) {
+                  const reason = await askText(`Укажите причину блокировки для клиента ${c.phone || c.id}`, {
+                    title: 'Блокировка клиента',
+                    placeholder: 'Причина блокировки',
+                    initialValue: c.blockReason || '',
+                    submitLabel: 'Заблокировать',
+                  });
+                  if (reason === null) return;
+                  body = JSON.stringify({ reason });
+                }
                 await adminFetch(`${API_BASE}/admin/clients/${encodeURIComponent(c.id)}/${c.blocked ? 'unblock' : 'block'}`, {
                   method: 'POST',
+                  headers: body ? { 'Content-Type': 'application/json' } : undefined,
+                  body,
                 });
-                loadClients();
+                loadClients({ showLoading: false });
+                loadClientsPage({ showLoading: false });
+              });
+              const commentBtn = document.createElement('button');
+              commentBtn.className = 'btn';
+              commentBtn.textContent = 'Коммент.';
+              updateCommentButtonState(commentBtn, c.adminComment);
+              commentBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const id = c.id || c.phone;
+                if (!id) return;
+                const comment = await askText(`Комментарий для клиента ${c.phone || c.id}`, {
+                  title: 'Комментарий клиента',
+                  placeholder: 'Например: хороший клиент, часто опаздывает, проблемный',
+                  initialValue: c.adminComment || '',
+                  submitLabel: 'Сохранить',
+                });
+                if (comment === null) return;
+                await adminFetch(`${API_BASE}/admin/clients/${encodeURIComponent(id)}/comment`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ comment }),
+                });
+                c.adminComment = comment;
+                updateCommentButtonState(commentBtn, comment);
+                const noteCell = tr.children[6];
+                if (noteCell) noteCell.innerHTML = renderReasonCommentCards(c.blockReason, c.adminComment);
+                loadClientsPage({ showLoading: false });
               });
               actTd.appendChild(historyBtn);
+              actTd.appendChild(commentBtn);
               actTd.appendChild(btn);
             }
             tr.appendChild(actTd);
             tr.addEventListener('click', () => {
               currentClientId = c.id || '';
+              currentEditDriverPhone = null;
+              currentEditTr = null;
               if (!editModal) return;
               editModal.hidden = false;
               document.body.classList.add('modalOpen');
               if (editFio) editFio.value = c.fullName || '';
               if (editEmail) editEmail.value = c.email || '';
               if (editPhone) editPhone.value = c.phone || '';
+              setDriverEditMode(false);
               if (editQuery) editQuery.value = c.id || '';
-              if (editPanel) editPanel.hidden = true;
+              if (editPanel) editPanel.hidden = false;
             });
             blocksClientsTbody.appendChild(tr);
           });
+          requestAnimationFrame(() => {
+            window.scrollTo(0, _pgScrollY);
+            if (_tScroll) _tScroll.scrollLeft = _tScrollLeft;
+          });
         } catch (e) {
-          blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Ошибка загрузки</td><td></td><td></td><td></td><td></td></tr>';
+          blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Ошибка загрузки</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
         }
       }
 
       let clientsListCache = [];
 
-      async function loadClientsPage() {
+      async function loadClientsPage(options = {}) {
         if (!clientsTbody) return;
-        clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Загрузка...</td></tr>';
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="5">Загрузка...</td></tr>';
+        }
         try {
+          const _pgScrollY = window.scrollY;
+          const _tScroll = document.querySelector('#pageClients .tableCardScroll');
+          const _tScrollLeft = _tScroll?.scrollLeft || 0;
           const res = await adminFetch(`${API_BASE}/admin/clients`);
           const data = await res.json();
           if (!data || data.ok !== true) throw new Error('bad response');
           const clients = Array.isArray(data.clients) ? data.clients : [];
           clientsListCache = clients;
+          const _newHash = JSON.stringify(clients.map(c => [c.id, !!c.blocked, c.blockReason || '', c.adminComment || '']));
+          if (!showLoading && _newHash === _clientsPageHash) return;
+          _clientsPageHash = _newHash;
+          // --- Client Status Bar ---
+          const clientStatusBar = document.getElementById('clientStatusBar');
+          if (clientStatusBar) {
+            const cBlocked = clients.filter(c => c.blocked).length;
+            const cActive  = clients.length - cBlocked;
+            clientStatusBar.innerHTML = [
+              `<span class="statusChip">&#128101; Всего: ${clients.length}</span>`,
+              `<span class="statusChip" style="color:rgba(100,220,140,.92);border-color:rgba(100,220,140,.22);">&#9989; Активных: ${cActive}</span>`,
+              cBlocked ? `<span class="statusChip" style="color:rgba(225,27,34,.85);border-color:rgba(225,27,34,.22);">&#128683; Заблок: ${cBlocked}</span>` : '',
+            ].join('');
+          }
           renderClientsTable(clients);
+          requestAnimationFrame(() => {
+            window.scrollTo(0, _pgScrollY);
+            if (_tScroll) _tScroll.scrollLeft = _tScrollLeft;
+          });
         } catch (e) {
-          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Ошибка загрузки</td></tr>';
+          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="5">Ошибка загрузки</td></tr>';
         }
       }
 
@@ -2426,7 +4565,7 @@
           : clients;
         clientsTbody.innerHTML = '';
         if (!filtered.length) {
-          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="4">Нет клиентов</td></tr>';
+          clientsTbody.innerHTML = '<tr><td class="colN">1</td><td colspan="5">Нет клиентов</td></tr>';
           return;
         }
         filtered.forEach((c, i) => {
@@ -2435,11 +4574,22 @@
           const phone = c.phone || c.id || '—';
           const orderCount = c.orderCount != null ? String(c.orderCount) : '—';
           const blocked = c.blocked === true;
+          const isMobileCards = window.matchMedia('(max-width: 900px)').matches;
+          const noteHtml = renderMobileNoteBlock(c.blockReason, c.adminComment, 'Причина / комментарий');
+          const clientStatus = blocked ? 'Заблокирован' : 'Активен';
+          const mobileClientInfoHtml = isMobileCards ? renderMobileInfoLines([
+            { title: 'Номер', value: phone },
+            { title: 'ID', value: c.id || '—' },
+            { title: 'Статус', value: clientStatus },
+            { title: 'E-mail', value: c.email || '—' },
+            { title: 'Заказов', value: orderCount },
+          ]) : '';
           tr.innerHTML = `
             <td class="colN">${i + 1}</td>
-            <td>${esc(fio)}</td>
+            ${initialsAvatar(fio, phone)}
+            <td>${esc(fio)}${!isMobileCards ? renderManagementNote(c.blockReason, c.adminComment) : `${mobileClientInfoHtml}<div style="margin-top:6px;">${noteHtml}</div>`}</td>
             <td>${esc(phone)}</td>
-            <td>${esc(orderCount)}</td>
+            <td>Заказов: ${esc(orderCount)}</td>
             <td></td>
           `;
           const actTd = tr.querySelector('td:last-child');
@@ -2459,13 +4609,55 @@
             e.stopPropagation();
             const id = c.id || c.phone;
             if (!id) return;
+            let body;
+            if (!blocked) {
+              const reason = await askText(`Укажите причину блокировки для клиента ${phone}`, {
+                title: 'Блокировка клиента',
+                placeholder: 'Причина блокировки',
+                initialValue: c.blockReason || '',
+                submitLabel: 'Заблокировать',
+              });
+              if (reason === null) return;
+              body = JSON.stringify({ reason });
+            }
             await adminFetch(`${API_BASE}/admin/clients/${encodeURIComponent(id)}/${blocked ? 'unblock' : 'block'}`, {
               method: 'POST',
+              headers: body ? { 'Content-Type': 'application/json' } : undefined,
+              body,
             });
-            loadClientsPage();
-            loadClients();
+            loadClientsPage({ showLoading: false });
+            loadClients({ showLoading: false });
+          });
+          const commentBtn = document.createElement('button');
+          commentBtn.className = 'btn';
+          commentBtn.textContent = 'Коммент.';
+          updateCommentButtonState(commentBtn, c.adminComment);
+          commentBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = c.id || c.phone;
+            if (!id) return;
+            const comment = await askText(`Комментарий для клиента ${phone}`, {
+              title: 'Комментарий клиента',
+              placeholder: 'Например: хороший клиент, часто опаздывает, проблемный',
+              initialValue: c.adminComment || '',
+              submitLabel: 'Сохранить',
+            });
+            if (comment === null) return;
+            await adminFetch(`${API_BASE}/admin/clients/${encodeURIComponent(id)}/comment`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ comment }),
+            });
+            c.adminComment = comment;
+            updateCommentButtonState(commentBtn, comment);
+            const nameCell = tr.children[2];
+            if (nameCell) nameCell.innerHTML = `${esc(fio)}${!isMobileCards ? renderManagementNote(c.blockReason, c.adminComment) : ''}`;
+            const ordersCell = tr.children[4];
+            if (ordersCell) ordersCell.innerHTML = `Заказов: ${esc(orderCount)}${isMobileCards ? `\n\n${renderMobileNoteBlock(c.blockReason, c.adminComment, 'Причина / комментарий')}` : ''}`;
+            loadClients({ showLoading: false });
           });
           actTd.appendChild(historyBtn);
+          actTd.appendChild(commentBtn);
           actTd.appendChild(blockBtn);
           clientsTbody.appendChild(tr);
         });
@@ -2561,6 +4753,9 @@
         }
         if (editPanel) editPanel.hidden = true;
         currentEditTr = null;
+        currentEditDriverPhone = null;
+        currentClientId = null;
+        setDriverEditMode(false);
         renderResults('');
       }
 
@@ -2569,6 +4764,9 @@
         document.body.classList.remove('modalOpen');
         if (editPanel) editPanel.hidden = true;
         currentEditTr = null;
+        currentEditDriverPhone = null;
+        currentClientId = null;
+        setDriverEditMode(false);
         if (openEditBtn) openEditBtn.focus();
       }
 
@@ -2661,9 +4859,12 @@
         return params.toString();
       }
 
-      async function loadOrders() {
+      async function loadOrders(options = {}) {
         if (!ordersRealList) return;
-        ordersRealList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          ordersRealList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        }
         try {
           const query = buildOrdersQuery();
           const res = await adminFetch(`${API_BASE}/orders?${query}`);
@@ -2673,97 +4874,65 @@
           if (ordersFilterPreorder?.checked) {
             orders = orders.filter((o) => !!o.scheduledAt);
           }
+          const _newHash = JSON.stringify(orders.map(o => [o.id, o.status||'', o.driverPhone||'']));
+          if (!showLoading && _newHash === _ordersHash) return;
+          _ordersHash = _newHash;
+          const _pgScrollY = window.scrollY;
           ordersRealList.innerHTML = '';
           if (orders.length === 0) {
             ordersRealList.innerHTML = '<div class="statItem"><span>Нет заказов</span><span></span></div>';
             return;
           }
-          orders.forEach((o) => {
-            const from = o?.fromAddress || (o?.from ? `${o.from.lat?.toFixed?.(4)}, ${o.from.lng?.toFixed?.(4)}` : '—');
-            const to = o?.toAddress || (o?.to ? `${o.to.lat?.toFixed?.(4)}, ${o.to.lng?.toFixed?.(4)}` : '—');
-            const status = o?.status || '-';
-            const price = formatMoney(o?.priceFrom);
-            const driver = o?.driverPhone || '—';
-            const client = o?.clientId || '—';
-            const pay = o?.paymentStatus || '—';
-            const created = o?.createdAt ? formatDate(o.createdAt) : '';
-            const shortId = (o.id || '').slice(0, 8);
-            const row = document.createElement('div');
-            row.className = 'orderRow';
-            const stClass = `st-${status}`;
-            const cancelBtn = status === 'canceled' || status === 'completed'
-              ? ''
-              : `<button class="btn" data-cancel="${esc(o.id)}">Отменить</button>`;
-            const assignBtn = status === 'completed' || status === 'canceled'
-              ? ''
-              : `<button class="btn" data-assign="${esc(o.id)}">${o.driverPhone ? 'Переназн.' : 'Назначить'}</button>`;
-            const payBtn = pay === 'paid'
-              ? '<span style="font-size:11px;color:rgba(100,220,140,.85);font-weight:800;">✓ Оплачен</span>'
-              : `<button class="btn" data-pay="${esc(o.id)}">Оплата</button>`;
-            const schedAt = o?.scheduledAt;
-            const preorderBadge = schedAt
-              ? `<span class="preorderBadge">⏰ Предзаказ на ${formatDate(schedAt)}</span>`
-              : '';
-            row.innerHTML = `
-              <div class="orderHeader">
-                <span class="orderIdBadge">#${esc(shortId)}</span>
-                ${preorderBadge}
-                <span class="orderStatusBadge ${esc(stClass)}">${esc(status)}</span>
-              </div>
-              <div class="orderRoute">${esc(from)}<span class="routeArrow">→</span>${esc(to)}</div>
-              <div class="orderDetails">
-                <span class="orderPrice">${price}</span>
-                <span>Водитель: ${esc(driver)}</span>
-                <span>Клиент: ${esc(client)}</span>
-                <span>Оплата: ${esc(pay)}</span>
-                ${created ? `<span>${esc(created)}</span>` : ''}
-              </div>
-              <div class="orderActions">
-                ${payBtn}
-                ${cancelBtn}
-                ${assignBtn}
-              </div>
-            `;
-            ordersRealList.appendChild(row);
-          });
-          ordersRealList.querySelectorAll('button[data-cancel]').forEach((b) => {
-            b.addEventListener('click', async () => {
-              const id = b.getAttribute('data-cancel');
-              if (!id) return;
-              const reason = prompt('Причина отмены?') || '';
-              await adminFetch(`${API_BASE}/admin/orders/${id}/cancel`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reason }),
-              });
-              loadOrders();
-            });
-          });
-          ordersRealList.querySelectorAll('button[data-assign]').forEach((b) => {
-            b.addEventListener('click', async () => {
-              const id = b.getAttribute('data-assign');
-              if (!id) return;
-              const driverPhone = (prompt('Телефон водителя для назначения?') || '').replace(/\D/g, '');
-              if (!driverPhone) return;
-              await adminFetch(`${API_BASE}/admin/orders/${id}/assign`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ driverPhone }),
-              });
-              loadOrders();
-            });
-          });
-          ordersRealList.querySelectorAll('button[data-pay]').forEach((b) => {
-            b.addEventListener('click', async () => {
-              const id = b.getAttribute('data-pay');
-              if (!id) return;
-              await adminFetch(`${API_BASE}/admin/orders/${id}/pay`, { method: 'POST' });
-              loadOrders();
-            });
-          });
+          renderOrdersCollection(orders);
+          bindRenderedOrderActions(loadOrders);
+          requestAnimationFrame(() => window.scrollTo(0, _pgScrollY));
         } catch (e) {
           ordersRealList.innerHTML = '<div class="statItem"><span>Не удалось загрузить</span><span></span></div>';
         }
+      }
+
+      function applyMobileTableLabels() {
+        document.querySelectorAll('table.table').forEach((table) => {
+          table.classList.add('mobileCardTable');
+          const headers = Array.from(table.querySelectorAll('thead th')).map((th) => (th.textContent || '').trim() || 'Поле');
+          table.querySelectorAll('tbody tr').forEach((tr) => {
+            Array.from(tr.children).forEach((cell, index) => {
+              if (!(cell instanceof HTMLElement)) return;
+              const header = headers[index] || 'Поле';
+              const headerLower = header.toLowerCase();
+              cell.setAttribute('data-label', header);
+              cell.classList.remove('mobile-primary', 'mobile-phone', 'mobile-id', 'mobile-meta', 'mobile-status', 'mobile-actions');
+              if (index === 0 || /фио|имя/.test(headerLower)) {
+                cell.classList.add('mobile-primary');
+              }
+              if (/номер|телефон/.test(headerLower)) {
+                cell.classList.add('mobile-phone');
+              }
+              if (/id|паспорт|инн/.test(headerLower)) {
+                cell.classList.add('mobile-id');
+              }
+              if (/рейтинг|баланс|поезд|заказ|создан|почта|email|дата/.test(headerLower)) {
+                cell.classList.add('mobile-meta');
+              }
+              if (/статус|действ|блок|документы|вериф|актив/.test(headerLower)) {
+                cell.classList.add('mobile-status');
+              }
+              if (/действ|управ|кнопк/.test(headerLower) || cell.querySelector('button')) {
+                cell.classList.add('mobile-actions');
+              }
+            });
+          });
+        });
+      }
+
+      function observeMobileTables() {
+        document.querySelectorAll('table.table tbody').forEach((tbody) => {
+          if (!(tbody instanceof HTMLElement)) return;
+          if (tbody.dataset.mobileObserverReady === '1') return;
+          tbody.dataset.mobileObserverReady = '1';
+          const observer = new MutationObserver(() => applyMobileTableLabels());
+          observer.observe(tbody, { childList: true, subtree: true });
+        });
       }
 
       let tariffsCache = [];
@@ -2787,12 +4956,20 @@
           container.innerHTML = '<div style="color:rgba(255,255,255,.4);padding:24px;">Нет тарифов</div>';
           return;
         }
+        const today = new Date().getDay(); // 0=Sun,6=Sat
+        const dayLabel = today === 6 ? 'Суббота — действует наценка!' : today === 0 ? 'Воскресенье — действует наценка!' : '';
         container.innerHTML = tariffsCache.map((t, i) => {
           const meta = getTariffMeta(t);
           const comm = Number(t.commission || 0);
           const sat = Number(t.saturdayMarkupPercent || 0);
           const sun = Number(t.sundayMarkupPercent || 0);
           const isActive = i === selectedTariffIndex;
+          const todayMarkup = today === 6 ? sat : today === 0 ? sun : 0;
+          const todayBadge = todayMarkup > 0
+            ? `<div style="margin-top:4px;padding:6px 12px;border-radius:8px;background:rgba(255,178,74,.15);border:1px solid rgba(255,178,74,.35);font-size:11px;font-weight:800;color:#ffb24a;text-align:center;">🔥 Сегодня +${todayMarkup}% (сейчас действует)</div>`
+            : (dayLabel && (sat > 0 || sun > 0))
+              ? `<div style="margin-top:4px;padding:6px 12px;border-radius:8px;background:rgba(100,220,140,.12);border:1px solid rgba(100,220,140,.3);font-size:11px;font-weight:800;color:rgba(100,220,140,.9);text-align:center;">✅ Сегодня наценка не действует</div>`
+              : '';
           return `<div class="priceCard${isActive ? ' priceCardActive' : ''}" data-ti="${i}" style="
             background:${isActive ? 'rgba(255,255,255,.10)' : 'rgba(255,255,255,.04)'};
             border:2px solid ${isActive ? meta.color : 'rgba(255,255,255,.08)'};
@@ -2820,6 +4997,7 @@
                 <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">воскресенье</div>
               </div>
             </div>
+            ${todayBadge}
             ${isActive ? `<div style="font-size:11px;color:${meta.color};font-weight:800;text-align:center;">✎ Редактируется ниже</div>` : `<div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;">Нажмите для редактирования</div>`}
           </div>`;
         }).join('');
@@ -2927,15 +5105,24 @@
         });
       }
 
-      async function loadTariffs() {
+      let _tariffsHash = '';
+
+      async function loadTariffs(options = {}) {
         const container = document.getElementById('pricesTariffCards');
         const wrap = document.getElementById('pricesTariffsWrap');
-        if (container) container.innerHTML = '<div style="color:rgba(255,255,255,.4);padding:24px;grid-column:1/-1;text-align:center;">Загрузка...</div>';
-        if (wrap) wrap.innerHTML = '';
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          if (container) container.innerHTML = '<div style="color:rgba(255,255,255,.4);padding:24px;grid-column:1/-1;text-align:center;">Загрузка...</div>';
+          if (wrap) wrap.innerHTML = '';
+        }
         try {
           const res = await adminFetch(`${API_BASE}/admin/tariffs`);
           const data = await res.json();
-          tariffsCache = Array.isArray(data.tariffs) ? data.tariffs : [];
+          const newCache = Array.isArray(data.tariffs) ? data.tariffs : [];
+          const _newHash = JSON.stringify(newCache.map(t => [t.name, t.commission, t.saturdayMarkupPercent, t.sundayMarkupPercent, t.base, t.perKm, t.perMin, t.includedMin]));
+          if (!showLoading && _newHash === _tariffsHash) return;
+          _tariffsHash = _newHash;
+          tariffsCache = newCache;
           if (selectedTariffIndex >= tariffsCache.length) selectedTariffIndex = 0;
           renderPriceTariffCards();
           renderPriceTariffEditor();
@@ -2944,13 +5131,20 @@
         }
       }
 
-      async function loadPromos() {
+      async function loadPromos(options = {}) {
         if (!promosList) return;
-        promosList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          promosList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        }
         try {
           const res = await adminFetch(`${API_BASE}/admin/promos`);
           const data = await res.json();
           const list = Array.isArray(data.promos) ? data.promos : [];
+          const _newHash = JSON.stringify(list.map(p => [p.code, !!p.active]));
+          if (!showLoading && _newHash === _promosHash) return;
+          _promosHash = _newHash;
+          const _pgScrollY = window.scrollY;
           promosList.innerHTML = '';
           if (!list.length) {
             promosList.innerHTML = '<div class="statItem"><span>Нет промокодов</span><span></span></div>';
@@ -2991,9 +5185,10 @@
               await adminFetch(`${API_BASE}/admin/promos/${encodeURIComponent(code)}/disable`, {
                 method: 'POST',
               });
-              loadPromos();
+              loadPromos({ showLoading: false });
             });
           });
+          requestAnimationFrame(() => window.scrollTo(0, _pgScrollY));
         } catch (_) {
           promosList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
         }
@@ -3017,16 +5212,20 @@
         if (promoCodeInput) promoCodeInput.value = '';
         if (promoDiscountInput) promoDiscountInput.value = '';
         if (promoExpiresInput) promoExpiresInput.value = '';
-        loadPromos();
+        loadPromos({ showLoading: false });
       });
 
-      async function loadAbonplata() {
+      async function loadAbonplata(options = {}) {
         const tbody = document.getElementById('abonplataTbody');
         const dayInput = document.getElementById('abonDayOfMonth');
         const amountInput = document.getElementById('abonAmount');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="6">Загрузка…</td></tr>';
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          tbody.innerHTML = '<tr><td colspan="5">Загрузка…</td></tr>';
+        }
         try {
+          const _pgScrollY = window.scrollY;
           const [settingsRes, driversRes] = await Promise.all([
             adminFetch(`${API_BASE}/admin/subscription/settings`),
             adminFetch(`${API_BASE}/admin/drivers`),
@@ -3038,14 +5237,18 @@
             amountInput.value = settingsData.amount ?? 1500;
           }
           const drivers = Array.isArray(driversData.drivers) ? driversData.drivers : [];
+          const _newHash = JSON.stringify(drivers.map(d => [d.phone, d.subscriptionPaidUntil||'', !!d.subscriptionOverdue]));
+          if (!showLoading && _newHash === _abonHash) return;
+          _abonHash = _newHash;
           tbody.innerHTML = '';
           if (!drivers.length) {
-            tbody.innerHTML = '<tr><td colspan="6">Нет водителей</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5">Нет водителей</td></tr>';
             return;
           }
           drivers.forEach((d, idx) => {
             const phone = esc(d.phone || '—');
-            const name = esc((d.profile && d.profile.fullName) ? d.profile.fullName : '—');
+            const profile = d.profile || {};
+            const name = esc(profile.fullName || '—');
             const paidUntil = d.subscriptionPaidUntil || '—';
             const overdue = d.subscriptionOverdue === true;
             const statusHtml = overdue
@@ -3053,11 +5256,14 @@
               : '<span style="color:#4caf50;">Оплачено</span>';
             const forceLabel = overdue ? 'Выставить сейчас' : 'Сделать просроченным';
             const forceTitle = overdue ? 'Выставить просрочку (для проверки)' : 'Убрать статус «Оплачено», водитель увидит экран абонплаты';
+            const avB64 = safeBase64(profile.avatarBase64 || profile.selfieBase64 || profile.passportFrontBase64);
+            const driverCell = avB64
+              ? `<td><div style="display:flex;align-items:center;gap:10px;"><img src="data:image/jpeg;base64,${avB64}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.12);" title="Фото водителя"><div><div style="font-weight:900;color:#fff;">${name}</div><div style="font-size:12px;color:rgba(255,255,255,.65);">${phone}</div></div></div></td>`
+              : `<td><div style="display:flex;align-items:center;gap:10px;">${initialsAvatar(profile.fullName, d.phone).replace('<td style="vertical-align:middle;">','').replace('</td>','')}<div><div style="font-weight:900;color:#fff;">${name}</div><div style="font-size:12px;color:rgba(255,255,255,.65);">${phone}</div></div></div></td>`;
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td class="colN">${idx + 1}</td>
-              <td>${phone}</td>
-              <td>${name}</td>
+              ${driverCell}
               <td>${esc(paidUntil)}</td>
               <td>${statusHtml}</td>
               <td>
@@ -3078,7 +5284,7 @@
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({}),
                 });
-                loadAbonplata();
+                loadAbonplata({ showLoading: false });
               } catch (e) {
                 if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') alert('Ошибка: ' + (e?.message || e));
               }
@@ -3095,8 +5301,7 @@
               if (!confirm(msg)) return;
               try {
                 await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/subscription/force-overdue`, { method: 'POST' });
-                tbody.innerHTML = '<tr><td colspan="6">Обновление…</td></tr>';
-                await loadAbonplata();
+                await loadAbonplata({ showLoading: false });
               } catch (e) {
                 if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') alert('Ошибка: ' + (e?.message || e));
               }
@@ -3114,12 +5319,13 @@
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ paidUntil: dateStr.trim() }),
                 });
-                loadAbonplata();
+                loadAbonplata({ showLoading: false });
               } catch (e) {
                 if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') alert('Ошибка: ' + (e?.message || e));
               }
             });
           });
+          requestAnimationFrame(() => window.scrollTo(0, _pgScrollY));
         } catch (e) {
           tbody.innerHTML = '<tr><td colspan="6">Ошибка загрузки</td></tr>';
         }
@@ -3138,15 +5344,18 @@
           });
           if (dayInput) dayInput.value = day;
           if (amountInput) amountInput.value = amount;
-          loadAbonplata();
+          loadAbonplata({ showLoading: false });
         } catch (e) {
           if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') alert('Ошибка: ' + (e?.message || e));
         }
       });
 
-      async function loadPayouts() {
+      async function loadPayouts(options = {}) {
         if (!payoutsList) return;
-        payoutsList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          payoutsList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        }
         try {
           const res = await adminFetch(`${API_BASE}/admin/payouts?limit=50`);
           const data = await res.json();
@@ -3185,7 +5394,7 @@
           if (payoutDriver) payoutDriver.value = '';
           if (payoutAmount) payoutAmount.value = '';
           if (payoutOrder) payoutOrder.value = '';
-          loadPayouts();
+          loadPayouts({ showLoading: false });
         } catch (e) {
           if (e?.message !== 'ADMIN_AUTH_EXPIRED' && e?.message !== 'NO_ADMIN_TOKEN') {
             alert(`Не удалось создать выплату: ${e?.message || e}`);
@@ -3210,12 +5419,22 @@
           btn.classList.toggle('active', btn.dataset.page === pageKey);
         });
 
+        bottomNavItems.forEach((item) => {
+          item.classList.toggle('active', item.dataset.page === pageKey);
+        });
+
+        // Close sidebar on mobile after page switch
+        closeSidebar();
+
         if (pageKey === 'orders') {
           loadOrders();
           setOrdersPeriod(ordersPeriod);
         }
         if (pageKey === 'drivers') {
           loadDrivers();
+        }
+        if (pageKey === 'driversCommission') {
+          loadDriversCommission();
         }
         if (pageKey === 'clients') {
           loadClientsPage();
@@ -3224,8 +5443,8 @@
           loadTariffs();
         }
         if (pageKey === 'blocks') {
-          loadClients();
-          loadDrivers();
+          if (blocksActiveTab === 'drivers') loadBlockedDrivers();
+          else loadClients();
         }
         if (pageKey === 'stats') {
           setStatsPeriod(statsPeriod);
@@ -3239,6 +5458,7 @@
         if (pageKey === 'verification') {
           loadVerification();
         }
+        setTimeout(() => applyMobileTableLabels(), 0);
       }
 
       openEditBtn?.addEventListener('click', openEdit);
@@ -3253,6 +5473,12 @@
       navButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
           setPage(btn.dataset.page);
+        });
+      });
+
+      bottomNavItems.forEach((item) => {
+        item.addEventListener('click', () => {
+          setPage(item.dataset.page);
         });
       });
 
@@ -3279,29 +5505,48 @@
         });
       }
 
-      async function loadBlockedDrivers() {
+      async function loadBlockedDrivers(options = {}) {
         if (!blocksDriversTbody) return;
-        blocksDriversTbody.innerHTML = '<tr><td class="colN">1</td><td>Загрузка...</td><td></td><td></td><td></td><td></td></tr>';
+        const showLoading = options.showLoading !== false;
+        if (showLoading) {
+          blocksDriversTbody.innerHTML = '<tr><td class="colN">1</td><td>Загрузка...</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        }
         try {
-          const res = await adminFetch(`${API_BASE}/admin/drivers`);
+          const res = await adminFetch(`${API_BASE}/admin/drivers?includePhotos=1`);
           const data = await res.json();
           if (!data || data.ok !== true) throw new Error('bad');
           const drivers = Array.isArray(data.drivers) ? data.drivers : [];
           const blocked = drivers.filter((d) => d.blocked === true);
+          const _newHash = JSON.stringify(blocked.map(d => [d.phone, d.blockReason || '', d.adminComment || '']));
+          if (!showLoading && _newHash === _blocksDriversHash) return;
+          _blocksDriversHash = _newHash;
+          const _pgScrollY = window.scrollY;
+          const _tScroll = document.querySelector('#pageBlocks .tableCardScroll');
+          const _tScrollLeft = _tScroll?.scrollLeft || 0;
           blocksDriversTbody.innerHTML = '';
           if (!blocked.length) {
-            blocksDriversTbody.innerHTML = '<tr><td class="colN">—</td><td colspan="5">Нет заблокированных водителей</td></tr>';
+            blocksDriversTbody.innerHTML = '<tr><td class="colN">—</td><td colspan="8">Нет заблокированных водителей</td></tr>';
             return;
           }
           blocked.forEach((d, i) => {
             const profile = d.profile || {};
+            const earnings = d.earnings || {};
+            const commission = Number(earnings.commission || 0);
+            const statusRaw = String(d.status || 'offline').toLowerCase();
+            const statusLabel = statusRaw === 'online' ? 'online' : statusRaw === 'busy' ? 'busy' : 'offline';
             const tr = document.createElement('tr');
+            const avB64 = safeBase64(profile.avatarBase64 || profile.selfieBase64 || profile.passportFrontBase64);
+            const avatarCell = avB64
+              ? `<td style="vertical-align:middle;"><img src="data:image/jpeg;base64,${avB64}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.12);" title="Фото водителя"></td>`
+              : initialsAvatar(profile.fullName, d.phone);
             tr.innerHTML = `
               <td class="colN">${i + 1}</td>
+              ${avatarCell}
               <td>${esc(profile.fullName || '—')}</td>
               <td>${esc(profile.email || '—')}</td>
               <td>${esc(d.phone || '—')}</td>
-              <td>${esc(d.phone || '—')}</td>
+              <td><div style="display:flex;flex-direction:column;gap:4px;"><span style="font-weight:800;color:${statusRaw === 'online' ? 'rgba(100,220,140,.95)' : statusRaw === 'busy' ? 'rgba(255,178,74,.95)' : 'rgba(255,255,255,.72)'};">${esc(statusLabel)}</span><span style="color:#fff;">Комиссия: ${esc(formatMoney(commission))}</span></div></td>
+              <td>${renderReasonCommentCards(d.blockReason, d.adminComment)}</td>
             `;
             const td = document.createElement('td');
             td.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
@@ -3310,8 +5555,8 @@
             btn.textContent = 'Разблокировать';
             btn.addEventListener('click', async () => {
               await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/unblock`, { method: 'POST' });
-              loadBlockedDrivers();
-              loadDrivers();
+              loadBlockedDrivers({ showLoading: false });
+              loadDrivers({ showLoading: false });
             });
             const historyBtn = document.createElement('button');
             historyBtn.className = 'btn';
@@ -3320,13 +5565,42 @@
               e.stopPropagation();
               await openHistory('driver', d.phone);
             });
+            const commentBtn = document.createElement('button');
+            commentBtn.className = 'btn';
+            commentBtn.textContent = '📝 Комм.';
+            updateCommentButtonState(commentBtn, d.adminComment);
+            commentBtn.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              const comment = await askText(`Комментарий для водителя ${d.phone}`, {
+                title: 'Комментарий водителя',
+                placeholder: 'Например: почему удалили, почему блокировали, заметки',
+                initialValue: d.adminComment || '',
+                submitLabel: 'Сохранить',
+              });
+              if (comment === null) return;
+              await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/comment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comment }),
+              });
+              d.adminComment = comment;
+              updateCommentButtonState(commentBtn, comment);
+              const noteCell = tr.children[6];
+              if (noteCell) noteCell.innerHTML = renderReasonCommentCards(d.blockReason, d.adminComment);
+              loadDrivers({ showLoading: false });
+            });
             td.appendChild(historyBtn);
+            td.appendChild(commentBtn);
             td.appendChild(btn);
             tr.appendChild(td);
             blocksDriversTbody.appendChild(tr);
           });
+          requestAnimationFrame(() => {
+            window.scrollTo(0, _pgScrollY);
+            if (_tScroll) _tScroll.scrollLeft = _tScrollLeft;
+          });
         } catch (_) {
-          blocksDriversTbody.innerHTML = '<tr><td class="colN">—</td><td colspan="5">Ошибка загрузки</td></tr>';
+          blocksDriversTbody.innerHTML = '<tr><td class="colN">—</td><td colspan="8">Ошибка загрузки</td></tr>';
         }
       }
 
@@ -3366,24 +5640,50 @@
       verifyTabPending?.addEventListener('click', () => { setVerifyTab('pending'); loadVerification(); });
       verifyTabAll?.addEventListener('click', () => { setVerifyTab('all'); loadVerification(); });
 
-      async function loadVerification() {
+      async function loadVerification(options = {}) {
         const isPending = verifyActiveTab === 'pending';
-        if (isPending && verifyPendingList) {
-          verifyPendingList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
-        }
-        if (!isPending && verifyAllTbody) {
-          verifyAllTbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Загрузка...</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        const showLoading = options.showLoading !== false;
+        const isVerificationInconsistent = (p) => {
+          if (!p) return false;
+          const hasRequired = !!((p.fullName || '').trim() && (p.inn || '').trim() && (p.passport || '').trim());
+          const hasPhotos = !!(p.passportFrontBase64 || p.passportRegBase64 || p.driverLicenseBackBase64 || p.selfieBase64 || p.hasVerificationPhotos);
+          const fullPacket = !!(p.docsSigned && hasRequired && hasPhotos);
+          return (p.registrationStatus === 'completed' || p.registrationStatus === 'pending') && !fullPacket;
+        };
+        if (showLoading) {
+          if (isPending && verifyPendingList) {
+            verifyPendingList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+          }
+          if (!isPending && verifyAllTbody) {
+            verifyAllTbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Загрузка...</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+          }
         }
         try {
-          const res = await adminFetch(`${API_BASE}/admin/drivers`);
+          const _pgScrollY = window.scrollY;
+          const _tScroll = document.querySelector('#pageVerification .tableCardScroll');
+          const _tScrollLeft = _tScroll?.scrollLeft || 0;
+          const res = await adminFetch(`${API_BASE}/admin/drivers?includePhotos=1`);
           const data = await res.json();
           if (!data || data.ok !== true) throw new Error('bad');
           const drivers = Array.isArray(data.drivers) ? data.drivers : [];
+          const _newHash = JSON.stringify(drivers.map(d => [
+            d.phone,
+            d.profile?.registrationStatus || '',
+            d.profile?.fullName || '',
+            d.profile?.inn || '',
+            d.profile?.passport || '',
+            d.profile?.docsSigned ? 1 : 0,
+            d.profile?.hasVerificationPhotos ? 1 : 0,
+          ]));
+          if (!showLoading && _newHash === _verifyHash) return;
+          _verifyHash = _newHash;
 
           if (isPending && verifyPendingList) {
             const pending = drivers.filter((d) => {
               const p = d.profile || {};
-              return p.registrationStatus === 'pending';
+              return p.registrationStatus === 'pending' ||
+                isVerificationInconsistent(p) ||
+                (p.registrationStatus === 'incomplete' && (p.docsSigned || p.fullName || p.inn || p.passport || p.passportFrontBase64 || p.passportRegBase64 || p.driverLicenseBackBase64 || p.selfieBase64 || p.hasVerificationPhotos));
             });
             verifyPendingList.innerHTML = '';
             if (!pending.length) {
@@ -3398,8 +5698,8 @@
               const driverLicenseBack = safeBase64(p.driverLicenseBackBase64);
               const selfie = safeBase64(p.selfieBase64);
               const avatarHtml = avB64
-                ? `<img src="data:image/jpeg;base64,${avB64}" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,178,74,.4);flex-shrink:0;" title="Фото водителя">`
-                : '<span style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:20px;line-height:48px;text-align:center;flex-shrink:0;">—</span>';
+                ? `<img src="data:image/jpeg;base64,${avB64}" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,178,74,.5);flex-shrink:0;box-shadow:0 0 0 2px rgba(0,0,0,.2);" title="Фото водителя">`
+                : '<span style="display:inline-block;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:28px;line-height:80px;text-align:center;flex-shrink:0;">—</span>';
               const card = document.createElement('div');
               card.className = 'statItem';
               card.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
@@ -3411,6 +5711,7 @@
                       <span style="font-weight:900;font-size:15px;color:#fff;">${esc(p.fullName || '—')}</span>
                       <span style="font-size:12px;font-weight:800;color:rgba(255,178,74,.90);">${esc(d.phone || '—')}</span>
                     </div>
+                    <div style="font-size:11px;font-weight:800;color:${isVerificationInconsistent(p) ? 'rgba(255,120,120,.95)' : (p.registrationStatus === 'pending' ? 'rgba(255,178,74,.9)' : 'rgba(100,180,255,.9)')};margin-top:4px;">${isVerificationInconsistent(p) ? 'Рассинхрон статуса / нужна повторная подача' : (p.registrationStatus === 'pending' ? 'Ожидает проверки' : 'Черновик / неполная заявка')}</div>
                   </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px;font-weight:700;color:rgba(255,255,255,.55);">
@@ -3421,10 +5722,10 @@
                 </div>
                 ${(passportFront || passportReg || driverLicenseBack || selfie) ? `
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px 0 4px;">
-                  ${passportFront ? `<a href="data:image/jpeg;base64,${passportFront}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${passportFront}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Паспорт (главная)"></a>` : ''}
-                  ${passportReg ? `<a href="data:image/jpeg;base64,${passportReg}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${passportReg}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Вод. удостоверение (перед)"></a>` : ''}
-                  ${driverLicenseBack ? `<a href="data:image/jpeg;base64,${driverLicenseBack}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${driverLicenseBack}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Вод. удостоверение (оборот)"></a>` : ''}
-                  ${selfie ? `<a href="data:image/jpeg;base64,${selfie}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${selfie}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Селфи с правами"></a>` : ''}
+                  ${passportFront ? `<a href="data:image/jpeg;base64,${passportFront}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${passportFront}" style="width:100%;height:130px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.1);" title="Паспорт (главная)"></a>` : ''}
+                  ${passportReg ? `<a href="data:image/jpeg;base64,${passportReg}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${passportReg}" style="width:100%;height:130px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.1);" title="Вод. удостоверение (перед)"></a>` : ''}
+                  ${driverLicenseBack ? `<a href="data:image/jpeg;base64,${driverLicenseBack}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${driverLicenseBack}" style="width:100%;height:130px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.1);" title="Вод. удостоверение (оборот)"></a>` : ''}
+                  ${selfie ? `<a href="data:image/jpeg;base64,${selfie}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${selfie}" style="width:100%;height:130px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.1);" title="Селфи с правами"></a>` : ''}
                 </div>
                 <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.35);display:grid;grid-template-columns:1fr 1fr;gap:6px;">
                   ${passportFront ? '<span style="flex:1;text-align:center;">Паспорт</span>' : ''}
@@ -3434,18 +5735,26 @@
                 </div>
                 ` : '<div style="font-size:11px;color:rgba(255,178,74,.6);font-weight:700;padding:4px 0;">⚠ Фото документов не загружены</div>'}
                 <div style="display:flex;gap:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);">
+                  <button class="btn" data-v-edit="${esc(d.phone)}" style="flex:1;background:rgba(100,180,255,.15);color:rgba(100,180,255,.9);">Исправить</button>
                   <button class="btn" data-v-approve="${esc(d.phone)}" style="flex:1;">Подтвердить</button>
                   <button class="btn" data-v-reject="${esc(d.phone)}" style="flex:1;background:rgba(225,27,34,.18);color:#e11b22;">Отклонить</button>
                 </div>
               `;
               verifyPendingList.appendChild(card);
             });
+            verifyPendingList.querySelectorAll('button[data-v-edit]').forEach((b) => {
+              b.addEventListener('click', async () => {
+                const phone = b.getAttribute('data-v-edit');
+                if (!phone) return;
+                await openDriverEditPanel(phone);
+              });
+            });
             verifyPendingList.querySelectorAll('button[data-v-approve]').forEach((b) => {
               b.addEventListener('click', async () => {
                 const phone = b.getAttribute('data-v-approve');
                 if (!phone) return;
                 await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/approve`, { method: 'POST' });
-                loadVerification();
+                loadVerification({ showLoading: false });
               });
             });
             verifyPendingList.querySelectorAll('button[data-v-reject]').forEach((b) => {
@@ -3453,7 +5762,7 @@
                 const phone = b.getAttribute('data-v-reject');
                 if (!phone) return;
                 await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/reject`, { method: 'POST' });
-                loadVerification();
+                loadVerification({ showLoading: false });
               });
             });
           }
@@ -3461,7 +5770,7 @@
           if (!isPending && verifyAllTbody) {
             const withReg = drivers.filter((d) => {
               const p = d.profile || {};
-              return p.registrationStatus && p.registrationStatus !== 'incomplete';
+              return (p.registrationStatus && p.registrationStatus !== 'incomplete') || (p.registrationStatus === 'incomplete' && (p.docsSigned || p.fullName || p.inn || p.passport || p.passportFrontBase64 || p.passportRegBase64 || p.driverLicenseBackBase64 || p.selfieBase64 || p.hasVerificationPhotos));
             });
             verifyAllTbody.innerHTML = '';
             if (!withReg.length) {
@@ -3471,8 +5780,8 @@
             withReg.forEach((d, i) => {
               const p = d.profile || {};
               const regStatus = p.registrationStatus || '—';
-              const stColor = regStatus === 'completed' ? 'rgba(100,220,140,.9)' : regStatus === 'rejected' ? 'rgba(225,27,34,.8)' : 'rgba(255,178,74,.9)';
-              const stLabel = regStatus === 'completed' ? 'Подтверждён' : regStatus === 'rejected' ? 'Отклонён' : 'Ожидает';
+              const stColor = regStatus === 'completed' ? 'rgba(100,220,140,.9)' : regStatus === 'rejected' ? 'rgba(225,27,34,.8)' : regStatus === 'pending' ? 'rgba(255,178,74,.9)' : 'rgba(100,180,255,.9)';
+              const stLabel = regStatus === 'completed' ? 'Подтверждён' : regStatus === 'rejected' ? 'Отклонён' : regStatus === 'pending' ? 'Ожидает' : 'Черновик';
               const tr = document.createElement('tr');
               const hasPhotos = p.passportFrontBase64 || p.passportRegBase64 || p.driverLicenseBackBase64 || p.selfieBase64;
               const photoBadge = hasPhotos
@@ -3493,13 +5802,64 @@
                 <td style="color:${stColor};font-weight:800;">${stLabel}</td>
               `;
               const td = document.createElement('td');
+              td.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
+              {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn';
+                editBtn.textContent = '✏️ Исправить';
+                editBtn.style.cssText = 'background:rgba(100,180,255,.15);color:rgba(100,180,255,.9);';
+                editBtn.addEventListener('click', async (e) => {
+                  e.stopPropagation();
+                  await openDriverEditPanel(d.phone, p);
+                });
+                td.appendChild(editBtn);
+
+                const photoViewBtn = document.createElement('button');
+                photoViewBtn.className = 'btn';
+                photoViewBtn.textContent = '📷 Фото';
+                photoViewBtn.style.cssText = 'background:rgba(100,180,255,.15);color:rgba(100,180,255,.9);';
+                photoViewBtn.addEventListener('click', async (e) => {
+                  e.stopPropagation();
+                  let existingRow = tr.nextElementSibling;
+                  if (existingRow && existingRow.classList.contains('photo-row')) {
+                    existingRow.remove();
+                    return;
+                  }
+                  const photoTr = document.createElement('tr');
+                  photoTr.className = 'photo-row';
+                  const photoTd = document.createElement('td');
+                  photoTd.colSpan = 8;
+                  photoTd.style.cssText = 'padding:12px 16px;background:rgba(255,255,255,.03);';
+                  photoTd.innerHTML = '<div style="color:rgba(255,255,255,.4);text-align:center;">Загрузка фото…</div>';
+                  photoTr.appendChild(photoTd);
+                  tr.after(photoTr);
+                  try {
+                    const fpData = await getDriverProfileWithPhotos(d.phone, p, { allowListFallback: true, fastTimeoutMs: 3000 });
+                  let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
+                  const pf = safeBase64(fpData.passportFrontBase64);
+                  const pr = safeBase64(fpData.passportRegBase64);
+                  const dl = safeBase64(fpData.driverLicenseBackBase64);
+                  const sf = safeBase64(fpData.selfieBase64);
+                  if (pf) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${pf}" target="_blank"><img src="data:image/jpeg;base64,${pf}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Паспорт</div></div>`;
+                  if (pr) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${pr}" target="_blank"><img src="data:image/jpeg;base64,${pr}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Права спереди</div></div>`;
+                  if (dl) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${dl}" target="_blank"><img src="data:image/jpeg;base64,${dl}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Права сзади</div></div>`;
+                  if (sf) html += `<div style="text-align:center;"><a href="data:image/jpeg;base64,${sf}" target="_blank"><img src="data:image/jpeg;base64,${sf}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);"></a><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Селфи</div></div>`;
+                  if (!pf && !pr && !dl && !sf) html += '<div style="font-size:11px;color:rgba(255,178,74,.7);font-weight:700;">Нет загруженных фото</div>';
+                  html += '</div>';
+                  photoTd.innerHTML = html;
+                  } catch (_) {
+                    photoTd.innerHTML = '<div style="color:rgba(255,100,100,.7);text-align:center;">Ошибка загрузки фото</div>';
+                  }
+                });
+                td.appendChild(photoViewBtn);
+              }
               if (regStatus === 'pending') {
                 const approveBtn = document.createElement('button');
                 approveBtn.className = 'btn';
                 approveBtn.textContent = 'Подтвердить';
                 approveBtn.addEventListener('click', async () => {
                   await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/approve`, { method: 'POST' });
-                  loadVerification();
+                  loadVerification({ showLoading: false });
                 });
                 const rejectBtn = document.createElement('button');
                 rejectBtn.className = 'btn';
@@ -3507,7 +5867,7 @@
                 rejectBtn.style.cssText = 'background:rgba(225,27,34,.18);color:#e11b22;';
                 rejectBtn.addEventListener('click', async () => {
                   await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/reject`, { method: 'POST' });
-                  loadVerification();
+                  loadVerification({ showLoading: false });
                 });
                 td.appendChild(approveBtn);
                 td.appendChild(rejectBtn);
@@ -3518,6 +5878,10 @@
               verifyAllTbody.appendChild(tr);
             });
           }
+          requestAnimationFrame(() => {
+            window.scrollTo(0, _pgScrollY);
+            if (_tScroll) _tScroll.scrollLeft = _tScrollLeft;
+          });
         } catch (_) {
           if (isPending && verifyPendingList) {
             verifyPendingList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
@@ -3728,21 +6092,25 @@
         statsMode = mode;
         statsModeCompany?.classList.toggle('active', mode === 'company');
         statsModeDrivers?.classList.toggle('active', mode === 'drivers');
-        setStatsPeriod(statsPeriod);
+        setStatsPeriod(statsPeriod, { showLoading: true });
       }
 
-      async function setStatsPeriod(period) {
+      async function setStatsPeriod(period, options = {}) {
         statsPeriod = period;
+        const showLoading = options.showLoading !== false;
 
         statsPeriodHour?.classList.toggle('active', period === 'hour');
         statsPeriodDay?.classList.toggle('active', period === 'day');
         statsPeriodMonth?.classList.toggle('active', period === 'month');
         statsPeriodYear?.classList.toggle('active', period === 'year');
 
-        if (statsChartTitle) statsChartTitle.textContent = 'Загрузка…';
+        if (showLoading && statsChartTitle) statsChartTitle.textContent = 'Загрузка…';
         try {
           const res = await adminFetch(`${API_BASE}/admin/stats/orders?period=${period}&mode=${statsMode}`);
           const data = await res.json();
+          const _newHash = JSON.stringify([data.title, data.labels, data.series, data.list]);
+          if (!showLoading && _newHash === _statsHash) return;
+          _statsHash = _newHash;
           if (data.ok) {
             if (statsChartTitle) statsChartTitle.textContent = data.title;
             renderStatsBarChart({ labels: data.labels, series: data.series });
@@ -3773,6 +6141,7 @@
         if (blockPhone) blockPhone.value = '';
         if (blockEmail) blockEmail.value = '';
         if (blockId) blockId.value = '';
+        if (blockReasonInput) blockReasonInput.value = '';
         if (blockFio) blockFio.focus();
       }
 
@@ -3853,7 +6222,7 @@
       const editSaveBtn = document.getElementById('editSave');
       let currentClientId = null;
       editSaveBtn?.addEventListener('click', async () => {
-        if (!currentEditTr && !currentClientId) return;
+        if (!currentEditTr && !currentClientId && !currentEditDriverPhone) return;
         const phone = (editPhone?.value || '').trim();
         const fio = (editFio?.value || '').trim();
         const email = (editEmail?.value || '').trim();
@@ -3866,6 +6235,26 @@
           currentClientId = null;
           closeEdit();
           loadClients();
+          return;
+        }
+        if (currentEditDriverPhone) {
+          await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(currentEditDriverPhone)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phone,
+              fullName: fio,
+              email,
+              inn: (editInn?.value || '').trim(),
+              passport: (editPassport?.value || '').trim(),
+              docsSigned: String(editDocsSigned?.value || 'false') === 'true',
+              registrationStatus: (editRegistrationStatus?.value || 'incomplete').trim(),
+            }),
+          });
+          closeEdit();
+          loadDrivers({ showLoading: false });
+          loadVerification({ showLoading: false });
+          loadBlockedDrivers({ showLoading: false });
           return;
         }
         if (!phone) return;
@@ -3885,16 +6274,27 @@
         const phone = (blockPhone?.value || '').trim();
         const email = (blockEmail?.value || '').trim();
         const id = (blockId?.value || '').trim();
+        const reason = (blockReasonInput?.value || '').trim();
 
         if (!fio || !phone || !email || !id) return;
 
         try {
           if (blocksActiveTab === 'clients') {
-            await adminFetch(`${API_BASE}/admin/clients/${encodeURIComponent(id)}/block`, { method: 'POST' });
+            await adminFetch(`${API_BASE}/admin/clients/${encodeURIComponent(id)}/block`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason }),
+            });
             loadClients();
+            loadClientsPage({ showLoading: false });
           } else {
-            await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/block`, { method: 'POST' });
+            await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/block`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason }),
+            });
             loadDrivers();
+            loadBlockedDrivers({ showLoading: false });
           }
         } catch (_) {}
 
@@ -3986,14 +6386,7 @@
           editBtn.type = 'button';
           editBtn.textContent = 'Редактировать';
           editBtn.addEventListener('click', () => {
-            currentEditTr = tr;
-            if (editPanel) editPanel.hidden = false;
-
-            if (editFio) editFio.value = fio;
-            if (editPhone) editPhone.value = phone;
-            if (editEmail) editEmail.value = email;
-
-            if (editFio) editFio.focus();
+            openDriverEditPanel(phone, { fullName: fio, email });
           });
 
           const del = document.createElement('button');
@@ -4024,6 +6417,9 @@
 
       editCancel?.addEventListener('click', () => {
         currentEditTr = null;
+        currentEditDriverPhone = null;
+        currentClientId = null;
+        setDriverEditMode(false);
         if (editPanel) editPanel.hidden = true;
       });
 
@@ -4034,6 +6430,8 @@
       setBlocksTab('clients');
       setStatsPeriod('day');
       setStatsMode('company');
+      applyMobileTableLabels();
+      observeMobileTables();
       // populateBlocksDemoData removed
 
       // ═══════════════════════════════════════════════════════════
@@ -4073,7 +6471,8 @@
       // Track known order IDs and statuses to detect changes
       let knownOrders = {};
       let refreshInterval = null;
-      const AUTO_REFRESH_MS = 15000; // 15 seconds
+      let autoRefreshInFlight = false;
+      const AUTO_REFRESH_MS = 10000; // 10 seconds
 
       function getCurrentPage() {
         for (const [key, el] of Object.entries(pages)) {
@@ -4083,61 +6482,71 @@
       }
 
       async function autoRefreshTick() {
-        if (!adminToken) return;
+        if (!adminToken || document.hidden || autoRefreshInFlight) return;
+        autoRefreshInFlight = true;
         const page = getCurrentPage();
         try {
-          // Always poll orders for notifications
-          const res = await adminFetch(`${API_BASE}/orders?limit=50`);
-          const data = await res.json();
-          if (data.ok && Array.isArray(data.orders)) {
-            const orders = data.orders;
-            for (const o of orders) {
-              const prev = knownOrders[o.id];
-              if (!prev) {
-                // New order appeared
-                if (Object.keys(knownOrders).length > 0) {
-                  if (o.status === 'searching') {
-                    showToast('🆕', `Новый заказ: ${o.fromAddress || 'Без адреса'} → ${o.toAddress || '…'}`);
-                  } else if (o.status === 'completed') {
-                    showToast('✅', `Заказ завершён: ${o.fromAddress || o.id.slice(0,8)}`);
-                  } else if (o.status === 'canceled') {
-                    showToast('❌', `Заказ отменён: ${o.fromAddress || o.id.slice(0,8)}`);
+          try {
+            // Always poll orders for notifications
+            const res = await adminFetch(`${API_BASE}/orders?limit=50`);
+            const data = await res.json();
+            if (data.ok && Array.isArray(data.orders)) {
+              const orders = data.orders;
+              for (const o of orders) {
+                const prev = knownOrders[o.id];
+                if (!prev) {
+                  // New order appeared
+                  if (Object.keys(knownOrders).length > 0) {
+                    if (o.status === 'searching') {
+                      showToast('🆕', `Новый заказ: ${o.fromAddress || 'Без адреса'} → ${o.toAddress || '…'}`);
+                    } else if (o.status === 'completed') {
+                      showToast('✅', `Заказ завершён: ${o.fromAddress || o.id.slice(0,8)}`);
+                    } else if (o.status === 'canceled') {
+                      showToast('❌', `Заказ отменён: ${o.fromAddress || o.id.slice(0,8)}`);
+                    }
                   }
+                } else if (prev !== o.status) {
+                  // Status changed
+                  if (o.status === 'accepted') showToast('🚗', `Водитель принял заказ: ${o.fromAddress || o.id.slice(0,8)}`);
+                  else if (o.status === 'enroute') showToast('🛣️', `Водитель выехал: ${o.fromAddress || o.id.slice(0,8)}`);
+                  else if (o.status === 'arrived') showToast('📍', `Водитель на месте: ${o.fromAddress || o.id.slice(0,8)}`);
+                  else if (o.status === 'started') showToast('▶️', `Поездка начата: ${o.fromAddress || o.id.slice(0,8)}`);
+                  else if (o.status === 'completed') showToast('✅', `Заказ завершён: ${o.fromAddress || o.id.slice(0,8)}`);
+                  else if (o.status === 'canceled') showToast('❌', `Заказ отменён: ${o.fromAddress || o.id.slice(0,8)}`);
                 }
-              } else if (prev !== o.status) {
-                // Status changed
-                if (o.status === 'accepted') showToast('🚗', `Водитель принял заказ: ${o.fromAddress || o.id.slice(0,8)}`);
-                else if (o.status === 'enroute') showToast('🛣️', `Водитель выехал: ${o.fromAddress || o.id.slice(0,8)}`);
-                else if (o.status === 'arrived') showToast('📍', `Водитель на месте: ${o.fromAddress || o.id.slice(0,8)}`);
-                else if (o.status === 'started') showToast('▶️', `Поездка начата: ${o.fromAddress || o.id.slice(0,8)}`);
-                else if (o.status === 'completed') showToast('✅', `Заказ завершён: ${o.fromAddress || o.id.slice(0,8)}`);
-                else if (o.status === 'canceled') showToast('❌', `Заказ отменён: ${o.fromAddress || o.id.slice(0,8)}`);
+                knownOrders[o.id] = o.status;
               }
-              knownOrders[o.id] = o.status;
             }
-          }
-        } catch {}
+          } catch {}
 
-        // Refresh current page data
-        try {
-          if (page === 'drivers') {
-            await loadDrivers();
-          } else if (page === 'orders') {
-            await loadOrders();
-            await setOrdersPeriod(ordersPeriod);
-          } else if (page === 'stats') {
-            await setStatsPeriod(statsPeriod);
-          } else if (page === 'blocks') {
-            await loadClients();
-            await loadDrivers();
-          } else if (page === 'verification') {
-            await loadVerification();
-          } else if (page === 'promos') {
-            await loadPromos();
-          } else if (page === 'abonplata') {
-            await loadAbonplata();
-          }
-        } catch {}
+          // Refresh current page data (silent to avoid UI blinking)
+          try {
+            if (page === 'drivers') {
+              await loadDrivers({ showLoading: false });
+            } else if (page === 'driversCommission') {
+              await loadDriversCommission({ showLoading: false });
+            } else if (page === 'orders') {
+              await loadOrders({ showLoading: false });
+            } else if (page === 'stats') {
+              await setStatsPeriod(statsPeriod, { showLoading: false });
+            } else if (page === 'blocks') {
+              if (blocksActiveTab === 'drivers') await loadBlockedDrivers({ showLoading: false });
+              else await loadClients({ showLoading: false });
+            } else if (page === 'verification') {
+              await loadVerification({ showLoading: false });
+            } else if (page === 'promos') {
+              await loadPromos({ showLoading: false });
+            } else if (page === 'abonplata') {
+              await loadAbonplata({ showLoading: false });
+            } else if (page === 'prices') {
+              await loadTariffs({ showLoading: false });
+            } else if (page === 'clients') {
+              await loadClientsPage({ showLoading: false });
+            }
+          } catch {}
+        } finally {
+          autoRefreshInFlight = false;
+        }
       }
 
       // Start auto-refresh
@@ -4157,7 +6566,6 @@
       }
 
       // Add indicator to sidebar
-      const sidebar = document.querySelector('.sidebar');
       if (sidebar) {
         const indicator = document.createElement('div');
         indicator.className = 'auto-refresh-indicator';

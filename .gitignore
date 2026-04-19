@@ -3,6 +3,8 @@
 Thumbs.db
 .idea/
 .vscode/
+.niuma-local/
+.windsurfrules
 
 # Local environment and secrets
 .env

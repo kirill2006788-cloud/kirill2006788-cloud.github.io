@@ -9,7 +9,7 @@ export class SmsService {
       return;
     }
 
-    const message = `Код: ${code}`;
+    const message = `Ваш код для входа в Трезвый водитель: ${code}`;
     const provider = (process.env.SMS_PROVIDER || 'smsaero').toLowerCase();
 
     if (provider === 'smsaero') {

@@ -5,8 +5,8 @@ import YandexMapsMobile
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, UNUserNotificationCenterDelegate {
-  private let pushChannelName = "ru.prostotaxi.driver/push"
-  private let pushTokenStorageKey = "ru.prostotaxi.driver.pushToken"
+  private let pushChannelName = "ru.nolpromille.driver/push"
+  private let pushTokenStorageKey = "ru.nolpromille.driver.pushToken"
   private var pushChannel: FlutterMethodChannel?
 
   override func application(

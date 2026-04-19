@@ -1,4 +1,4 @@
-package ru.prostotaxi.client
+package ru.prostotaxi.driver
 
 import android.app.Application
 import android.util.Log
