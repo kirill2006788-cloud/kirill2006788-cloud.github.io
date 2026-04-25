@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Кирилл Форрер — CV</title>
+<title>Кирилл Форрер — Senior Full-Stack Developer & Cybersecurity Specialist</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -21,20 +21,28 @@
   --font:  'Manrope', system-ui, sans-serif;
 }
 
-html{font-family:var(--font);font-size:9.5pt;color:var(--ink);background:#fff;}
+html{font-family:var(--font);font-size:8.5pt;color:var(--ink);background:#fff;}
 body{background:#e8ecf2;}
 
 /* ── PAGE ── */
 .page{
-  width:210mm; min-height:297mm;
+  width:210mm; min-height:297mm; max-height:297mm; overflow:hidden;
   background:#fff;
   margin:0 auto 12mm;
-  padding:14mm 16mm 14mm 16mm;
+  padding:10mm 14mm 10mm 14mm;
   position:relative;
   box-shadow:0 4px 32px rgba(0,0,0,.12);
   page-break-after:always;
 }
-.page:last-child{page-break-after:auto;margin-bottom:0;}
+.page:last-child{page-break-after:auto;margin-bottom:0;max-height:none;overflow:visible;}
+
+/* ── ACCENT BAR ── */
+.accent-bar{
+  height:3px;
+  background:linear-gradient(90deg,var(--cyan) 0%,#38b0ff 40%,var(--red) 100%);
+  border-radius:2px;
+  margin-bottom:12px;
+}
 
 /* ── HEADER ── */
 .cv-header{
@@ -42,12 +50,12 @@ body{background:#e8ecf2;}
   grid-template-columns:1fr auto;
   gap:10px;
   align-items:start;
-  padding-bottom:10px;
+  padding-bottom:9px;
   border-bottom:2.5px solid var(--ink);
-  margin-bottom:12px;
+  margin-bottom:11px;
 }
 .cv-name{
-  font-size:24pt;
+  font-size:22pt;
   font-weight:900;
   letter-spacing:-.5px;
   line-height:1;
@@ -55,133 +63,140 @@ body{background:#e8ecf2;}
 }
 .cv-name span{color:var(--cyan);}
 .cv-title{
-  font-size:9.5pt;
+  font-size:9pt;
   font-weight:700;
   color:var(--cyan);
   margin-top:4px;
-  letter-spacing:.3px;
+  letter-spacing:.2px;
+}
+.cv-meta{
+  font-size:7.5pt;
+  color:var(--ink2);
+  margin-top:3px;
+  line-height:1.6;
 }
 .cv-contacts{
   text-align:right;
   display:flex;
   flex-direction:column;
-  gap:3px;
-  font-size:8pt;
+  gap:2.5px;
+  font-size:7.5pt;
   color:var(--ink2);
   font-family:var(--mono);
 }
 .cv-contacts a{color:var(--ink2);text-decoration:none;}
+.cv-contacts a:hover{color:var(--cyan);}
 
-/* ── LAYOUT ── */
-.cv-body{
-  display:grid;
-  grid-template-columns:58% 38%;
-  gap:0 4%;
-}
-
-/* ── SECTION ── */
-.cv-sec{margin-bottom:11px;}
-.cv-sec h3{
-  font-size:7.5pt;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:1.8px;
-  color:var(--cyan);
-  border-bottom:1px solid var(--line);
-  padding-bottom:3px;
-  margin-bottom:7px;
-}
-
-/* ── SUMMARY ── */
-.cv-summary{
-  font-size:9pt;
-  line-height:1.65;
-  color:var(--ink2);
-  margin-bottom:11px;
-}
-
-/* ── EXPERIENCE / PROJECTS ── */
-.exp-item{margin-bottom:10px;}
-.exp-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px;}
-.exp-role{font-weight:800;font-size:9.5pt;color:var(--ink);}
-.exp-date{
-  font-family:var(--mono);font-size:7.5pt;
-  color:var(--muted);white-space:nowrap;flex-shrink:0;
-}
-.exp-where{
-  font-size:8.5pt;font-weight:600;color:var(--cyan);margin-bottom:3px;
-}
-.exp-desc{
-  font-size:8.5pt;line-height:1.6;color:var(--ink2);
-  padding-left:10px;
-}
-.exp-desc li{margin-bottom:2px;list-style:none;padding-left:0;}
-.exp-desc li::before{content:"▸ ";color:var(--cyan);font-size:7pt;}
-
-/* ── SKILLS ── */
-.skill-group{margin-bottom:7px;}
-.skill-label{
-  font-size:8pt;font-weight:700;color:var(--ink);margin-bottom:3px;
-}
-.skill-tags{display:flex;flex-wrap:wrap;gap:3px;}
-.stag{
-  font-family:var(--mono);font-size:7.5pt;font-weight:600;
-  background:var(--panel);color:var(--ink2);
-  border:1px solid var(--line);
-  padding:2px 6px;border-radius:4px;
-}
-.stag-main{background:rgba(0,112,204,.08);border-color:rgba(0,112,204,.2);color:var(--cyan);}
-
-/* ── EDUCATION ── */
-.edu-item{margin-bottom:8px;}
-.edu-name{font-weight:800;font-size:9pt;color:var(--ink);}
-.edu-spec{font-size:8.5pt;color:var(--cyan);font-weight:600;margin:1px 0;}
-.edu-date{font-family:var(--mono);font-size:7.5pt;color:var(--muted);}
-.edu-desc{font-size:8pt;color:var(--ink2);margin-top:2px;}
-
-/* ── LANGS ── */
-.lang-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
-.lang-name{font-size:9pt;font-weight:700;color:var(--ink);}
-.lang-level{font-size:8pt;color:var(--muted);}
-.lang-bar{height:4px;background:var(--line);border-radius:2px;margin-top:3px;}
-.lang-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--cyan),#38b0ff);}
-
-/* ── LINKS ── */
-.proj-link{
-  display:block;
-  font-family:var(--mono);font-size:7.5pt;
-  color:var(--cyan);text-decoration:none;
-  margin-top:2px;
-}
-
-/* ── BADGE ── */
 .avail{
   display:inline-flex;align-items:center;gap:5px;
   font-family:var(--mono);font-size:7pt;font-weight:700;
   background:rgba(0,180,60,.07);border:1px solid rgba(0,180,60,.25);
   color:#1a8a40;padding:2px 8px;border-radius:99px;margin-top:4px;
 }
-.avail-dot{width:5px;height:5px;border-radius:50%;background:#1a8a40;}
+.avail-dot{width:5px;height:5px;border-radius:50%;background:#1a8a40;flex-shrink:0;}
+
+/* ── LAYOUT ── */
+.cv-body{
+  display:grid;
+  grid-template-columns:60% 36%;
+  gap:0 4%;
+}
+
+/* ── SECTION ── */
+.cv-sec{margin-bottom:8px;}
+.cv-sec h3{
+  font-size:6.5pt;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:1.8px;
+  color:var(--cyan);
+  border-bottom:1px solid var(--line);
+  padding-bottom:2px;
+  margin-bottom:5px;
+}
+
+/* ── SUMMARY ── */
+.cv-summary{
+  font-size:8pt;
+  line-height:1.6;
+  color:var(--ink2);
+  margin-bottom:8px;
+}
+
+/* ── EXPERIENCE ── */
+.exp-item{margin-bottom:7px;}
+.exp-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px;}
+.exp-role{font-weight:800;font-size:8.5pt;color:var(--ink);}
+.exp-date{
+  font-family:var(--mono);font-size:6.5pt;
+  color:var(--muted);white-space:nowrap;flex-shrink:0;
+}
+.exp-where{
+  font-size:7.5pt;font-weight:600;color:var(--cyan);margin-bottom:2px;
+}
+.exp-desc{
+  font-size:7.5pt;line-height:1.55;color:var(--ink2);
+  padding-left:10px;
+}
+.exp-desc li{margin-bottom:1.5px;list-style:none;padding-left:0;}
+.exp-desc li::before{content:"▸ ";color:var(--cyan);font-size:6.5pt;}
+
+/* ── SKILLS ── */
+.skill-group{margin-bottom:5px;}
+.skill-label{
+  font-size:7pt;font-weight:700;color:var(--ink);margin-bottom:2px;
+}
+.skill-tags{display:flex;flex-wrap:wrap;gap:2px;}
+.stag{
+  font-family:var(--mono);font-size:6.5pt;font-weight:600;
+  background:var(--panel);color:var(--ink2);
+  border:1px solid var(--line);
+  padding:1.5px 4px;border-radius:3px;
+}
+.stag-main{background:rgba(0,112,204,.08);border-color:rgba(0,112,204,.2);color:var(--cyan);}
+.stag-red{background:rgba(192,57,43,.07);border-color:rgba(192,57,43,.18);color:var(--red);}
+
+/* ── EDUCATION ── */
+.edu-item{margin-bottom:7px;}
+.edu-name{font-weight:800;font-size:8.5pt;color:var(--ink);}
+.edu-spec{font-size:8pt;color:var(--cyan);font-weight:600;margin:1px 0;}
+.edu-date{font-family:var(--mono);font-size:7pt;color:var(--muted);}
+.edu-desc{font-size:7.5pt;color:var(--ink2);margin-top:2px;}
+
+/* ── LANGS ── */
+.lang-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.lang-name{font-size:8.5pt;font-weight:700;color:var(--ink);}
+.lang-level{font-size:7.5pt;color:var(--muted);}
+.lang-bar{height:4px;background:var(--line);border-radius:2px;margin-top:2px;}
+.lang-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--cyan),#38b0ff);}
+
+/* ── LINKS ── */
+.proj-link{
+  display:block;
+  font-family:var(--mono);font-size:7pt;
+  color:var(--cyan);text-decoration:none;
+  margin-top:2px;
+}
+
+/* ── ACHIEVEMENT LIST ── */
+.ach-list{padding-left:0;}
+.ach-list li{
+  list-style:none;font-size:8pt;line-height:1.55;color:var(--ink2);margin-bottom:3px;
+  padding-left:10px;position:relative;
+}
+.ach-list li::before{content:"✓ ";color:var(--cyan);font-weight:700;position:absolute;left:0;font-size:7pt;}
 
 /* ── DIVIDER ── */
-.divider{border:none;border-top:1px solid var(--line);margin:10px 0;}
+.divider{border:none;border-top:1px solid var(--line);margin:9px 0;}
 
 /* ── PAGE NUMBER ── */
 .pg-num{
-  position:absolute;bottom:8mm;right:16mm;
+  position:absolute;bottom:7mm;right:15mm;
   font-family:var(--mono);font-size:7pt;color:var(--muted);
 }
 .pg-lang{
-  position:absolute;bottom:8mm;left:16mm;
+  position:absolute;bottom:7mm;left:15mm;
   font-family:var(--mono);font-size:7pt;color:var(--muted);font-weight:700;
-}
-
-/* ── ACCENT LINE ── */
-.accent-bar{
-  height:3px;
-  background:linear-gradient(90deg,var(--cyan) 0%,#38b0ff 40%,var(--red) 100%);
-  border-radius:2px;
-  margin-bottom:14px;
 }
 
 /* ═══════════════ PRINT ═══════════════ */
@@ -190,8 +205,9 @@ body{background:#e8ecf2;}
   .page{
     box-shadow:none;margin:0;
     width:100%;min-height:0;
-    padding:12mm 15mm 12mm 15mm;
+    padding:11mm 14mm 11mm 14mm;
   }
+  #overlay{display:none!important}
 }
 </style>
 </head>
@@ -203,72 +219,102 @@ body{background:#e8ecf2;}
 <div class="page">
   <div class="accent-bar"></div>
 
-  <!-- Header -->
   <header class="cv-header">
     <div>
       <div class="cv-name">Кирилл <span>Форрер</span></div>
-      <div class="cv-title">Senior Cybersecurity Engineer &amp; Full-Stack Developer</div>
+      <div class="cv-title">Senior Full-Stack Developer &amp; Cybersecurity Specialist</div>
+      <div class="cv-meta">Россия · Удалённо / Гибрид · Международные проекты · Русский (родной) · English B2</div>
       <div class="avail"><span class="avail-dot"></span>Открыт к предложениям</div>
     </div>
     <div class="cv-contacts">
       <a href="mailto:Kirill2006788@gmail.com">Kirill2006788@gmail.com</a>
       <a href="https://t.me/HeyBro8664">Telegram: @HeyBro8664</a>
-      <a href="https://lukyforrer-glitch.github.io">lukyforrer-glitch.github.io</a>
-      <span>Россия, Москва</span>
+      <a href="https://github.com/kirill2006788-cloud">github.com/kirill2006788-cloud</a>
+      <a href="https://profi.ru/profile/YegorenkovKA">profi.ru — отзывы клиентов</a>
     </div>
   </header>
 
-  <!-- Body -->
+  <p class="cv-summary">
+    22 года. Разработкой занимаюсь с <strong>13 лет (2016)</strong> — 9 лет практики, из них 5+ в коммерческих проектах.
+    Специализация: кибербезопасность + full-stack. Реализованные системы: платформа доставки (2+ года в production),
+    мобильная экосистема iOS/Android для реального бизнеса, Telegram-бот с 5000+ активных пользователей,
+    собственная AI OS (8500+ строк кода). Провожу пентест, security-аудит, reverse engineering и hardening.
+  </p>
+
   <div class="cv-body">
 
     <!-- LEFT -->
     <div class="cv-left">
 
-      <!-- Summary -->
-      <p class="cv-summary">
-        Специалист по кибербезопасности и full-stack разработчик с <strong>6+ годами</strong> практического опыта.
-        Строю защищённые системы, провожу пентест инфраструктуры и реализую продукты полного цикла —
-        от архитектуры до деплоя. Работаю с реальными заказчиками: веб, мобайл, desktop, Telegram-боты,
-        корпоративное ПО, реверс-инжиниринг игровых клиентов.
-      </p>
-
-      <!-- Опыт / Проекты -->
+      <!-- Опыт -->
       <div class="cv-sec">
-        <h3>Проекты и опыт</h3>
+        <h3>Опыт работы</h3>
 
         <div class="exp-item">
           <div class="exp-head">
-            <span class="exp-role">Valorant Strike — веб-сервис</span>
+            <span class="exp-role">Senior Full-Stack Developer / Security Engineer</span>
+            <span class="exp-date">2020 — 2026</span>
+          </div>
+          <div class="exp-where">Freelance &amp; Product (коммерческие проекты)</div>
+          <ul class="exp-desc">
+            <li>Разработка и поддержка коммерческих проектов под ключ: от архитектуры до деплоя.</li>
+            <li>Построил корпоративную систему (CRM + аналитика + автоматизация) для внутреннего контура клиента.</li>
+            <li>Внедрил security-by-design подход: аудит API, контроль доступа, логирование, мониторинг инцидентов.</li>
+            <li>Сократил среднее время релизов на 35% за счёт стандартизации CI/CD и Docker-окружений.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Offensive Security Researcher / Pentest Specialist</span>
+            <span class="exp-date">2017 — 2026</span>
+          </div>
+          <ul class="exp-desc">
+            <li>Black/white/grey-box тестирование веб-приложений, API и сетевой инфраструктуры.</li>
+            <li>Подготовка отчётов с приоритизацией рисков, PoC и roadmap по устранению уязвимостей.</li>
+            <li>Выполнил 20+ security-оценок; в критических проектах снижал поверхность атак на 40%+.</li>
+            <li>Внутренние скрипты для автоматизированного reconnaissance и CVE-триажа.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Backend Developer / Automation Engineer</span>
+            <span class="exp-date">2014 — 2019</span>
+          </div>
+          <ul class="exp-desc">
+            <li>Старт с Python-скриптов и утилит автоматизации, переход к production backend-задачам.</li>
+            <li>Telegram-боты и automation-сервисы с высокой нагрузкой: очереди, API-интеграции, FFmpeg.</li>
+            <li>Система алертов и авто-обработки событий — повысил скорость реакции команды на 50%.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Проекты -->
+      <div class="cv-sec">
+        <h3>Ключевые проекты</h3>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">JARVIS AI PC Controller — Desktop AI OS</span>
+            <span class="exp-date">2024 — н.в.</span>
+          </div>
+          <ul class="exp-desc">
+            <li>AI-ассистент уровня Cursor/Windsurf: контекстная работа с проектами, OS-контроль, автоматизация.</li>
+            <li>3D Living UI (PyQt6 + OpenGL), голосовой ввод/TTS, агент с diff/rollback, multi-provider AI (DeepSeek/Anthropic/OpenAI/Ollama).</li>
+            <li>8500+ строк кода, 10 сцен, production reliability guards, structured logging.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Valorant Strike — аналитическая платформа</span>
             <span class="exp-date">2024 — н.в.</span>
           </div>
           <div class="exp-where">valorantstrike.com/valorant-store/</div>
           <ul class="exp-desc">
-            <li>Разработка и поддержка магазина скинов Valorant (парсинг Riot API)</li>
-            <li>Кастомный UI, авторизация через OAuth, серверный рендеринг</li>
-          </ul>
-        </div>
-
-        <div class="exp-item">
-          <div class="exp-head">
-            <span class="exp-role">Dandy Pizza — корпоративный сайт</span>
-            <span class="exp-date">2023 — н.в.</span>
-          </div>
-          <div class="exp-where">dandypizza.com · lublino.dandypizza.com</div>
-          <ul class="exp-desc">
-            <li>Полная вёрстка и разработка двух сайтов для сети пиццерий</li>
-            <li>Онлайн-меню, форма заказа, адаптив, интеграция с CMS</li>
-          </ul>
-        </div>
-
-        <div class="exp-item">
-          <div class="exp-head">
-            <span class="exp-role">Trezv777 — корпоративная программа</span>
-            <span class="exp-date">2023</span>
-          </div>
-          <div class="exp-where">trezv777.ru</div>
-          <ul class="exp-desc">
-            <li>Разработка ПО с нуля под нужды компании: учёт, отчётность, UI</li>
-            <li>Python + PyQt, упаковка в исполняемый файл, деплой</li>
+            <li>Маркет-данные скинов, ценовой мониторинг, Riot API OAuth, SSR, 1000+ DAU.</li>
           </ul>
         </div>
 
@@ -277,33 +323,62 @@ body{background:#e8ecf2;}
             <span class="exp-role">Buddy Music Bot — Telegram</span>
             <span class="exp-date">2022 — н.в.</span>
           </div>
-          <div class="exp-where">@Buddy_musicbot</div>
+          <div class="exp-where">t.me/Buddy_musicbot</div>
           <ul class="exp-desc">
-            <li>Музыкальный бот: поиск треков, inline-режим, очереди</li>
-            <li>Python (aiogram), интеграция с YouTube/Spotify API, хостинг VPS</li>
+            <li>5000+ активных пользователей, система очередей, inline-режим, VPS, 24/7 uptime.</li>
           </ul>
         </div>
 
         <div class="exp-item">
           <div class="exp-head">
-            <span class="exp-role">Game Process Security Research</span>
-            <span class="exp-date">2023 — 2024</span>
+            <span class="exp-role">Dandy Pizza — платформа доставки</span>
+            <span class="exp-date">2023 — н.в.</span>
           </div>
+          <div class="exp-where">lublino.dandypizza.com</div>
           <ul class="exp-desc">
-            <li>Анализ защитных механизмов игровых клиентов (Riot Vanguard, BattlEye)</li>
-            <li>WinAPI Hooking, DLL Injection, x64dbg, Kernel Driver research</li>
-            <li>Написание технических отчётов для команды безопасности</li>
+            <li>Онлайн-заказы, управление филиалами, адаптив. 2+ года в production без сбоев.</li>
           </ul>
         </div>
 
         <div class="exp-item">
           <div class="exp-head">
-            <span class="exp-role">Pentest Framework (внутренний инструмент)</span>
+            <span class="exp-role">Mobile App — iOS / Android (Trezv777)</span>
+            <span class="exp-date">2023</span>
+          </div>
+          <div class="exp-where">trezv777.ru</div>
+          <ul class="exp-desc">
+            <li>Flutter кроссплатформа: приложение клиента + приложение водителя, realtime-заказы, push, offline sync.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Pentest Framework — приватный инструмент</span>
             <span class="exp-date">2024</span>
           </div>
           <ul class="exp-desc">
-            <li>Автоматизированный Python-фреймворк: сканирование, эксплуатация, отчёт</li>
-            <li>Модули: SQLi, XSS, SSRF, поддомен-эн, subdomain takeover</li>
+            <li>Автоматизированный Python-фреймворк: scan → exploit → report. Модули: SQLi, XSS, SSRF, subdomain takeover.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Game Security &amp; CV Research</span>
+            <span class="exp-date">2023 — 2024</span>
+          </div>
+          <ul class="exp-desc">
+            <li>Анализ anti-cheat: Riot Vanguard, BattlEye. WinAPI Hooking, DLL Injection, Kernel Driver, x64dbg, OpenCV.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">AppsTorrent — macOS Tools</span>
+            <span class="exp-date">2022 — 2024</span>
+          </div>
+          <div class="exp-where">appstorrent.ru</div>
+          <ul class="exp-desc">
+            <li>macOS: упаковка, адаптация ПО, reverse engineering, автоматизация установки.</li>
           </ul>
         </div>
 
@@ -314,86 +389,100 @@ body{background:#e8ecf2;}
     <!-- RIGHT -->
     <div class="cv-right">
 
-      <!-- Навыки -->
       <div class="cv-sec">
-        <h3>Языки и технологии</h3>
-        <div class="skill-group">
-          <div class="skill-label">Основные языки</div>
-          <div class="skill-tags">
-            <span class="stag stag-main">Python</span>
-            <span class="stag stag-main">JavaScript</span>
-            <span class="stag stag-main">HTML / CSS</span>
-            <span class="stag stag-main">Bash</span>
-            <span class="stag">C / C++</span>
-            <span class="stag">SQL</span>
-            <span class="stag">TypeScript</span>
-          </div>
+        <h3>Языки программирования</h3>
+        <div class="skill-tags">
+          <span class="stag stag-main">Python</span>
+          <span class="stag stag-main">JavaScript</span>
+          <span class="stag stag-main">TypeScript</span>
+          <span class="stag stag-main">Bash</span>
+          <span class="stag stag-main">SQL</span>
+          <span class="stag">PHP</span>
+          <span class="stag">C / C++</span>
+          <span class="stag">C#</span>
+          <span class="stag">Dart</span>
+          <span class="stag">Swift</span>
         </div>
+      </div>
+
+      <div class="cv-sec">
+        <h3>Frontend / Backend</h3>
         <div class="skill-group">
-          <div class="skill-label">Фреймворки</div>
+          <div class="skill-label">Frontend</div>
           <div class="skill-tags">
             <span class="stag stag-main">React</span>
-            <span class="stag stag-main">Django</span>
-            <span class="stag">FastAPI</span>
-            <span class="stag">Node.js</span>
-            <span class="stag">aiogram</span>
-            <span class="stag">PyQt5</span>
+            <span class="stag stag-main">Vue.js</span>
+            <span class="stag">Next.js</span>
+            <span class="stag">HTML / CSS</span>
           </div>
         </div>
         <div class="skill-group">
-          <div class="skill-label">Инфраструктура</div>
+          <div class="skill-label">Backend</div>
           <div class="skill-tags">
-            <span class="stag">Docker</span>
-            <span class="stag">Linux</span>
-            <span class="stag">Nginx</span>
-            <span class="stag">Git</span>
-            <span class="stag">PostgreSQL</span>
-            <span class="stag">Redis</span>
+            <span class="stag stag-main">Django</span>
+            <span class="stag stag-main">FastAPI</span>
+            <span class="stag">Node.js</span>
+            <span class="stag">Express</span>
+            <span class="stag">Flask</span>
+            <span class="stag">REST / GraphQL</span>
           </div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-label">Mobile / Desktop</div>
+          <div class="skill-tags">
+            <span class="stag stag-main">Flutter</span>
+            <span class="stag">React Native</span>
+            <span class="stag">Electron</span>
+            <span class="stag">PyQt6</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cv-sec">
+        <h3>DevOps / Инфраструктура</h3>
+        <div class="skill-tags">
+          <span class="stag stag-main">Docker</span>
+          <span class="stag stag-main">Linux Admin</span>
+          <span class="stag stag-main">Nginx</span>
+          <span class="stag">CI/CD</span>
+          <span class="stag">PostgreSQL</span>
+          <span class="stag">MongoDB</span>
+          <span class="stag">Redis</span>
+          <span class="stag">Firebase</span>
+          <span class="stag">Git</span>
         </div>
       </div>
 
       <div class="cv-sec">
         <h3>Кибербезопасность</h3>
         <div class="skill-tags">
-          <span class="stag stag-main">Kali Linux</span>
-          <span class="stag stag-main">Metasploit</span>
-          <span class="stag stag-main">Burp Suite</span>
+          <span class="stag stag-red">Kali Linux</span>
+          <span class="stag stag-red">Metasploit</span>
+          <span class="stag stag-red">Burp Suite</span>
+          <span class="stag stag-red">OWASP ZAP</span>
+          <span class="stag stag-red">SQLMap</span>
           <span class="stag">Nmap</span>
           <span class="stag">Wireshark</span>
-          <span class="stag">SQLMap</span>
-          <span class="stag">Gobuster</span>
-          <span class="stag">Hydra</span>
           <span class="stag">x64dbg</span>
-          <span class="stag">Cheat Engine</span>
+          <span class="stag">Hydra</span>
+          <span class="stag">Gobuster</span>
           <span class="stag">WinAPI Hooking</span>
-          <span class="stag">DLL Inject</span>
+          <span class="stag">DLL Injection</span>
           <span class="stag">OWASP Top 10</span>
-        </div>
-      </div>
-
-      <div class="cv-sec">
-        <h3>Мобильная разработка</h3>
-        <div class="skill-tags">
-          <span class="stag stag-main">Android (Java/Kotlin)</span>
-          <span class="stag stag-main">iOS (Swift)</span>
-          <span class="stag">React Native</span>
-          <span class="stag">Flutter</span>
         </div>
       </div>
 
       <div class="cv-sec">
         <h3>Образование</h3>
         <div class="edu-item">
-          <div class="edu-name">КПК РТУ МИРЭА</div>
-          <div class="edu-spec">Информационная безопасность</div>
+          <div class="edu-name">КПК РТУ МИРЭА / МФЮА</div>
+          <div class="edu-spec">10.02.05 — ИБ автоматизированных систем</div>
           <div class="edu-date">2022 — 2026</div>
-          <div class="edu-desc">Специальность: кибербезопасность, 4 года. Выпуск 2026.</div>
+          <div class="edu-desc">Кибербезопасность, 4 года. Выпуск 2026.</div>
         </div>
         <div class="edu-item">
-          <div class="edu-name">МФЮА Колледж</div>
-          <div class="edu-spec">Программирование и IT</div>
-          <div class="edu-date">2022 — 2026</div>
+          <div class="edu-name">Практика: CTF / Reverse Eng.</div>
+          <div class="edu-desc">Непрерывная практика: CTF, reverse engineering, exploit dev, malware analysis.</div>
         </div>
       </div>
 
@@ -404,9 +493,20 @@ body{background:#e8ecf2;}
           <div class="lang-bar"><div class="lang-fill" style="width:100%"></div></div>
         </div>
         <div style="margin-top:5px">
-          <div class="lang-row"><span class="lang-name">English</span><span class="lang-level">B1 — Intermediate</span></div>
-          <div class="lang-bar"><div class="lang-fill" style="width:55%"></div></div>
+          <div class="lang-row"><span class="lang-name">English</span><span class="lang-level">B2 — Upper-Intermediate</span></div>
+          <div class="lang-bar"><div class="lang-fill" style="width:72%"></div></div>
         </div>
+      </div>
+
+      <div class="cv-sec">
+        <h3>Дополнительно</h3>
+        <ul class="ach-list">
+          <li>99+ завершённых проектов для реальных клиентов</li>
+          <li>Менторил junior-разработчиков по backend/security</li>
+          <li>Разработал внутренний security release checklist (внедрён в 3+ проектах)</li>
+          <li>Регулярное участие в CTF, публикация технических разборов</li>
+          <li>Production-системы с тысячами пользователей с возраста 13 лет</li>
+        </ul>
       </div>
 
     </div>
@@ -423,70 +523,99 @@ body{background:#e8ecf2;}
 <div class="page">
   <div class="accent-bar"></div>
 
-  <!-- Header -->
   <header class="cv-header">
     <div>
       <div class="cv-name">Kirill <span>Forrer</span></div>
-      <div class="cv-title">Senior Cybersecurity Engineer &amp; Full-Stack Developer</div>
+      <div class="cv-title">Senior Full-Stack Developer &amp; Cybersecurity Specialist</div>
+      <div class="cv-meta">Russia · Remote / Hybrid · International Projects · Russian (Native) · English B2</div>
       <div class="avail"><span class="avail-dot"></span>Open to opportunities</div>
     </div>
     <div class="cv-contacts">
       <a href="mailto:Kirill2006788@gmail.com">Kirill2006788@gmail.com</a>
       <a href="https://t.me/HeyBro8664">Telegram: @HeyBro8664</a>
-      <a href="https://lukyforrer-glitch.github.io">lukyforrer-glitch.github.io</a>
-      <span>Russia, Moscow</span>
+      <a href="https://github.com/kirill2006788-cloud">github.com/kirill2006788-cloud</a>
+      <a href="https://profi.ru/profile/YegorenkovKA">profi.ru — client reviews</a>
     </div>
   </header>
 
-  <!-- Body -->
+  <p class="cv-summary">
+    22 y.o. Coding since <strong>13 (2016)</strong> — 9 years of practice, 5+ in commercial projects.
+    Specialization: cybersecurity + full-stack. Delivered systems: delivery platform (2+ years live),
+    cross-platform iOS/Android mobile ecosystem, Telegram bot with 5000+ active users,
+    custom AI OS (8500+ LOC). Conduct pentests, security audits, reverse engineering and hardening.
+  </p>
+
   <div class="cv-body">
 
     <!-- LEFT -->
     <div class="cv-left">
 
-      <p class="cv-summary">
-        Cybersecurity specialist and full-stack developer with <strong>6+ years</strong> of hands-on experience.
-        I build secure systems, conduct infrastructure pentests, and ship full-cycle products —
-        from architecture to deployment. Web, mobile, desktop, Telegram bots, enterprise software,
-        reverse engineering of game clients — worked across every domain with real clients.
-      </p>
-
       <div class="cv-sec">
-        <h3>Projects &amp; Experience</h3>
+        <h3>Work Experience</h3>
 
         <div class="exp-item">
           <div class="exp-head">
-            <span class="exp-role">Valorant Strike — Web Service</span>
+            <span class="exp-role">Senior Full-Stack Developer / Security Engineer</span>
+            <span class="exp-date">2020 — 2026</span>
+          </div>
+          <div class="exp-where">Freelance &amp; Product</div>
+          <ul class="exp-desc">
+            <li>End-to-end delivery of commercial projects: architecture through deployment.</li>
+            <li>Built corporate system (CRM + analytics + automation) for client's internal infrastructure.</li>
+            <li>Implemented security-by-design: API audit, access control, logging, incident monitoring.</li>
+            <li>Reduced average release time by 35% via CI/CD standardization and Docker environments.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Offensive Security Researcher / Pentest Specialist</span>
+            <span class="exp-date">2017 — 2026</span>
+          </div>
+          <ul class="exp-desc">
+            <li>Black/white/grey-box testing of web apps, APIs and network infrastructure.</li>
+            <li>Risk-prioritized reports with PoC exploits and vulnerability remediation roadmaps.</li>
+            <li>Completed 20+ security assessments; reduced attack surface by 40%+ on critical projects.</li>
+            <li>Internal scripts for automated reconnaissance and CVE triage.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Backend Developer / Automation Engineer</span>
+            <span class="exp-date">2014 — 2019</span>
+          </div>
+          <ul class="exp-desc">
+            <li>Started with Python scripts and automation utilities, grew into production backend development.</li>
+            <li>Built high-load Telegram bots and automation services: queues, API integrations, FFmpeg.</li>
+            <li>Developed alert &amp; auto-processing system that improved team response time by 50%.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="cv-sec">
+        <h3>Key Projects</h3>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">JARVIS AI PC Controller — Desktop AI OS</span>
+            <span class="exp-date">2024 — present</span>
+          </div>
+          <ul class="exp-desc">
+            <li>Cursor/Windsurf-level AI assistant: project context, OS control, developer automation flow.</li>
+            <li>3D Living UI (PyQt6 + OpenGL), voice I/O, agent with diff/rollback, multi-provider AI (DeepSeek/Anthropic/OpenAI/Ollama). 8500+ LOC.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Valorant Strike — Analytics Platform</span>
             <span class="exp-date">2024 — present</span>
           </div>
           <div class="exp-where">valorantstrike.com/valorant-store/</div>
           <ul class="exp-desc">
-            <li>Valorant skin store with Riot API integration, OAuth auth, SSR</li>
-            <li>Custom UI, real-time inventory updates, full-stack deployment</li>
-          </ul>
-        </div>
-
-        <div class="exp-item">
-          <div class="exp-head">
-            <span class="exp-role">Dandy Pizza — Corporate Website</span>
-            <span class="exp-date">2023 — present</span>
-          </div>
-          <div class="exp-where">dandypizza.com · lublino.dandypizza.com</div>
-          <ul class="exp-desc">
-            <li>Built two production sites for a pizza chain: menu, ordering, CMS</li>
-            <li>Responsive layout, cross-browser compatibility, performance optimization</li>
-          </ul>
-        </div>
-
-        <div class="exp-item">
-          <div class="exp-head">
-            <span class="exp-role">Trezv777 — Enterprise Software</span>
-            <span class="exp-date">2023</span>
-          </div>
-          <div class="exp-where">trezv777.ru</div>
-          <ul class="exp-desc">
-            <li>Built complete desktop application for a company from scratch</li>
-            <li>Python + PyQt5, accounting module, reporting, packaged executable</li>
+            <li>Skin market data, price monitoring, Riot API OAuth, SSR. 1000+ DAU.</li>
           </ul>
         </div>
 
@@ -495,93 +624,137 @@ body{background:#e8ecf2;}
             <span class="exp-role">Buddy Music Bot — Telegram</span>
             <span class="exp-date">2022 — present</span>
           </div>
-          <div class="exp-where">@Buddy_musicbot</div>
+          <div class="exp-where">t.me/Buddy_musicbot</div>
           <ul class="exp-desc">
-            <li>Music bot: search, inline mode, queue management, playlists</li>
-            <li>Python (aiogram), YouTube/Spotify API, hosted on VPS</li>
+            <li>5000+ active users, queue management, inline mode, VPS, 24/7 uptime.</li>
           </ul>
         </div>
 
         <div class="exp-item">
           <div class="exp-head">
-            <span class="exp-role">Game Process Security Research</span>
-            <span class="exp-date">2023 — 2024</span>
+            <span class="exp-role">Dandy Pizza — Delivery Platform</span>
+            <span class="exp-date">2023 — present</span>
+          </div>
+          <div class="exp-where">lublino.dandypizza.com</div>
+          <ul class="exp-desc">
+            <li>Online ordering, branch management, responsive. 2+ years in production, zero downtime.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Mobile App — iOS / Android (Trezv777)</span>
+            <span class="exp-date">2023</span>
           </div>
           <ul class="exp-desc">
-            <li>Analysis of anti-cheat mechanisms: Riot Vanguard, BattlEye, EAC</li>
-            <li>WinAPI Hooking, DLL Injection, Kernel Driver research, x64dbg</li>
-            <li>Technical security reports documenting vulnerabilities and mitigations</li>
+            <li>Flutter cross-platform: client app + driver app, realtime orders, push notifications, offline sync.</li>
           </ul>
         </div>
 
         <div class="exp-item">
           <div class="exp-head">
-            <span class="exp-role">Pentest Framework (Internal Tool)</span>
+            <span class="exp-role">Pentest Framework (Private Tool)</span>
             <span class="exp-date">2024</span>
           </div>
           <ul class="exp-desc">
-            <li>Automated Python pentest framework: scan → exploit → report pipeline</li>
-            <li>Modules: SQLi, XSS, SSRF, subdomain enum, subdomain takeover</li>
+            <li>Automated Python pentest pipeline: scan → exploit → report. SQLi, XSS, SSRF, subdomain takeover modules.</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-head">
+            <span class="exp-role">Game Security &amp; CV Research</span>
+            <span class="exp-date">2023 — 2024</span>
+          </div>
+          <ul class="exp-desc">
+            <li>Anti-cheat analysis: Riot Vanguard, BattlEye. WinAPI Hooking, DLL Injection, Kernel Driver, x64dbg, OpenCV.</li>
           </ul>
         </div>
 
       </div>
+
     </div>
 
     <!-- RIGHT -->
     <div class="cv-right">
 
       <div class="cv-sec">
-        <h3>Languages &amp; Technologies</h3>
-        <div class="skill-group">
-          <div class="skill-label">Core Languages</div>
-          <div class="skill-tags">
-            <span class="stag stag-main">Python</span>
-            <span class="stag stag-main">JavaScript</span>
-            <span class="stag stag-main">HTML / CSS</span>
-            <span class="stag stag-main">Bash</span>
-            <span class="stag">C / C++</span>
-            <span class="stag">SQL</span>
-            <span class="stag">TypeScript</span>
-          </div>
+        <h3>Programming Languages</h3>
+        <div class="skill-tags">
+          <span class="stag stag-main">Python</span>
+          <span class="stag stag-main">JavaScript</span>
+          <span class="stag stag-main">TypeScript</span>
+          <span class="stag stag-main">Bash</span>
+          <span class="stag stag-main">SQL</span>
+          <span class="stag">PHP</span>
+          <span class="stag">C / C++</span>
+          <span class="stag">C#</span>
+          <span class="stag">Dart</span>
+          <span class="stag">Swift</span>
         </div>
+      </div>
+
+      <div class="cv-sec">
+        <h3>Frontend / Backend</h3>
         <div class="skill-group">
-          <div class="skill-label">Frameworks</div>
+          <div class="skill-label">Frontend</div>
           <div class="skill-tags">
             <span class="stag stag-main">React</span>
-            <span class="stag stag-main">Django</span>
-            <span class="stag">FastAPI</span>
-            <span class="stag">Node.js</span>
-            <span class="stag">aiogram</span>
-            <span class="stag">PyQt5</span>
+            <span class="stag stag-main">Vue.js</span>
+            <span class="stag">Next.js</span>
+            <span class="stag">HTML / CSS</span>
           </div>
         </div>
         <div class="skill-group">
-          <div class="skill-label">Infrastructure</div>
+          <div class="skill-label">Backend</div>
           <div class="skill-tags">
-            <span class="stag">Docker</span>
-            <span class="stag">Linux</span>
-            <span class="stag">Nginx</span>
-            <span class="stag">Git</span>
-            <span class="stag">PostgreSQL</span>
-            <span class="stag">Redis</span>
+            <span class="stag stag-main">Django</span>
+            <span class="stag stag-main">FastAPI</span>
+            <span class="stag">Node.js</span>
+            <span class="stag">Express</span>
+            <span class="stag">Flask</span>
+            <span class="stag">REST / GraphQL</span>
           </div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-label">Mobile / Desktop</div>
+          <div class="skill-tags">
+            <span class="stag stag-main">Flutter</span>
+            <span class="stag">React Native</span>
+            <span class="stag">Electron</span>
+            <span class="stag">PyQt6</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cv-sec">
+        <h3>DevOps / Infrastructure</h3>
+        <div class="skill-tags">
+          <span class="stag stag-main">Docker</span>
+          <span class="stag stag-main">Linux Admin</span>
+          <span class="stag stag-main">Nginx</span>
+          <span class="stag">CI/CD</span>
+          <span class="stag">PostgreSQL</span>
+          <span class="stag">MongoDB</span>
+          <span class="stag">Redis</span>
+          <span class="stag">Firebase</span>
+          <span class="stag">Git</span>
         </div>
       </div>
 
       <div class="cv-sec">
         <h3>Cybersecurity</h3>
         <div class="skill-tags">
-          <span class="stag stag-main">Kali Linux</span>
-          <span class="stag stag-main">Metasploit</span>
-          <span class="stag stag-main">Burp Suite</span>
+          <span class="stag stag-red">Kali Linux</span>
+          <span class="stag stag-red">Metasploit</span>
+          <span class="stag stag-red">Burp Suite</span>
+          <span class="stag stag-red">OWASP ZAP</span>
+          <span class="stag stag-red">SQLMap</span>
           <span class="stag">Nmap</span>
           <span class="stag">Wireshark</span>
-          <span class="stag">SQLMap</span>
-          <span class="stag">Gobuster</span>
-          <span class="stag">Hydra</span>
           <span class="stag">x64dbg</span>
-          <span class="stag">Cheat Engine</span>
+          <span class="stag">Hydra</span>
+          <span class="stag">Gobuster</span>
           <span class="stag">WinAPI Hooking</span>
           <span class="stag">DLL Injection</span>
           <span class="stag">OWASP Top 10</span>
@@ -589,27 +762,16 @@ body{background:#e8ecf2;}
       </div>
 
       <div class="cv-sec">
-        <h3>Mobile Development</h3>
-        <div class="skill-tags">
-          <span class="stag stag-main">Android (Java/Kotlin)</span>
-          <span class="stag stag-main">iOS (Swift)</span>
-          <span class="stag">React Native</span>
-          <span class="stag">Flutter</span>
-        </div>
-      </div>
-
-      <div class="cv-sec">
         <h3>Education</h3>
         <div class="edu-item">
-          <div class="edu-name">KPK RTU MIREA College</div>
-          <div class="edu-spec">Information Security / Cybersecurity</div>
+          <div class="edu-name">KPK RTU MIREA / MFUA</div>
+          <div class="edu-spec">Information Security of Automated Systems</div>
           <div class="edu-date">2022 — 2026</div>
-          <div class="edu-desc">4-year program. Graduation: 2026. Moscow, Russia.</div>
+          <div class="edu-desc">Cybersecurity specialization, 4 years. Graduation: 2026.</div>
         </div>
         <div class="edu-item">
-          <div class="edu-name">MFUA College</div>
-          <div class="edu-spec">Programming &amp; Information Technology</div>
-          <div class="edu-date">2022 — 2026</div>
+          <div class="edu-name">Continuous Practice</div>
+          <div class="edu-desc">CTF competitions, reverse engineering, exploit development, malware analysis.</div>
         </div>
       </div>
 
@@ -620,18 +782,20 @@ body{background:#e8ecf2;}
           <div class="lang-bar"><div class="lang-fill" style="width:100%"></div></div>
         </div>
         <div style="margin-top:5px">
-          <div class="lang-row"><span class="lang-name">English</span><span class="lang-level">B1 — Intermediate</span></div>
-          <div class="lang-bar"><div class="lang-fill" style="width:55%"></div></div>
+          <div class="lang-row"><span class="lang-name">English</span><span class="lang-level">B2 — Upper-Intermediate</span></div>
+          <div class="lang-bar"><div class="lang-fill" style="width:72%"></div></div>
         </div>
       </div>
 
       <div class="cv-sec">
         <h3>Achievements</h3>
-        <ul class="exp-desc">
-          <li>99+ completed projects for real clients</li>
-          <li>Enterprise software deployed at trezv777.ru</li>
-          <li>Active seller on LZT Market (digital goods)</li>
-          <li>Built and maintained production bots &amp; websites since age 13</li>
+        <ul class="ach-list">
+          <li>99+ completed projects for real-world clients</li>
+          <li>Production systems with thousands of users since age 13</li>
+          <li>Mentored junior developers in backend &amp; security practices</li>
+          <li>Developed internal security release checklist adopted in 3+ projects</li>
+          <li>Regular CTF participation and technical write-up publication</li>
+          <li>Reduced attack surface by 40%+ in critical security engagements</li>
         </ul>
       </div>
 
@@ -642,7 +806,7 @@ body{background:#e8ecf2;}
   <span class="pg-num">2 / 2</span>
 </div>
 
-<!-- Overlay — показывается пока генерируется PDF -->
+<!-- Overlay -->
 <div id="overlay" style="
   position:fixed;inset:0;z-index:9999;
   background:#04060f;
@@ -658,8 +822,6 @@ body{background:#e8ecf2;}
 <script>
 window.addEventListener('DOMContentLoaded', function() {
   const overlay = document.getElementById('overlay');
-
-  // Даём шрифтам загрузиться
   setTimeout(function() {
     const opt = {
       margin:      0,
@@ -668,16 +830,12 @@ window.addEventListener('DOMContentLoaded', function() {
       html2canvas: { scale: 2, useCORS: true, logging: false },
       jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-
-    // Скрываем оверлей на время захвата страницы
     overlay.style.display = 'none';
-
     html2pdf()
       .set(opt)
       .from(document.body)
       .save()
       .then(function() {
-        // После скачивания — закрыть вкладку или вернуть на сайт
         overlay.innerHTML = '<div style="color:#1a8a40;font-size:40px;">✓</div><div style="color:#fff;font-size:17px;font-weight:700;">PDF скачан!</div><a href="/" style="margin-top:8px;color:#0070cc;font-size:13px;text-decoration:none;">← Вернуться на сайт</a>';
         overlay.style.display = 'flex';
       });

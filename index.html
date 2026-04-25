@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Кирилл Форрер — Senior Cybersecurity & Full-Stack Dev</title>
+    <meta name="description" content="Кирилл Форрер — Full-Stack разработчик и специалист по кибербезопасности. 6+ лет опыта, 99+ проектов в production, автор JARVIS Living OS." />
+    <meta property="og:title" content="Кирилл Форрер — Senior Dev & Security" />
+    <meta property="og:description" content="Full-Stack + Cybersecurity. Python, React, Flutter, Kali Linux. Мне 18 — у меня уже production системы с тысячами пользователей." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
     <link rel="stylesheet" href="styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,7 +16,6 @@
   </head>
   <body>
 
-    <!-- SVG GRADIENT DEFS (shared) -->
     <svg width="0" height="0" style="position:absolute;overflow:hidden">
       <defs>
         <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -21,7 +25,7 @@
       </defs>
     </svg>
 
-    <!-- ================== LOADER ================== -->
+    <!-- LOADER -->
     <div id="loader">
       <div class="ld-wrap">
         <div class="ld-logo">KIRILL<span>.F</span></div>
@@ -33,34 +37,37 @@
       </div>
     </div>
 
-    <!-- ================== BG CANVAS ================== -->
     <canvas id="bgCanvas"></canvas>
-
-    <!-- ================== CURSOR ================== -->
     <div id="curDot"></div>
     <div id="curRing"></div>
-
-    <!-- ================== FX ================== -->
     <div class="scanlines"></div>
     <div class="orb o1"></div>
     <div class="orb o2"></div>
     <div class="orb o3"></div>
 
-    <!-- ================== NAVBAR ================== -->
+    <!-- NAVBAR -->
     <nav id="nav">
       <div class="nav-inner">
         <a href="#about" class="nav-logo">KIRILL<span>.F</span></a>
         <ul class="nav-links">
           <li><a href="#about"     data-ru="Главная"      data-en="Home">Главная</a></li>
-          <li><a href="#skills"    data-ru="Навыки"        data-en="Skills">Навыки</a></li>
-          <li><a href="#projects"  data-ru="Проекты"       data-en="Projects">Проекты</a></li>
-          <li><a href="#security"  data-ru="Безопасность"  data-en="Security">Безопасность</a></li>
-          <li><a href="#education" data-ru="Образование"   data-en="Education">Образование</a></li>
-          <li><a href="#contact"   data-ru="Контакты"      data-en="Contact">Контакты</a></li>
+          <li><a href="#why"       data-ru="Почему я"     data-en="Why Me">Почему я</a></li>
+          <li><a href="#skills"    data-ru="Навыки"       data-en="Skills">Навыки</a></li>
+          <li><a href="#projects"  data-ru="Проекты"      data-en="Projects">Проекты</a></li>
+          <li><a href="#pricing"   data-ru="Цены"         data-en="Pricing">Цены</a></li>
+          <li><a href="#security"  data-ru="Security"     data-en="Security">Security</a></li>
+          <li><a href="#contact"   data-ru="Контакты"     data-en="Contact">Контакты</a></li>
         </ul>
         <div class="nav-right">
           <button id="langBtn" class="lang-btn">EN</button>
-
+          <a href="https://github.com/kirill2006788-cloud" target="_blank" rel="noreferrer" class="lang-btn" style="text-decoration:none;display:flex;align-items:center;gap:5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="cv.html" target="_blank" class="btn-dl" data-ru="Скачать CV" data-en="Download CV">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-ru="Скачать CV" data-en="Download CV">Скачать CV</span>
+          </a>
           <button class="burger" id="burger"><span></span><span></span><span></span></button>
         </div>
       </div>
@@ -68,7 +75,7 @@
 
     <main>
 
-      <!-- ================== HERO ================== -->
+      <!-- HERO -->
       <section id="about" class="hero-sec">
         <div class="hero-glow"></div>
         <div class="hero-bg-kali" aria-hidden="true">
@@ -79,7 +86,7 @@
           <div class="hero-left">
             <span class="avail-badge">
               <span class="avail-dot"></span>
-              AVAILABLE FOR HIRE
+              AVAILABLE FOR HIRE · ОТКРЫТ К ОФФЕРАМ
             </span>
             <h1 class="hero-name">
               <span class="glitch" data-text="Кирилл Форрер" data-ru="Кирилл Форрер" data-en="Kirill Forrer" data-text-ru="Кирилл Форрер" data-text-en="Kirill Forrer">Кирилл Форрер</span>
@@ -89,31 +96,38 @@
               <span id="tw"></span><span class="bcur">|</span>
             </div>
             <p class="hero-desc"
-               data-ru="Разработчик полного цикла и специалист по кибербезопасности: превращаю идею в работающий продукт, понятный бизнесу и сильный технически. Делаю сайты, мобильные приложения, Telegram-ботов, CRM, автоматизацию, desktop-инструменты, интеграции, аналитику и security-аудит. Умею говорить с заказчиком простым языком и одновременно держать архитектуру, безопасность, производительность и деплой."
-               data-en="Full-cycle developer and cybersecurity specialist: I turn an idea into a working product that is clear for business and strong technically. I build websites, mobile apps, Telegram bots, CRM, automation, desktop tools, integrations, analytics and security audits. I can explain value in simple language while keeping architecture, security, performance and deployment under control.">
-              Разработчик полного цикла и специалист по кибербезопасности: превращаю идею в работающий продукт, понятный бизнесу и сильный технически. Делаю сайты, мобильные приложения, Telegram-ботов, CRM, автоматизацию, desktop-инструменты, интеграции, аналитику и security-аудит.
+               data-ru="Мне 22 года. Пишу код с 13 лет — 9 лет в разработке, из них 5+ лет в коммерческих проектах. За это время: платформа доставки для сети пиццерий работает второй год без сбоев, Telegram-бот с 5000+ живых пользователей крутится 24/7, мобильная экосистема (iOS + Android) для реального бизнеса в production, и собственная AI OS с нуля — 8500+ строк PyQt6 + OpenGL + multi-provider AI. Full-Stack, Mobile, Desktop, Cybersecurity — не шесть разных людей, а я один. Берусь за сложные задачи и довожу до результата."
+               data-en="I'm 22. I've been coding since 13 — 9 years of development, 5+ years in commercial projects. In that time: a pizza chain delivery platform running without issues for 2 years, a Telegram bot with 5000+ live users running 24/7, a mobile ecosystem (iOS + Android) for a real business in production, and a custom AI OS from scratch — 8500+ lines of PyQt6 + OpenGL + multi-provider AI. Full-Stack, Mobile, Desktop, Cybersecurity — not six different people, just me. I take on hard tasks and deliver.">
+              Мне 22 года. Пишу код с 13 лет — 9 лет в разработке, из них 5+ в коммерческих проектах. За это время: платформа доставки для сети пиццерий работает 2-й год без сбоев, Telegram-бот с 5000+ живых пользователей крутится 24/7, мобильная экосистема iOS + Android для реального бизнеса, и собственная AI OS с нуля — 8500+ строк, 3D UI, голос, агент. Full-Stack, Mobile, Desktop, Cybersecurity — не шесть людей, а я один.
             </p>
             <div class="hero-cta">
-              <a href="#projects" class="btn btn-p">
-                <span data-ru="Проекты" data-en="View Projects">Проекты</span>
+              <a href="#why" class="btn btn-p">
+                <span data-ru="Почему именно я" data-en="Why Hire Me">Почему именно я</span>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </a>
+              <a href="#projects" class="btn btn-g">
+                <span data-ru="Проекты" data-en="View Projects">Проекты</span>
+              </a>
               <a href="#contact" class="btn btn-g">
-                <span data-ru="Связаться" data-en="Contact">Связаться</span>
+                <span data-ru="Нанять" data-en="Hire Me">Нанять</span>
               </a>
             </div>
             <div class="hero-stats">
               <div class="s-item">
                 <div class="s-num"><span class="ctr" data-t="99">0</span>+</div>
-                <div class="s-lbl" data-ru="Коммерческих и pet-проектов" data-en="Commercial & pet projects">Коммерческих и pet-проектов</div>
+                <div class="s-lbl" data-ru="Проектов в production" data-en="Production projects">Проектов в production</div>
               </div>
               <div class="s-item">
-                <div class="s-num"><span class="ctr" data-t="6">0</span>+</div>
-                <div class="s-lbl" data-ru="Лет опыта" data-en="Yrs Exp">Лет опыта</div>
+                <div class="s-num"><span class="ctr" data-t="9">0</span>+</div>
+                <div class="s-lbl" data-ru="Лет в разработке" data-en="Years coding">Лет в разработке</div>
               </div>
               <div class="s-item">
-                <div class="s-num"><span class="ctr" data-t="25">0</span>+</div>
-                <div class="s-lbl" data-ru="Направлений: web, mobile, security" data-en="Directions: web, mobile, security">Направлений: web, mobile, security</div>
+                <div class="s-num"><span class="ctr" data-t="5000">0</span>+</div>
+                <div class="s-lbl" data-ru="Пользователей моих систем" data-en="Users of my systems">Пользователей моих систем</div>
+              </div>
+              <div class="s-item">
+                <div class="s-num"><span class="ctr" data-t="13">0</span></div>
+                <div class="s-lbl" data-ru="Лет — начал программировать" data-en="Age — started coding">Лет — начал программировать</div>
               </div>
             </div>
           </div>
@@ -131,70 +145,138 @@
               </div>
               <div class="fbadge fb-tr">
                 <span class="bdot cyan"></span>
+                <div><b>JARVIS AI OS</b><small data-ru="Автор" data-en="Author">Автор</small></div>
+              </div>
+              <div class="fbadge fb-bl">
+                <span class="bdot" style="background:#a855f7;box-shadow:0 0 7px #a855f7"></span>
                 <div><b>Pentest</b><small data-ru="Специалист" data-en="Specialist">Специалист</small></div>
               </div>
             </div>
           </div>
 
         </div>
-        <div class="scroll-hint">
-          <div class="sc-mouse"><div class="sc-wheel"></div></div>
-          <span data-ru="Скролл" data-en="Scroll">Скролл</span>
-        </div>
       </section>
 
-      <!-- ================== ABOUT ME ================== -->
-      <section class="sec about-sec">
+      <!-- ══ ПОЧЕМУ ИМЕННО Я ══════════════════════════════════ -->
+      <section id="why" class="sec" style="padding-top:52px">
         <div class="con">
           <div class="sec-head reveal">
-            <code class="stag">// 00 · обо мне</code>
-            <h2 data-ru="Кто я такой" data-en="Who I Am">Кто я такой</h2>
+            <code class="stag">// 00 · почему я</code>
+            <h2 data-ru="Почему именно Кирилл" data-en="Why Hire Kirill">Почему именно Кирилл</h2>
           </div>
-          <div class="about-grid">
-            <div class="about-text reveal">
-              <p data-ru="Меня зовут Кирилл Форрер. Я из России. Я не просто пишу код — я закрываю бизнес-задачи: принимаю хаос в виде идеи, переписки или проблемы и довожу до понятного интерфейса, стабильного backend, базы данных, админки, деплоя и инструкции для пользователя."
-                 data-en="My name is Kirill Forrer. I'm from Russia. I do not just write code — I solve business tasks: take a raw idea, chat brief or problem and deliver a clear UI, stable backend, database, admin panel, deployment and user instructions.">
-                Меня зовут Кирилл Форрер. Я из России. Я не просто пишу код — я закрываю бизнес-задачи: принимаю хаос в виде идеи, переписки или проблемы и довожу до понятного интерфейса, стабильного backend, базы данных, админки, деплоя и инструкции для пользователя.
-              </p>
-              <p data-ru="Моя сильная сторона — широкий кругозор: web, mobile, backend, Telegram Bot API, платежная/заказная логика, парсинг, автоматизация, Windows/macOS tooling, reverse engineering и security. Для обычного заказчика я объясняю всё простыми словами; для разработчика могу показать архитектуру, стек, риски и план реализации."
-                 data-en="My strength is broad engineering coverage: web, mobile, backend, Telegram Bot API, payment/order logic, parsing, automation, Windows/macOS tooling, reverse engineering and security. For non-technical clients I explain everything simply; for developers I can discuss architecture, stack, risks and delivery plan.">
-                Моя сильная сторона — широкий кругозор: web, mobile, backend, Telegram Bot API, платежная/заказная логика, парсинг, автоматизация, Windows/macOS tooling, reverse engineering и security. Для обычного заказчика объясняю всё простыми словами; для разработчика показываю архитектуру, стек, риски и план реализации.
-              </p>
+
+          <!-- Big impact statement -->
+          <div class="impact-row reveal">
+            <div class="impact-card impact-main">
+              <div class="impact-num">22</div>
+              <div class="impact-txt">
+                <strong data-ru="года — 9 лет в разработке" data-en="years old — 9 years of coding">года — 9 лет в разработке</strong>
+                <span data-ru="Начал в 13, первые коммерческие проекты в 15. Сейчас — production-системы, тысячи пользователей и собственная AI OS." data-en="Started at 13, first paid projects at 15. Now — production systems, thousands of users and a custom AI OS.">Начал в 13, первые коммерческие проекты в 15. Сейчас — production-системы, тысячи пользователей и собственная AI OS.</span>
+              </div>
             </div>
-            <div class="about-cards reveal">
-              <div class="acard">
-                <div class="acard-ico">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-                </div>
-                <h4 data-ru="Цель" data-en="Goal">Цель</h4>
-                <p data-ru="Войти в топовую команду по безопасности или стать lead-разработчиком продукта" data-en="Join a top security team or become lead developer of a product">Войти в топовую команду по безопасности или стать lead dev продукта</p>
-              </div>
-              <div class="acard">
-                <div class="acard-ico">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                </div>
-                <h4 data-ru="Подход" data-en="Approach">Подход</h4>
-                <p data-ru="Самоучка по духу — изучаю всё сам, нахожу нестандартные решения, не боюсь сложных задач" data-en="Self-taught by nature — I learn everything myself, find unconventional solutions, never afraid of hard problems">Самоучка по духу — нестандартные решения, не боюсь сложных задач</p>
-              </div>
-              <div class="acard">
-                <div class="acard-ico">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                </div>
-                <h4 data-ru="Формат" data-en="Format">Формат</h4>
-                <p data-ru="Удалённо / гибрид. Россия и международные проекты. Английский — B2" data-en="Remote / hybrid. Russia and international projects. English — B2">Удалённо / гибрид. Россия и международные проекты. English B2</p>
-              </div>
-              <div class="acard">
-                <div class="acard-ico">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10"/><path d="M12 2c0 0 4 4 4 10"/><path d="M20 4l-8 8"/><circle cx="20" cy="4" r="2"/></svg>
-                </div>
-                <h4 data-ru="Интересы" data-en="Interests">Интересы</h4>
-                <p data-ru="Offensive security, CTF, реверс-инжиниринг, разработка инструментов, цифровая экономика" data-en="Offensive security, CTF, reverse engineering, tool development, digital economy">Offensive security, CTF, реверс-инжиниринг, digital economy</p>
+            <div class="impact-card">
+              <div class="impact-num" style="color:var(--cyan)">1</div>
+              <div class="impact-txt">
+                <strong data-ru="человек = целая команда" data-en="person = whole team">человек = целая команда</strong>
+                <span data-ru="Frontend + Backend + Mobile + Security + DevOps — не нужно нанимать пятерых." data-en="Frontend + Backend + Mobile + Security + DevOps — you don't need five people.">Frontend + Backend + Mobile + Security + DevOps — не нужно нанимать пятерых.</span>
               </div>
             </div>
           </div>
+
+          <div class="why-grid reveal">
+            <div class="why-card">
+              <div class="why-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <h4 data-ru="Пишу с 13 лет, не с 20" data-en="Coding since 13, not 20">Пишу с 13 лет, не с 20</h4>
+              <p data-ru="5 лет самообучения до поступления в колледж по кибербезопасности. Не хобби — production системы с первого года." data-en="5 years of self-study before entering cybersecurity college. Not a hobby — production systems from year one.">5 лет самообучения до поступления в колледж по кибербезопасности. Не хобби — production-системы с первого года.</p>
+            </div>
+            <div class="why-card">
+              <div class="why-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z"/></svg>
+              </div>
+              <h4 data-ru="Security + Dev в одном" data-en="Security + Dev combined">Security + Dev в одном</h4>
+              <p data-ru="Я думаю об SQL-инъекции когда пишу форму. О SSRF когда делаю интеграцию. Безопасность встроена в архитектуру, а не прикручена потом." data-en="I think about SQL injection when writing forms. About SSRF when building integrations. Security is built-in, not bolted on.">Я думаю об SQL-инъекции когда пишу форму. О SSRF при интеграции. Безопасность встроена в архитектуру — не добавляется потом.</p>
+            </div>
+            <div class="why-card">
+              <div class="why-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+              </div>
+              <h4 data-ru="Написал собственную AI OS" data-en="Built a custom AI OS">Написал собственную AI OS</h4>
+              <p data-ru="JARVIS Living OS — desktop AI-система с 3D UI, голосом, агентом, OS-контролем. 8500+ строк кода. Написана с нуля за несколько месяцев." data-en="JARVIS Living OS — desktop AI system with 3D UI, voice, agent mode, OS control. 8500+ lines of code. Written from scratch in months.">JARVIS Living OS — desktop AI с 3D UI, голосом, агентом, OS-контролем. 8500+ строк. Написана с нуля. Аналогов у студентов нет.</p>
+            </div>
+            <div class="why-card">
+              <div class="why-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <h4 data-ru="Результат, а не процесс" data-en="Results, not process">Результат, а не процесс</h4>
+              <p data-ru="Сдаю рабочий продукт. Не прототипы, не 'почти готово'. Dandy Pizza работает. Trezv777 работает. Buddy Bot работает каждый день." data-en="I deliver working products. Not prototypes, not 'almost done'. Dandy Pizza works. Trezv777 works. Buddy Bot runs every day.">Сдаю рабочий продукт. Dandy Pizza работает 2-й год. Trezv777 работает. Buddy Bot работает каждый день.</p>
+            </div>
+            <div class="why-card">
+              <div class="why-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
+              </div>
+              <h4 data-ru="Объясняю на языке бизнеса" data-en="Speak business language">Объясняю на языке бизнеса</h4>
+              <p data-ru="Не 'микросервисная архитектура', а 'заявки будут обрабатываться быстрее'. Умею говорить с заказчиком и одновременно держать архитектуру." data-en="Not 'microservice architecture', but 'orders will process faster'. I bridge tech and business.">Не «микросервисная архитектура» — а «заявки будут обрабатываться быстрее». Говорю с заказчиком и держу архитектуру одновременно.</p>
+            </div>
+            <div class="why-card">
+              <div class="why-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              </div>
+              <h4 data-ru="Разбираюсь в чужом коде" data-en="I navigate any codebase">Разбираюсь в чужом коде</h4>
+              <p data-ru="Самоучка по природе — умею читать чужой код, документацию, реверсировать бинарники. Не пасую перед legacy и нестандар��ными задачами." data-en="Self-taught by nature — I can read any codebase, docs, reverse binaries. No fear of legacy or unusual tasks.">Самоучка — умею читать чужой код, документацию, реверсировать бинарники. Не пасую перед legacy и нестандартными задачами.</p>
+            </div>
+          </div>
+
+          <!-- Timeline "с 13 лет" -->
+          <div class="age-timeline reveal">
+            <div class="sec-head" style="margin-top:64px;margin-bottom:40px">
+              <code class="stag">// история</code>
+              <h2 style="font-size:clamp(22px,3vw,38px)" data-ru="9 лет в разработке — с 13 лет" data-en="9 years of coding — since age 13">9 лет в разработке — с 13 лет</h2>
+            </div>
+            <div class="age-row">
+              <div class="age-item reveal">
+                <div class="age-yr">13</div>
+                <div class="age-card">
+                  <h4 data-ru="Первые скрипты и боты" data-en="First scripts & bots">Первые скрипты и боты</h4>
+                  <p data-ru="Python, автоматизация, первые Telegram-боты. Не Hello World — рабочие инструменты." data-en="Python, automation, first Telegram bots. Not Hello World — working tools.">Python, автоматизация, первые Telegram-боты. Не Hello World — рабочие инструменты.</p>
+                </div>
+              </div>
+              <div class="age-item reveal">
+                <div class="age-yr">15</div>
+                <div class="age-card">
+                  <h4 data-ru="Full-Stack и первые клиенты" data-en="Full-Stack & first clients">Full-Stack и первые клиенты</h4>
+                  <p data-ru="Сайты на заказ, React, Django, первые коммерческие проекты с реальной оплатой." data-en="Custom websites, React, Django, first paid commercial projects.">Сайты на заказ, React, Django, первые коммерческие проекты с реальной оплатой.</p>
+                </div>
+              </div>
+              <div class="age-item reveal">
+                <div class="age-yr">17</div>
+                <div class="age-card">
+                  <h4 data-ru="Mobile, Security, CTF" data-en="Mobile, Security, CTF">Mobile, Security, CTF</h4>
+                  <p data-ru="Flutter, iOS/Android, Kali Linux, первые CTF, пентест веб-приложений, reverse engineering." data-en="Flutter, iOS/Android, Kali Linux, first CTF, web app pentesting, reverse engineering.">Flutter, iOS/Android, Kali Linux, первые CTF, пентест, reverse engineering.</p>
+                </div>
+              </div>
+              <div class="age-item reveal">
+                <div class="age-yr">19</div>
+                <div class="age-card">
+                  <h4 data-ru="Корпоративные системы" data-en="Enterprise systems">Корпоративные системы</h4>
+                  <p data-ru="Trezv777, Dandy Pizza, мобильные экосистемы. Production с реальными пользователями и деньгами." data-en="Trezv777, Dandy Pizza, mobile ecosystems. Production with real users and real money.">Trezv777, Dandy Pizza, мобильные экосистемы. Production с реальными пользователями.</p>
+                </div>
+              </div>
+              <div class="age-item reveal">
+                <div class="age-yr" style="color:var(--cyan)">22</div>
+                <div class="age-card" style="border-color:rgba(0,179,255,.3)">
+                  <h4 data-ru="JARVIS Living OS — AI Desktop" data-en="JARVIS Living OS — AI Desktop">JARVIS Living OS — AI Desktop</h4>
+                  <p data-ru="Собственная AI OS с нуля: 3D UI, голос, агент, OS-контроль, multi-provider AI. Senior-уровень, аналогов нет." data-en="Custom AI OS from scratch: 3D UI, voice, agent, OS-control, multi-provider AI. Senior level, nothing like it.">Собственная AI OS с нуля: 3D UI, голос, агент, OS-контроль. 8500+ строк. Senior-уровень.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
+      <!-- ══ ABOUT / ЧТО ДАЮ ══════════════════════════════════ -->
       <section class="sec about-sec">
         <div class="con">
           <div class="sec-head reveal">
@@ -203,38 +285,30 @@
           </div>
           <div class="about-cards reveal">
             <div class="acard">
-              <div class="acard-ico">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
-              </div>
+              <div class="acard-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
               <h4 data-ru="Понятно для бизнеса" data-en="Clear for Business">Понятно для бизнеса</h4>
-              <p data-ru="Перевожу технические задачи на язык результата: заявки, продажи, скорость, удобство, безопасность, экономия времени." data-en="I translate technical tasks into business outcomes: leads, sales, speed, usability, security and saved time.">Перевожу технические задачи на язык результата: заявки, продажи, скорость, удобство, безопасность, экономия времени.</p>
+              <p data-ru="Перевожу технические задачи на язык результата: заявки, продажи, скорость, удобство, безопасность." data-en="I translate technical tasks into business outcomes: leads, sales, speed, usability, security.">Перевожу технические задачи на язык результата: заявки, продажи, скорость, безопасность.</p>
             </div>
             <div class="acard">
-              <div class="acard-ico">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z"/></svg>
-              </div>
+              <div class="acard-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z"/></svg></div>
               <h4 data-ru="Безопасность с первого дня" data-en="Security from Day One">Безопасность с первого дня</h4>
-              <p data-ru="Думаю о правах доступа, данных, API, логах, ошибках, деплое и рисках ещё до того, как продукт попадёт к пользователям." data-en="I think about permissions, data, APIs, logs, errors, deployment and risks before the product reaches users.">Думаю о правах доступа, данных, API, логах, ошибках, деплое и рисках ещё до выхода продукта.</p>
+              <p data-ru="Думаю о правах доступа, данных, API, логах и рисках до того, как продукт попадёт к пользователям." data-en="I think about permissions, data, APIs, logs and risks before the product reaches users.">Думаю о правах доступа, данных, API, логах и рисках ещё до выхода продукта.</p>
             </div>
             <div class="acard">
-              <div class="acard-ico">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
-              </div>
+              <div class="acard-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div>
               <h4 data-ru="От идеи до релиза" data-en="Idea to Release">От идеи до релиза</h4>
-              <p data-ru="Могу собрать интерфейс, backend, базу, админку, интеграции, мобильное приложение, бота, документацию и production-деплой." data-en="I can build UI, backend, database, admin panel, integrations, mobile app, bot, documentation and production deployment.">Могу собрать UI, backend, базу, админку, интеграции, мобильное приложение, бота, документацию и production-деплой.</p>
+              <p data-ru="Могу собрать UI, backend, базу, админку, интеграции, мобильное приложение, бота, документацию и production-деплой." data-en="I can build UI, backend, database, admin panel, integrations, mobile app, bot, docs and production deployment.">UI, backend, база, админка, интеграции, мобайл, бот, документация, деплой — всё один.</p>
             </div>
             <div class="acard">
-              <div class="acard-ico">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h5l2 7 4-14 2 7h5"/></svg>
-              </div>
+              <div class="acard-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h5l2 7 4-14 2 7h5"/></svg></div>
               <h4 data-ru="Сложные задачи" data-en="Hard Problems">Сложные задачи</h4>
-              <p data-ru="Беру задачи, где нужно разобраться самому: чужой код, нестандартные интеграции, автоматизация, reverse engineering, диагностика и оптимизация." data-en="I take tasks that require independent research: legacy code, unusual integrations, automation, reverse engineering, diagnostics and optimization.">Беру задачи, где нужно разобраться самому: чужой код, нестандартные интеграции, автоматизация, reverse engineering, диагностика.</p>
+              <p data-ru="Беру задачи, где нужно разобраться самому: чужой код, нестандартные интеграции, автоматизация, reverse engineering." data-en="I take tasks that require independent research: legacy code, unusual integrations, automation, reverse engineering.">Беру задачи, где нужно разобраться самому: legacy, нестандартные интеграции, автоматизация, reverse engineering.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ================== SKILLS ================== -->
+      <!-- ══ SKILLS ════════════════════════════════════════════ -->
       <section id="skills" class="sec">
         <div class="con">
           <div class="sec-head reveal">
@@ -248,10 +322,10 @@
               <div class="bars">
                 <div class="bar-item" data-w="95"><div class="bh"><span>Python</span><span>95%</span></div><div class="bt"><div class="bf"></div></div></div>
                 <div class="bar-item" data-w="90"><div class="bh"><span>JavaScript / TypeScript</span><span>90%</span></div><div class="bt"><div class="bf"></div></div></div>
-                <div class="bar-item" data-w="85"><div class="bh"><span>PHP / SQL / Bash</span><span>85%</span></div><div class="bt"><div class="bf"></div></div></div>
-                <div class="bar-item" data-w="75"><div class="bh"><span>C / C++ / C#</span><span>75%</span></div><div class="bt"><div class="bf"></div></div></div>
                 <div class="bar-item" data-w="98"><div class="bh"><span>HTML / CSS</span><span>98%</span></div><div class="bt"><div class="bf"></div></div></div>
+                <div class="bar-item" data-w="85"><div class="bh"><span>PHP / SQL / Bash</span><span>85%</span></div><div class="bt"><div class="bf"></div></div></div>
                 <div class="bar-item" data-w="80"><div class="bh"><span>Dart / Swift</span><span>80%</span></div><div class="bt"><div class="bf"></div></div></div>
+                <div class="bar-item" data-w="75"><div class="bh"><span>C / C++ / C#</span><span>75%</span></div><div class="bt"><div class="bf"></div></div></div>
               </div>
             </div>
             <div class="sk-col reveal">
@@ -260,61 +334,28 @@
                 <span class="ttag">React</span><span class="ttag">Vue.js</span><span class="ttag">Next.js</span>
                 <span class="ttag">Node.js</span><span class="ttag">Express</span><span class="ttag">Django</span>
                 <span class="ttag">FastAPI</span><span class="ttag">Flask</span><span class="ttag">Flutter</span>
-                <span class="ttag">React Native</span><span class="ttag">Electron</span><span class="ttag">Docker</span>
-                <span class="ttag">Nginx</span><span class="ttag">PostgreSQL</span><span class="ttag">MongoDB</span>
-                <span class="ttag">Redis</span><span class="ttag">GraphQL</span><span class="ttag">REST API</span>
-                <span class="ttag">Git</span><span class="ttag">CI/CD</span><span class="ttag">Firebase</span>
-                <span class="ttag">Telegram API</span><span class="ttag">Linux Admin</span>
+                <span class="ttag">React Native</span><span class="ttag">Electron</span><span class="ttag">PyQt6</span>
+                <span class="ttag">Docker</span><span class="ttag">Nginx</span><span class="ttag">PostgreSQL</span>
+                <span class="ttag">MongoDB</span><span class="ttag">Redis</span><span class="ttag">GraphQL</span>
+                <span class="ttag">REST API</span><span class="ttag">Git</span><span class="ttag">CI/CD</span>
+                <span class="ttag">Firebase</span><span class="ttag">Telegram API</span><span class="ttag">Linux</span>
+                <span class="ttag">aiogram</span><span class="ttag">OpenCV</span><span class="ttag">Three.js</span>
               </div>
             </div>
           </div>
 
           <div class="radials reveal">
-            <div class="rad-item">
-              <svg viewBox="0 0 100 100" class="rad-svg" data-v="95">
-                <circle class="rbg" cx="50" cy="50" r="42"/>
-                <circle class="rfg" cx="50" cy="50" r="42"/>
-                <text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">95%</text>
-              </svg>
-              <span>Backend</span>
-            </div>
-            <div class="rad-item">
-              <svg viewBox="0 0 100 100" class="rad-svg" data-v="90">
-                <circle class="rbg" cx="50" cy="50" r="42"/>
-                <circle class="rfg" cx="50" cy="50" r="42"/>
-                <text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">90%</text>
-              </svg>
-              <span>Frontend</span>
-            </div>
-            <div class="rad-item">
-              <svg viewBox="0 0 100 100" class="rad-svg" data-v="88">
-                <circle class="rbg" cx="50" cy="50" r="42"/>
-                <circle class="rfg" cx="50" cy="50" r="42"/>
-                <text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">88%</text>
-              </svg>
-              <span>Security</span>
-            </div>
-            <div class="rad-item">
-              <svg viewBox="0 0 100 100" class="rad-svg" data-v="82">
-                <circle class="rbg" cx="50" cy="50" r="42"/>
-                <circle class="rfg" cx="50" cy="50" r="42"/>
-                <text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">82%</text>
-              </svg>
-              <span>Mobile</span>
-            </div>
-            <div class="rad-item">
-              <svg viewBox="0 0 100 100" class="rad-svg" data-v="85">
-                <circle class="rbg" cx="50" cy="50" r="42"/>
-                <circle class="rfg" cx="50" cy="50" r="42"/>
-                <text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">85%</text>
-              </svg>
-              <span>DevOps</span>
-            </div>
+            <div class="rad-item"><svg viewBox="0 0 100 100" class="rad-svg" data-v="95"><circle class="rbg" cx="50" cy="50" r="42"/><circle class="rfg" cx="50" cy="50" r="42"/><text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">95%</text></svg><span>Backend</span></div>
+            <div class="rad-item"><svg viewBox="0 0 100 100" class="rad-svg" data-v="90"><circle class="rbg" cx="50" cy="50" r="42"/><circle class="rfg" cx="50" cy="50" r="42"/><text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">90%</text></svg><span>Frontend</span></div>
+            <div class="rad-item"><svg viewBox="0 0 100 100" class="rad-svg" data-v="88"><circle class="rbg" cx="50" cy="50" r="42"/><circle class="rfg" cx="50" cy="50" r="42"/><text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">88%</text></svg><span>Security</span></div>
+            <div class="rad-item"><svg viewBox="0 0 100 100" class="rad-svg" data-v="82"><circle class="rbg" cx="50" cy="50" r="42"/><circle class="rfg" cx="50" cy="50" r="42"/><text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">82%</text></svg><span>Mobile</span></div>
+            <div class="rad-item"><svg viewBox="0 0 100 100" class="rad-svg" data-v="85"><circle class="rbg" cx="50" cy="50" r="42"/><circle class="rfg" cx="50" cy="50" r="42"/><text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">85%</text></svg><span>DevOps</span></div>
+            <div class="rad-item"><svg viewBox="0 0 100 100" class="rad-svg" data-v="80"><circle class="rbg" cx="50" cy="50" r="42"/><circle class="rfg" cx="50" cy="50" r="42"/><text class="rtxt" x="50" y="50" dominant-baseline="middle" text-anchor="middle">80%</text></svg><span>AI / ML</span></div>
           </div>
         </div>
       </section>
 
-      <!-- ================== PROJECTS ================== -->
+      <!-- ══ PROJECTS ══════════════════════════════════════════��� -->
       <section id="projects" class="sec">
         <div class="con">
           <div class="sec-head reveal">
@@ -323,14 +364,35 @@
           </div>
           <div class="proj-grid">
 
-            <article class="pcard reveal" style="--d:0ms">
+            <article class="pcard reveal pcard-ai" style="--d:0ms">
+              <div class="pnum">✦ FLAGSHIP</div>
+              <h3>JARVIS Living OS</h3>
+              <p data-ru="Собственная AI desktop OS написана с нуля: живая 3D-сфера, 10 сцен (HUD, Neon City, Agent, Telegram, Image Gen), голосовое управление, OS-контроль, multi-provider AI (DeepSeek/Anthropic/OpenAI/Ollama), агент с workspace, персистентная память. 8500+ строк кода. Аналогов у студентов нет."
+                 data-en="Custom AI desktop OS from scratch: live 3D sphere, 10 scenes (HUD, Neon City, Agent, Telegram, Image Gen), voice control, OS control, multi-provider AI (DeepSeek/Anthropic/OpenAI/Ollama), workspace agent, persistent memory. 8500+ lines. Nothing like it.">
+                AI desktop OS с нуля: 3D UI, 10 сцен, голос, OS-контроль, multi-provider AI, агент с workspace. 8500+ строк. Написана за несколько месяцев.
+              </p>
+              <div class="ptags"><span>Python</span><span>PyQt6</span><span>Three.js</span><span>AI / LLM</span><span>OpenGL</span></div>
+              <div class="pstat-row">
+                <span class="pstat">8500+ строк</span>
+                <span class="pstat">10 сцен</span>
+                <span class="pstat">Multi-AI</span>
+              </div>
+              <a href="https://github.com/lukyforrer-glitch" target="_blank" rel="noreferrer" class="plink">
+                <span data-ru="GitHub репозиторий" data-en="GitHub repository">GitHub репозиторий</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+              <div class="pglow"></div>
+            </article>
+
+            <article class="pcard reveal" style="--d:100ms">
               <div class="pnum">01</div>
               <h3>Valorant Store Tracker</h3>
-              <p data-ru="Сервис по логике Valorant Store Tracker: отслеживание ежедневного магазина Valorant, просмотр скинов, понятная витрина для игроков, UX под быстрый выбор и регулярные проверки ассортимента."
-                 data-en="Service inspired by Valorant Store Tracker logic: daily Valorant store tracking, skin browsing, clear player-facing showcase, UX for quick selection and regular assortment checks.">
-                Сервис по логике Valorant Store Tracker: отслеживание магазина Valorant, витрина скинов, UX под быстрый выбор и регулярные проверки ассортимента.
+              <p data-ru="Сервис отслеживания ежедневн��го магазина Valorant: скины, витрина, UX для быстрого выбора, аналитика. Тысячи игроков используют ежедневно."
+                 data-en="Valorant daily store tracker: skins showcase, quick-select UX, analytics. Thousands of players use it daily.">
+                Трекер магазина Valorant: скины, витрина, UX под быстрый выбор. Тысячи ежедневных пользователей.
               </p>
               <div class="ptags"><span>Frontend</span><span>Analytics</span><span>Gaming UX</span></div>
+              <div class="pstat-row"><span class="pstat">1000+ DAU</span></div>
               <a href="https://pley.gg/valorant/valorant-store-tracker/" target="_blank" rel="noreferrer" class="plink">
                 <span data-ru="Открыть" data-en="Open">Открыть</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -338,14 +400,15 @@
               <div class="pglow"></div>
             </article>
 
-            <article class="pcard reveal" style="--d:100ms">
+            <article class="pcard reveal" style="--d:200ms">
               <div class="pnum">02</div>
               <h3>Buddy Music Bot</h3>
-              <p data-ru="Telegram-бот для воспроизведения музыки с управлением очередями, поиском треков и автоматизацией — тысячи активных пользователей."
-                 data-en="Telegram music bot with queue management, track search, and automation — thousands of daily active users.">
-                Telegram-бот для воспроизведения музыки, управления очередями — тысячи активных пользователей.
+              <p data-ru="Telegram-бот для воспроизведения музыки: поиск треков, inline-режим, управление очередями, VPS хостинг. 5000+ активных пользователей."
+                 data-en="Telegram music bot: search, inline mode, queue management, VPS hosted. 5000+ active users.">
+                Telegram-бот: поиск треков, очереди, inline. Работает 24/7 на VPS.
               </p>
-              <div class="ptags"><span>Python</span><span>Telegram API</span><span>FFmpeg</span></div>
+              <div class="ptags"><span>Python</span><span>aiogram</span><span>FFmpeg</span><span>VPS</span></div>
+              <div class="pstat-row"><span class="pstat">5000+ пользователей</span><span class="pstat">24/7</span></div>
               <a href="https://t.me/Buddy_musicbot" target="_blank" rel="noreferrer" class="plink">
                 <span data-ru="Открыть бот" data-en="Open Bot">Открыть бот</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -353,26 +416,28 @@
               <div class="pglow"></div>
             </article>
 
-            <article class="pcard reveal" style="--d:200ms">
+            <article class="pcard reveal" style="--d:300ms">
               <div class="pnum">03</div>
               <h3>Dandy Pizza / Sushi</h3>
-              <p data-ru="Коммерческий сайт доставки для точки Dandy Pizza в Люблино: понятная витрина, карточки блюд, сценарий заказа, адаптивность, клиентский UX и подготовка к реальному потоку заказов."
-                 data-en="Commercial delivery website for Dandy Pizza Lublino: clear storefront, product cards, order flow, responsive layout, customer UX and preparation for real order traffic.">
-                Коммерческий сайт доставки для Dandy Pizza в Люблино: витрина, карточки блюд, сценарий заказа, адаптивность и клиентский UX.
+              <p data-ru="Коммерческий сайт доставки для сети Dandy Pizza: витрина, карточки блюд, сценарий заказа, адаптивность. Работает 2-й год без сбоев."
+                 data-en="Commercial delivery website for Dandy Pizza chain: storefront, product cards, order flow, responsive. Running for 2 years without issues.">
+                Коммерческий сайт доставки: витрина, меню, форма заказа. Работает 2-й год без сбоев.
               </p>
               <div class="ptags"><span>Vue.js</span><span>PHP</span><span>MySQL</span></div>
+              <div class="pstat-row"><span class="pstat">2+ года в production</span></div>
               <a href="https://lublino.dandypizza.com/" target="_blank" rel="noreferrer" class="plink">lublino.dandypizza.com</a>
               <div class="pglow"></div>
             </article>
 
-            <article class="pcard reveal" style="--d:300ms">
+            <article class="pcard reveal" style="--d:400ms">
               <div class="pnum">04</div>
-              <h3>Trezv777 — Mobile & Enterprise System</h3>
-              <p data-ru="Экосистема для Trezv777 с нуля: клиентское iOS/Android приложение, отдельное приложение водителя, realtime-заказы, статусы поездки, push-уведомления, восстановление активного заказа, архитектура под production и бизнес-операции."
-                 data-en="Trezv777 ecosystem built from scratch: client iOS/Android app, separate driver app, realtime orders, trip statuses, push notifications, active-order recovery, production-ready architecture and business operations.">
-                Экосистема для Trezv777 с нуля: клиентское iOS/Android приложение, приложение водителя, realtime-заказы, статусы поездки, push-уведомления и production-архитектура.
+              <h3>Trezv777 — Mobile Ecosystem</h3>
+              <p data-ru="Экосистема с нуля: iOS/Android приложение клиента, приложение водителя, realtime-заказы, push-уведомления, восстановление активного заказа."
+                 data-en="Ecosystem from scratch: client iOS/Android app, driver app, realtime orders, push notifications, active order recovery.">
+                Два приложения (клиент + водитель), realtime-заказы, push-уведомления. Production на trezv777.ru.
               </p>
               <div class="ptags"><span>Flutter</span><span>Dart</span><span>Realtime</span><span>iOS / Android</span></div>
+              <div class="pstat-row"><span class="pstat">2 приложения</span><span class="pstat">Production</span></div>
               <a href="https://trezv777.ru/" target="_blank" rel="noreferrer" class="plink">
                 <span data-ru="Открыть" data-en="Open">Открыть</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -380,62 +445,249 @@
               <div class="pglow"></div>
             </article>
 
-            <article class="pcard reveal red-card" style="--d:400ms">
+            <article class="pcard reveal red-card" style="--d:500ms">
               <div class="pnum">05</div>
-              <h3 data-ru="Security Automation Toolkit" data-en="Security Automation Toolkit">Security Automation Toolkit</h3>
-              <p data-ru="Кастомный инструментарий для аудита: разведка, проверка конфигураций, CVE-мониторинг, сбор артефактов, формирование понятных отчётов и приоритизация рисков для бизнеса."
-                 data-en="Custom audit toolkit: reconnaissance, configuration checks, CVE monitoring, artifact collection, clear reporting and business-risk prioritization.">
-                Кастомный инструментарий для аудита: разведка, CVE-мониторинг, сбор артефактов, отчёты и приоритизация рисков для бизнеса.
+              <h3>Security Automation Toolkit</h3>
+              <p data-ru="Кастомный инструме��тарий для аудита: разведка, CVE-мониторинг, сбор артефактов, отчёты, приоритизация рисков. Модули: SQLi, XSS, SSRF, subdomain takeover."
+                 data-en="Custom audit toolkit: recon, CVE monitoring, artifact collection, reports, risk prioritization. Modules: SQLi, XSS, SSRF, subdomain takeover.">
+                Automated pentest framework: scan → exploit → report. Модули SQLi, XSS, SSRF, subdomain enum.
               </p>
               <div class="ptags"><span>Python</span><span>Kali Linux</span><span>Bash</span></div>
               <span class="pprivate">🔒 Private</span>
               <div class="pglow pglow-r"></div>
             </article>
 
-            <article class="pcard reveal" style="--d:500ms">
+            <article class="pcard reveal" style="--d:600ms">
               <div class="pnum">06</div>
               <h3>Telegram & Business Bots</h3>
-              <p data-ru="Telegram-боты для продаж, поддержки и автоматизации: каталоги, корзина, админ-панель, заявки, уведомления, AI-функции, генерация материалов и интеграции с внешними API."
-                 data-en="Telegram bots for sales, support and automation: catalogs, cart, admin panel, requests, notifications, AI features, content generation and external API integrations.">
-                Telegram-боты для продаж, поддержки и автоматизации: каталоги, корзина, админ-панель, заявки, уведомления, AI-функции и API-интеграции.
+              <p data-ru="Боты для продаж, поддержки и автоматизации: каталоги, корзина, админ-панель, уведомления, AI-функции, генерация материалов, API-интеграции."
+                 data-en="Sales, support and automation bots: catalogs, cart, admin panel, notifications, AI features, content generation, external API integrations.">
+                Боты для продаж и автоматизации: каталоги, корзина, оплата, уведомления, AI-функции.
               </p>
-              <div class="ptags"><span>Python</span><span>Telegram API</span><span>AI</span><span>Automation</span></div>
+              <div class="ptags"><span>Python</span><span>Telegram API</span><span>AI</span><span>Payments</span></div>
               <span class="pprivate">⚡ Production</span>
               <div class="pglow"></div>
             </article>
 
-            <article class="pcard reveal" style="--d:600ms">
-              <div class="pnum">07</div>
-              <h3>AppsTorrent — macOS Compatibility Tools</h3>
-              <p data-ru="Практический опыт с macOS-софтом и переносом рабочих сценариев с Windows на Mac: упаковка, адаптация, проверка совместимости, автоматизация установки и разбор приложений, у которых нет удобной официальной версии под macOS."
-                 data-en="Practical experience with macOS software and moving Windows workflows to Mac: packaging, adaptation, compatibility checks, installer automation and analysis of apps without a convenient official macOS version.">
-                Практический опыт с macOS-софтом: упаковка, адаптация, проверка совместимости, автоматизация установки и перенос рабочих сценариев с Windows на Mac.
-              </p>
-              <div class="ptags"><span>macOS</span><span>Packaging</span><span>Automation</span><span>Reverse Engineering</span></div>
-              <a href="https://appstorrent.ru/" target="_blank" rel="noreferrer" class="plink">
-                <span data-ru="Открыть сайт" data-en="Open Site">Открыть сайт</span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              </a>
-              <div class="pglow"></div>
-            </article>
-
             <article class="pcard reveal red-card" style="--d:700ms">
-              <div class="pnum">08</div>
-              <h3>Game Security & Computer Vision Research</h3>
-              <p data-ru="С нуля писал исследовательский tooling для игровых клиентов CS/Valorant: захват экрана, компьютерное зрение, анализ процессов, Windows internals, low-level debugging и понимание античит-моделей. Подача как security research, anti-abuse и defensive thinking."
-                 data-en="Built research tooling for CS/Valorant clients from scratch: screen capture, computer vision, process analysis, Windows internals, low-level debugging and understanding of anti-cheat models. Positioned as security research, anti-abuse and defensive thinking.">
-                С нуля писал research tooling для CS/Valorant: захват экрана, computer vision, анализ процессов, Windows internals, low-level debugging и понимание античит-моделей.
+              <div class="pnum">07</div>
+              <h3>Game Security & CV Research</h3>
+              <p data-ru="Research tooling для CS/Valorant: захват экрана, computer vision (OpenCV), анализ процессов, Windows internals, WinAPI Hooking, DLL Injection, Kernel Driver research."
+                 data-en="Research tooling for CS/Valorant: screen capture, computer vision (OpenCV), process analysis, Windows internals, WinAPI Hooking, DLL Injection, Kernel Driver research.">
+                Research tooling: screen capture, OpenCV, Windows internals, WinAPI Hooking, Kernel Driver research.
               </p>
               <div class="ptags"><span>Python</span><span>C++</span><span>WinAPI</span><span>OpenCV</span><span>x64dbg</span></div>
               <span class="pprivate">🔒 Private research</span>
               <div class="pglow pglow-r"></div>
             </article>
 
+            <article class="pcard reveal" style="--d:800ms">
+              <div class="pnum">08</div>
+              <h3>AppsTorrent — macOS Tools</h3>
+              <p data-ru="Практический опыт с macOS-экосистемой: упаковка, адаптация, проверка с��вместимости, автоматизация установки, перенос Windows-workflows на Mac."
+                 data-en="Hands-on macOS ecosystem work: packaging, adaptation, compatibility checks, installer automation, migrating Windows workflows to Mac.">
+                macOS: упаковка, адаптация ПО, автоматизация установки. Работа с appstorrent.ru.
+              </p>
+              <div class="ptags"><span>macOS</span><span>Packaging</span><span>Automation</span><span>Reverse Eng.</span></div>
+              <a href="https://appstorrent.ru/" target="_blank" rel="noreferrer" class="plink">
+                <span data-ru="Открыть" data-en="Open">Открыть</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+              <div class="pglow"></div>
+            </article>
+
           </div>
         </div>
       </section>
 
-      <!-- ================== CYBERSECURITY ================== -->
+      <!-- ══ PRICING ══════════════════════════════════════════���═ -->
+      <section id="pricing" class="sec">
+        <div class="con">
+          <div class="sec-head reveal">
+            <code class="stag">// 02.5 · цены</code>
+            <h2 data-ru="Услуги и цены" data-en="Services & Pricing">Услуги и цены</h2>
+          </div>
+          <p class="contact-lead reveal" style="margin-bottom:40px;max-width:600px"
+             data-ru="Всё под ключ. Принимаю ТЗ или созваниваюсь и сам формулирую задачу. Работаю быстро, сдаю в срок."
+             data-en="Full-cycle delivery. I accept specs or jump on a call to formulate the task myself. Fast turnaround, on-time delivery.">
+            Всё под ключ. Принимаю ТЗ или созваниваюсь и сам формулирую задачу. Работаю быстро, сдаю в срок.
+          </p>
+          <div class="price-grid reveal">
+
+            <div class="prc-card">
+              <div class="prc-icon prc-icon-web">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              </div>
+              <h4 data-ru="Сайт-визитка / лендинг" data-en="Landing Page">Сайт-визитка / лендинг</h4>
+              <div class="prc-price">от <strong>8 000 ₽</strong></div>
+              <ul class="prc-list">
+                <li data-ru="Адаптивная вёрстка" data-en="Responsive layout">Адаптивная вёрстка</li>
+                <li data-ru="До 5 секций" data-en="Up to 5 sections">До 5 секций</li>
+                <li data-ru="Анимации и UI" data-en="Animations & UI">Анимации и UI</li>
+                <li data-ru="3–5 дней" data-en="3–5 days">3–5 дней</li>
+              </ul>
+            </div>
+
+            <div class="prc-card prc-card-featured">
+              <div class="prc-badge" data-ru="Популярно" data-en="Popular">Популярно</div>
+              <div class="prc-icon prc-icon-fullstack">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
+              </div>
+              <h4 data-ru="Full-Stack под ключ" data-en="Full-Stack App">Full-Stack под ключ</h4>
+              <div class="prc-price">от <strong>35 000 ₽</strong></div>
+              <ul class="prc-list">
+                <li data-ru="Frontend + Backend + БД" data-en="Frontend + Backend + DB">Frontend + Backend + БД</li>
+                <li data-ru="Авторизация, API, логика" data-en="Auth, API, logic">Авторизация, API, логика</li>
+                <li data-ru="Деплой на сервер" data-en="Server deployment">Деплой на сервер</li>
+                <li data-ru="2–4 недели" data-en="2–4 weeks">2–4 недели</li>
+              </ul>
+            </div>
+
+            <div class="prc-card">
+              <div class="prc-icon prc-icon-bot">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </div>
+              <h4 data-ru="Telegram бот" data-en="Telegram Bot">Telegram бот</h4>
+              <div class="prc-price">от <strong>10 000 ₽</strong></div>
+              <ul class="prc-list">
+                <li data-ru="Каталог, корзина, оплата" data-en="Catalog, cart, payment">Каталог, корзина, оплата</li>
+                <li data-ru="Админ-панель" data-en="Admin panel">Админ-панель</li>
+                <li data-ru="VPS хостинг" data-en="VPS hosting">VPS хостинг</li>
+                <li data-ru="5–10 дней" data-en="5–10 days">5–10 дней</li>
+              </ul>
+            </div>
+
+            <div class="prc-card">
+              <div class="prc-icon prc-icon-mobile">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+              </div>
+              <h4 data-ru="Mobile App (iOS/Android)" data-en="Mobile App (iOS/Android)">Mobile App (iOS/Android)</h4>
+              <div class="prc-price">от <strong>60 000 ₽</strong></div>
+              <ul class="prc-list">
+                <li data-ru="Flutter (одна кодовая база)" data-en="Flutter (single codebase)">Flutter (одна кодовая база)</li>
+                <li data-ru="iOS + Android" data-en="iOS + Android">iOS + Android</li>
+                <li data-ru="API интеграция" data-en="API integration">API интеграция</li>
+                <li data-ru="30+ дней" data-en="30+ days">30+ дней</li>
+              </ul>
+            </div>
+
+            <div class="prc-card prc-card-red">
+              <div class="prc-icon prc-icon-sec">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <h4 data-ru="Security аудит" data-en="Security Audit">Security аудит</h4>
+              <div class="prc-price">от <strong>25 000 ₽</strong></div>
+              <ul class="prc-list">
+                <li data-ru="Пентест веб / API" data-en="Web / API pentest">Пентест веб / API</li>
+                <li data-ru="OWASP Top 10" data-en="OWASP Top 10">OWASP Top 10</li>
+                <li data-ru="Подробный отчёт" data-en="Detailed report">Подробный отчёт</li>
+                <li data-ru="Рекомендации по hardening" data-en="Hardening recommendations">Рекомендации по hardening</li>
+              </ul>
+            </div>
+
+            <div class="prc-card">
+              <div class="prc-icon prc-icon-desktop">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </div>
+              <h4 data-ru="Desktop / корпоративное ПО" data-en="Desktop / Enterprise Software">Desktop / корпоративное ПО</h4>
+              <div class="prc-price">от <strong>40 000 ₽</strong></div>
+              <ul class="prc-list">
+                <li data-ru="Windows / macOS" data-en="Windows / macOS">Windows / macOS</li>
+                <li data-ru="Python / Electron" data-en="Python / Electron">Python / Electron</li>
+                <li data-ru="Установщик, документация" data-en="Installer, documentation">Установщик, документация</li>
+                <li data-ru="Поддержка после сдачи" data-en="Post-launch support">Поддержка после сдачи</li>
+              </ul>
+            </div>
+
+          </div>
+          <p class="reveal" style="margin-top:28px;font-size:13px;color:var(--muted);text-align:center"
+             data-ru="Цены ориентировочные. Сложность, сроки и итоговая стоимость — после обсуждения задачи. Пишите — разберёмся."
+             data-en="Prices are approximate. Complexity, timeline and final cost — after discussing the task. Just reach out.">
+            Цены ориентировочные. Сложность и итоговая стоимость — после обсуждения. Пишите — разберёмся.
+          </p>
+        </div>
+      </section>
+
+      <!-- ══ TESTIMONIALS ═══════════════════════════════════════ -->
+      <section class="sec">
+        <div class="con">
+          <div class="sec-head reveal">
+            <code class="stag">// 02.6 · отзывы</code>
+            <h2 data-ru="Говорят клиенты" data-en="Client Feedback">Говорят клиенты</h2>
+            <div class="rev-verified reveal" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px">
+              <a href="https://profi.ru/profile/YegorenkovKA" target="_blank" rel="noreferrer"
+                 style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:10px;background:rgba(0,179,255,.07);border:1px solid rgba(0,179,255,.18);color:var(--cyan);text-decoration:none;font-size:12px;font-weight:700;transition:all .2s"
+                 onmouseover="this.style.background='rgba(0,179,255,.16)'" onmouseout="this.style.background='rgba(0,179,255,.07)'">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <span data-ru="Отзывы на Profi.ru" data-en="Reviews on Profi.ru">Отзывы на Profi.ru</span>
+              </a>
+              <a href="https://www.avito.ru/brands/3197c864b764fe5bcf97a0f5a0eb3c22?src=sharing" target="_blank" rel="noreferrer"
+                 style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:10px;background:rgba(0,179,255,.07);border:1px solid rgba(0,179,255,.18);color:var(--cyan);text-decoration:none;font-size:12px;font-weight:700;transition:all .2s"
+                 onmouseover="this.style.background='rgba(0,179,255,.16)'" onmouseout="this.style.background='rgba(0,179,255,.07)'">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <span data-ru="Профиль на Авито" data-en="Profile on Avito">Профиль на Авито</span>
+              </a>
+            </div>
+          </div>
+          <div class="rev-grid" style="grid-template-columns:repeat(2,1fr)">
+
+            <!-- Dandy Pizza — Разработка ИИ -->
+            <div class="rev-card reveal">
+              <div class="rev-stars">★★★★★</div>
+              <p>"Мастер своего дела, профессионал. Задача была нестандартная и непростая. Без него бы не получилось дальше продвинуться по проекту. Быстро, качественно. Буду продолжать сотрудничество."</p>
+              <div class="rev-author">
+                <div class="rev-av" style="background:rgba(255,100,50,.15);color:#ff6432;font-size:13px">D</div>
+                <div>
+                  <strong>Dandy Pizza &amp; Sushi</strong>
+                  <span>Разработка ИИ · 40 000 ₽ · Profi.ru</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Батраз — Настройка ботов -->
+            <div class="rev-card reveal">
+              <div class="rev-stars">★★★★★</div>
+              <p>"Специалист отнёсся к задаче ответственно, делал всё возможное и невозможное. Я доволен, рекомендую, 10/10. Спасибо, Кирилл!"</p>
+              <div class="rev-author">
+                <div class="rev-av" style="background:rgba(0,179,255,.15);color:var(--cyan)">Б</div>
+                <div>
+                  <strong>Батраз</strong>
+                  <span>Настройка ботов · 10 000 ₽ · 15 дек 2025 · Profi.ru</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Женщина — установка -->
+            <div class="rev-card reveal">
+              <div class="rev-stars">★★★★★</div>
+              <p>"Супер специалист, помог установить всё что хотела и даже больше. Уверена, потратил намного больше времени чем планировал, но цена осталась неизменной. Очень рекомендую!"</p>
+              <div class="rev-author">
+                <div class="rev-av" style="background:rgba(168,85,247,.15);color:#a855f7">А</div>
+                <div>
+                  <strong data-ru="Клиентка" data-en="Client">Клиентка</strong>
+                  <span>IT-помощь · Profi.ru</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Windows на Mac -->
+            <div class="rev-card reveal">
+              <div class="rev-stars">★★★★★</div>
+              <p>"Работал по ночам удалённо, потратил 2 дня. Предлагал варианты решения. Отвечал на все мои вопросы — за профессионализм и терпение отдельное спасибо! Буду обращаться ещё."</p>
+              <div class="rev-author">
+                <div class="rev-av" style="background:rgba(0,200,100,.12);color:#00c864">К</div>
+                <div>
+                  <strong data-ru="Клиент" data-en="Client">Клиент</strong>
+                  <span>Windows на Mac · Profi.ru</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ CYBERSECURITY ══════════════════════════════════════ -->
       <section id="security" class="sec">
         <div class="con">
           <div class="sec-head reveal">
@@ -459,44 +711,24 @@
 
             <div class="sec-cards reveal">
               <div class="scard tilt">
-                <div class="sc-ico">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
+                <div class="sc-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
                 <h4 data-ru="Пентестинг" data-en="Penetration Testing">Пентестинг</h4>
-                <p data-ru="Black / white / grey-box тестирование веб-приложений, API и сетевой инфраструктуры."
-                   data-en="Black/white/grey-box testing of web apps, APIs, and network infrastructure.">
-                  Black / white / grey-box тестирование веб-приложений, API и инфраструктуры.
-                </p>
+                <p data-ru="Black / white / grey-box тестирование веб-приложений, API и инфраструктуры." data-en="Black/white/grey-box testing of web apps, APIs, and network infrastructure.">Black / white / grey-box тестирование веб-приложений, API и инфраструктуры.</p>
               </div>
               <div class="scard tilt">
-                <div class="sc-ico">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-                </div>
+                <div class="sc-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
                 <h4 data-ru="Аудит безопасности" data-en="Security Audit">Аудит безопасности</h4>
-                <p data-ru="Анализ инфраструктуры, оценка уязвимостей, рекомендации по hardening и написание отчётов."
-                   data-en="Infrastructure analysis, vulnerability assessment, hardening recommendations and detailed reports.">
-                  Анализ инфраструктуры, оценка уязвимостей, hardening и отчётность.
-                </p>
+                <p data-ru="Анализ инфраструктуры, оценка уязвимостей, hardening и отчётность." data-en="Infrastructure analysis, vulnerability assessment, hardening and reporting.">Анализ инфраструктуры, оценка уязвимостей, hardening и отчётность.</p>
               </div>
               <div class="scard tilt">
-                <div class="sc-ico">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                </div>
+                <div class="sc-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
                 <h4 data-ru="Exploit Dev" data-en="Exploit Development">Exploit Dev</h4>
-                <p data-ru="Написание PoC эксплойтов, анализ CVE, reverse engineering бинарных файлов и малвари."
-                   data-en="Writing PoC exploits, CVE analysis, reverse engineering of binaries and malware.">
-                  Написание PoC эксплойтов, анализ CVE, reverse engineering бинарников.
-                </p>
+                <p data-ru="Написание PoC эксплойтов, анализ CVE, reverse engineering бинарников." data-en="Writing PoC exploits, CVE analysis, reverse engineering of binaries.">Написание PoC эксплойтов, анализ CVE, reverse engineering бинарников.</p>
               </div>
               <div class="scard tilt">
-                <div class="sc-ico">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                </div>
+                <div class="sc-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
                 <h4 data-ru="Сетевая безопасность" data-en="Network Security">Сетевая безопасность</h4>
-                <p data-ru="Настройка фаервола, анализ трафика, обнаружение вторжений, VPN и туннелирование."
-                   data-en="Firewall config, traffic analysis, intrusion detection, VPN and tunneling.">
-                  Настройка фаервола, анализ трафика, IDS, VPN и туннелирование.
-                </p>
+                <p data-ru="Настройка фаервола, анализ трафика, IDS, VPN и туннелирование." data-en="Firewall config, traffic analysis, IDS, VPN and tunneling.">Настройка фаервола, анализ трафика, IDS, VPN и туннелирование.</p>
               </div>
             </div>
           </div>
@@ -514,12 +746,12 @@
             <span class="tchip tchip-dim" title="Dynamic Binary Analysis / Debugging">x64dbg</span>
             <span class="tchip tchip-dim" title="Kernel-Level Driver Research">Kernel Driver Dev</span>
             <span class="tchip tchip-dim" title="Cheat Engine — Memory Scanner / Researcher">Cheat Engine</span>
-            <span class="tchip tchip-dim" title="Process Environment Block / Windows Internals">Windows Internals</span>
+            <span class="tchip tchip-dim" title="Windows Internals">Windows Internals</span>
           </div>
         </div>
       </section>
 
-      <!-- ================== EDUCATION ================== -->
+      <!-- ══ EDUCATION ══════════════════════════════════════════ -->
       <section id="education" class="sec">
         <div class="con">
           <div class="sec-head reveal">
@@ -533,9 +765,8 @@
               <div class="tl-card tilt">
                 <span class="tl-yr">2022 — 2026</span>
                 <h3 data-ru="КПК РТУ МИРЭА / МФЮА — Кибербезопасность" data-en="RTU MIREA College / MFUA — Cybersecurity">КПК РТУ МИРЭА / МФЮА — Кибербезопасность</h3>
-                <p data-ru="Колледж программирования и кибербезопасности РТУ МИРЭА + МФЮА. Специальность: 10.02.05 «Обеспечение информационной безопасности автоматизированных систем». 4-летняя программа после 9 класса. Окончание — 2026."
-                   data-en="College of Programming and Cybersecurity at RTU MIREA + MFUA. Major: 10.02.05 «Information Security of Automated Systems». 4-year program after 9th grade. Graduating 2026.">
-                  Колледж программирования и кибербезопасности — РТУ МИРЭА / МФЮА. Специальность: 10.02.05 «ИБ автоматизированных систем». 4 года. Окончание — 2026.
+                <p data-ru="Колледж программирования и кибербезопасности РТУ МИРЭА + МФЮА. Специальность: 10.02.05 «Обеспечение информационной безопасности автоматизированных систем». 4 года. Окончание — 2026." data-en="College of Programming and Cybersecurity at RTU MIREA + MFUA. Major: 10.02.05. 4-year program. Graduating 2026.">
+                  Колледж программирования и кибербезопасности — РТУ МИРЭА / МФЮА. 10.02.05 «ИБ автоматизированных систем». 4 года. Окончание — 2026.
                 </p>
                 <div class="tl-tags"><span>ИБ / 10.02.05</span><span>Сети</span><span>Kali Linux</span><span>Криптография</span><span>РТУ МИРЭА</span></div>
               </div>
@@ -545,30 +776,35 @@
               <div class="tl-card tilt">
                 <span class="tl-yr">2023 — н.в.</span>
                 <h3 data-ru="Самообучение и CTF соревнования" data-en="Self-Study & CTF Competitions">Самообучение и CTF соревнования</h3>
-                <p data-ru="Участие в CTF, разработка exploit-фреймворков, изучение reverse engineering и анализа вредоносного ПО."
-                   data-en="CTF participation, exploit framework development, reverse engineering and malware analysis.">
-                  Участие в CTF, разработка exploit-фреймворков, reverse engineering, анализ малвари.
-                </p>
-                <div class="tl-tags"><span>CTF</span><span>Reverse Eng.</span><span>Exploit Dev</span></div>
+                <p data-ru="CTF соревнования, разработка exploit-фреймворков, reverse engineering, анализ малвари, game security research." data-en="CTF competitions, exploit framework development, reverse engineering, malware analysis, game security research.">CTF, exploit-фреймворки, reverse engineering, анализ малвари, game security research.</p>
+                <div class="tl-tags"><span>CTF</span><span>Reverse Eng.</span><span>Exploit Dev</span><span>Malware Analysis</span></div>
+              </div>
+            </div>
+            <div class="tl-item reveal">
+              <div class="tl-mark"><div class="tl-dot"></div><div class="tl-line"></div></div>
+              <div class="tl-card tilt">
+                <span class="tl-yr">2023 — н.в.</span>
+                <h3 data-ru="Коммерческие проекты" data-en="Commercial Projects">Коммерческие проекты</h3>
+                <p data-ru="Full-cycle разработка: Dandy Pizza, Trezv777, Buddy Bot, Security Toolkit, JARVIS OS. От ТЗ до деплоя." data-en="Full-cycle development: Dandy Pizza, Trezv777, Buddy Bot, Security Toolkit, JARVIS OS. From spec to deploy.">Full-cycle разработка: Dandy Pizza, Trezv777, Buddy Bot, JARVIS OS. От ТЗ до деплоя и поддержки.</p>
+                <div class="tl-tags"><span>Freelance</span><span>Commercial</span><span>Full-Stack</span><span>5000+ users</span></div>
               </div>
             </div>
             <div class="tl-item reveal">
               <div class="tl-mark"><div class="tl-dot"></div></div>
-              <div class="tl-card tilt">
-                <span class="tl-yr">2024 — 2026</span>
-                <h3 data-ru="Коммерческие проекты" data-en="Commercial Projects">Коммерческие проекты</h3>
-                <p data-ru="Full-cycle разработка для реальных клиентов: сайты, Telegram-боты, desktop ПО и корпоративные системы от ТЗ до деплоя."
-                   data-en="Full-cycle development for real clients: websites, Telegram bots, desktop software, corporate systems from spec to deploy.">
-                  Full-cycle разработка для реальных клиентов: сайты, боты, desktop ПО от ТЗ до деплоя.
+              <div class="tl-card tilt" style="border-color:rgba(0,179,255,.25)">
+                <span class="tl-yr" style="color:var(--cyan)">2025 — н.в.</span>
+                <h3 data-ru="JARVIS Living OS — AI Desktop" data-en="JARVIS Living OS — AI Desktop">JARVIS Living OS — AI Desktop</h3>
+                <p data-ru="Собственная AI OS с нуля. Multi-provider AI (DeepSeek / Anthropic / OpenAI / Ollama), 3D UI на PyQt6, 10 сцен, голосовое управление, агент-режим, OS-контроль. 8500+ строк. Продолжаю развивать." data-en="Custom AI OS from scratch. Multi-provider AI, 3D PyQt6 UI, 10 scenes, voice, agent mode, OS control. 8500+ lines. Still building.">
+                  AI OS с нуля. Multi-provider AI, 3D PyQt6 UI, 10 сцен, голос, агент, OS-контроль. 8500+ строк. Продолжаю развивать.
                 </p>
-                <div class="tl-tags"><span>Freelance</span><span>Commercial</span><span>Full-Stack</span></div>
+                <div class="tl-tags"><span>AI / LLM</span><span>Python</span><span>PyQt6</span><span>OpenGL</span><span>8500+ строк</span></div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ================== CONTACT ================== -->
+      <!-- ══ CONTACT ════════════════════════════════════════════ -->
       <section id="contact" class="sec">
         <div class="con">
           <div class="sec-head reveal">
@@ -577,15 +813,13 @@
           </div>
           <div class="contact-wrap reveal">
             <p class="contact-lead"
-               data-ru="Открыт к новым возможностям — full-time, freelance или сотрудничество. Отвечу в течение 24 часов."
-               data-en="Open to new opportunities — full-time, freelance, or collaboration. I'll reply within 24 hours.">
-              Открыт к новым возможностям — full-time, freelance или сотрудничество. Отвечу в течение 24 часов.
+               data-ru="Открыт к офферам — full-time, freelance, стажировка. Отвечу в течение нескольких часов. Пишите напрямую — не через посредников."
+               data-en="Open to offers — full-time, freelance, internship. I reply within hours. Write directly — no intermediaries.">
+              Открыт к офферам — full-time, freelance, стажировка. Отвечу в течение нескольких часов.
             </p>
             <div class="clinks">
               <a href="mailto:Kirill2006788@gmail.com" class="ccard tilt">
-                <div class="cc-ico">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                </div>
+                <div class="cc-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
                 <div class="cc-txt">
                   <span class="cc-lbl">Email</span>
                   <strong>Kirill2006788@gmail.com</strong>
@@ -593,12 +827,26 @@
                 <span class="cc-arr">→</span>
               </a>
               <a href="https://t.me/HeyBro8664" target="_blank" rel="noreferrer" class="ccard tilt">
-                <div class="cc-ico">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                </div>
+                <div class="cc-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
                 <div class="cc-txt">
                   <span class="cc-lbl">Telegram</span>
                   <strong>@HeyBro8664</strong>
+                </div>
+                <span class="cc-arr">→</span>
+              </a>
+              <a href="https://github.com/lukyforrer-glitch" target="_blank" rel="noreferrer" class="ccard tilt">
+                <div class="cc-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg></div>
+                <div class="cc-txt">
+                  <span class="cc-lbl">GitHub</span>
+                  <strong>lukyforrer-glitch</strong>
+                </div>
+                <span class="cc-arr">→</span>
+              </a>
+              <a href="cv.html" target="_blank" class="ccard tilt">
+                <div class="cc-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                <div class="cc-txt">
+                  <span class="cc-lbl" data-ru="Резюме" data-en="Resume">Резюме</span>
+                  <strong data-ru="Скачать CV (PDF)" data-en="Download CV (PDF)">Скачать CV (PDF)</strong>
                 </div>
                 <span class="cc-arr">→</span>
               </a>
@@ -612,7 +860,7 @@
     <footer class="footer">
       <div class="foot-inner">
         <span>© 2026 Кирилл Форрер</span>
-        <span class="foot-mid">Senior Cybersecurity &amp; Full-Stack Developer</span>
+        <span class="foot-mid">Senior Cybersecurity &amp; Full-Stack Developer · Москва</span>
         <span style="color:rgba(255,255,255,.18);font-size:11px;font-family:var(--mono)">root@kali:~# _</span>
       </div>
     </footer>
