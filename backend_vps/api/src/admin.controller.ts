@@ -36,15 +36,18 @@ export class AdminController {
   private requireAdmin(authHeader?: string) {
     const token = authHeader?.replace(/^Bearer\s+/i, '').trim();
     if (!token) throw new UnauthorizedException('Admin token required');
-    const secret = process.env.JWT_SECRET;
-    if (!secret) throw new Error('JWT_SECRET not set');
+    const secret = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET;
+    if (!secret) throw new UnauthorizedException('Server configuration error');
     let payload: any;
     try {
-      payload = jwt.verify(token, secret) as any;
+      payload = jwt.verify(token, secret, {
+        issuer: 'prostotaxi-admin',
+        audience: 'prostotaxi-admin-panel',
+      }) as any;
     } catch {
       throw new UnauthorizedException('Invalid token');
     }
-    if (!payload || payload.role !== 'admin') {
+    if (!payload || payload.role !== 'admin' || payload.scope !== 'admin:full') {
       throw new UnauthorizedException('Admin token required');
     }
     return payload;

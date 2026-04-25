@@ -1,4 +1,5 @@
 import { BadGatewayException, BadRequestException, Body, Controller, Headers, Post, UnauthorizedException } from '@nestjs/common';
+import { createHash, randomUUID, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { OtpService } from './otp.service';
 import { SmsService } from './sms.service';
@@ -13,6 +14,36 @@ export class AuthController {
   ) {}
 
   private static adminLoginAttempts = new Map<string, { count: number; firstAt: number; lockUntil?: number }>();
+
+  private getClientIp(forwardedFor?: string, realIp?: string) {
+    const forwarded = (forwardedFor || '').toString().split(',')[0].trim();
+    const direct = (realIp || '').toString().trim();
+    return (forwarded || direct || 'unknown').slice(0, 80);
+  }
+
+  private isAdminIpAllowed(ip: string) {
+    const raw = (process.env.ADMIN_IP_ALLOWLIST || process.env.ADMIN_ALLOWED_IPS || '').trim();
+    if (!raw) return true;
+    const normalized = ip.trim().toLowerCase();
+    if (!normalized || normalized === 'unknown') return false;
+    const entries = raw
+      .split(',')
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean);
+    return entries.some((entry) => {
+      if (entry === normalized) return true;
+      if (entry.endsWith('*')) {
+        return normalized.startsWith(entry.slice(0, -1));
+      }
+      return false;
+    });
+  }
+
+  private safeEqual(left: string, right: string) {
+    const leftHash = createHash('sha256').update(left).digest();
+    const rightHash = createHash('sha256').update(right).digest();
+    return timingSafeEqual(leftHash, rightHash);
+  }
 
   private guardAdminLogin(ip: string) {
     const now = Date.now();
@@ -90,24 +121,41 @@ export class AuthController {
   async adminLogin(
     @Body() body: { login?: string; password?: string },
     @Headers('x-forwarded-for') forwardedFor?: string,
+    @Headers('x-real-ip') realIp?: string,
   ) {
-    const ip = (forwardedFor || 'unknown').toString().split(',')[0].trim().slice(0, 80);
+    const ip = this.getClientIp(forwardedFor, realIp);
+    if (!this.isAdminIpAllowed(ip)) {
+      throw new UnauthorizedException('Access denied');
+    }
     this.guardAdminLogin(ip);
-    const login = (body.login || '').trim();
-    const password = (body.password || '').trim();
+    const login = typeof body?.login === 'string' ? body.login.trim() : '';
+    const password = typeof body?.password === 'string' ? body.password.trim() : '';
     const expectedLogin = (process.env.ADMIN_LOGIN || '').trim();
     const expectedPassword = (process.env.ADMIN_PASSWORD || '').trim();
     if (!expectedLogin || !expectedPassword) {
-      throw new UnauthorizedException('Admin login not configured');
+      throw new UnauthorizedException('Server configuration error');
     }
-    if (login !== expectedLogin || password !== expectedPassword) {
+    if (expectedPassword.length < 12 && String(process.env.NODE_ENV || '').toLowerCase() === 'production') {
+      throw new UnauthorizedException('Server configuration error');
+    }
+    if (!login || !password || !this.safeEqual(login, expectedLogin) || !this.safeEqual(password, expectedPassword)) {
       this.failAdminLogin(ip);
       throw new UnauthorizedException('Invalid credentials');
     }
-    const secret = process.env.JWT_SECRET;
+    const secret = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET;
     if (!secret) throw new UnauthorizedException('Server configuration error');
+    const expiresIn = (process.env.ADMIN_JWT_EXPIRES_IN || '12h').trim();
     this.clearAdminLoginAttempts(ip);
-    const token = jwt.sign({ role: 'admin', login }, secret, { expiresIn: '30d' });
-    return { ok: true, token };
+    const token = jwt.sign(
+      { role: 'admin', login, scope: 'admin:full' },
+      secret,
+      {
+        expiresIn,
+        issuer: 'prostotaxi-admin',
+        audience: 'prostotaxi-admin-panel',
+        jwtid: randomUUID(),
+      },
+    );
+    return { ok: true, token, expiresIn };
   }
 }

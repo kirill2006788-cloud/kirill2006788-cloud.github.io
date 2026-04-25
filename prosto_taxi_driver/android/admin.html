@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http: https:; img-src 'self' data: http: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none';" />
   <title>Admin Panel</title>
   <style>
     :root{
@@ -2470,6 +2470,13 @@
           </svg>
         </div>
         <!-- выход -->
+        <div class="miniIcon" title="Документы" id="openLegalModal">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h8l4 4v14H7z" fill="none"/>
+            <path d="M15 3v5h5" fill="none"/>
+            <path d="M10 12h6M10 16h6" fill="none"/>
+          </svg>
+        </div>
         <div class="miniIcon" title="Выход" id="openLoginModal">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M10 17l5-5-5-5" />
@@ -3116,15 +3123,15 @@
   <script>
     (function () {
       const API_BASE = `${location.origin}/api`;
-      const ADMIN_TOKEN_KEY = 'admin_token';
-      let adminToken = localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+      const ADMIN_TOKEN_KEY = 'admin_token_session';
+      let adminToken = sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
 
       function setAdminToken(token) {
         adminToken = token || '';
         if (adminToken) {
-          localStorage.setItem(ADMIN_TOKEN_KEY, adminToken);
+          sessionStorage.setItem(ADMIN_TOKEN_KEY, adminToken);
         } else {
-          localStorage.removeItem(ADMIN_TOKEN_KEY);
+          sessionStorage.removeItem(ADMIN_TOKEN_KEY);
         }
       }
 
@@ -3387,7 +3394,10 @@
           openLoginModal();
           throw new Error('NO_ADMIN_TOKEN');
         }
-        const headers = Object.assign({}, options.headers || {}, {
+        const headers = Object.assign({
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        }, options.headers || {}, {
           Authorization: `Bearer ${adminToken}`,
         });
         const ctrl = new AbortController();
@@ -3395,7 +3405,12 @@
         const timer = setTimeout(() => ctrl.abort(), timeoutMs);
         let response;
         try {
-          response = await fetch(url, Object.assign({}, options, { headers, signal: ctrl.signal }));
+          response = await fetch(url, Object.assign({}, options, {
+            cache: 'no-store',
+            credentials: 'same-origin',
+            headers,
+            signal: ctrl.signal,
+          }));
         } catch (e) {
           if (e && e.name === 'AbortError') {
             throw new Error('ADMIN_FETCH_TIMEOUT');
@@ -3473,6 +3488,7 @@
       const blockId = document.getElementById('blockId');
       const blockReasonInput = document.getElementById('blockReason');
 
+      const openLegalModalBtn = document.getElementById('openLegalModal');
       const openLoginModalBtn = document.getElementById('openLoginModal');
       const loginModal = document.getElementById('loginModal');
       const closeLoginModalBtn = document.getElementById('closeLoginModal');
@@ -6176,6 +6192,59 @@
         if (openLoginModalBtn) openLoginModalBtn.focus();
       }
 
+      function openLegalModal() {
+        const overlay = document.createElement('div');
+        overlay.className = 'modalOverlay';
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.innerHTML = `
+          <div class="modalHeader">
+            <div class="modalTitle">Документы и доступ</div>
+            <button class="closeBtn" type="button" aria-label="Закрыть">×</button>
+          </div>
+          <div class="modalBody" style="display:grid;gap:14px;line-height:1.55;">
+            <div>
+              <div style="font-weight:900;margin-bottom:6px;">Политика конфиденциальности</div>
+              <div>Админ-панель используется только для служебной обработки заказов, водителей, клиентов, выплат, обращений и документов верификации. Любое использование данных вне рабочих задач запрещено.</div>
+            </div>
+            <div>
+              <div style="font-weight:900;margin-bottom:6px;">Обработка персональных данных</div>
+              <div>В панели допускается работа только с теми персональными данными, которые необходимы для исполнения заказов, поддержки, верификации, бухгалтерского учёта, противодействия мошенничеству и соблюдения требований законодательства РФ.</div>
+            </div>
+            <div>
+              <div style="font-weight:900;margin-bottom:6px;">Обязанности администратора</div>
+              <div>Администратор обязан соблюдать конфиденциальность, не передавать доступ третьим лицам, использовать сложный пароль, входить только с разрешённых IP-адресов и немедленно сообщать о подозрительной активности.</div>
+            </div>
+            <div>
+              <div style="font-weight:900;margin-bottom:6px;">Запрещённые действия</div>
+              <div>Запрещены выгрузка клиентских баз, передача скриншотов с ПДн, изменение данных без служебного основания, вход с чужих устройств без согласования и любые попытки обойти ограничения безопасности.</div>
+            </div>
+            <div>
+              <div style="font-weight:900;margin-bottom:6px;">Меры безопасности</div>
+              <div>Сессии админки ограничены по времени, вход защищён токеном, rate-limit и IP allowlist. Для работы рекомендуется использовать только личное доверенное устройство и защищённое соединение.</div>
+            </div>
+          </div>
+          <div class="modalFooter">
+            <button class="btn primary" type="button" data-action="ok">Понятно</button>
+          </div>
+        `;
+        const close = () => {
+          document.body.classList.remove('modalOpen');
+          overlay.remove();
+        };
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) close();
+        });
+        modal.querySelector('.closeBtn')?.addEventListener('click', close);
+        modal.querySelector('[data-action="ok"]')?.addEventListener('click', close);
+        document.body.appendChild(overlay);
+        overlay.appendChild(modal);
+        document.body.classList.add('modalOpen');
+      }
+
+      openLegalModalBtn?.addEventListener('click', openLegalModal);
       openLoginModalBtn?.addEventListener('click', () => {
         if (adminToken) {
           const ok = confirm('Выйти из админки?');
@@ -6199,7 +6268,13 @@
         try {
           const res = await fetch(`${API_BASE}/auth/otp/admin/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
+            credentials: 'same-origin',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
             body: JSON.stringify({ login, password }),
           });
           const data = await res.json();
@@ -6572,6 +6647,10 @@
         indicator.innerHTML = '<span class="dot"></span> Автообновление 15с';
         indicator.style.padding = '12px 18px';
         sidebar.appendChild(indicator);
+      }
+
+      if (!adminToken) {
+        openLoginModal();
       }
 
       // Always start — autoRefreshTick exits early if no token
