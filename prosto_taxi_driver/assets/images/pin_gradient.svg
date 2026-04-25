@@ -1,0 +1,36 @@
+<svg width="240" height="300" viewBox="0 0 200 260"
+     xmlns="http://www.w3.org/2000/svg" aria-label="Gradient map pin">
+
+  <defs>
+    <linearGradient id="pinGradient"
+      x1="20" y1="20"
+      x2="180" y2="240"
+      gradientUnits="userSpaceOnUse">
+
+      <stop offset="0%"   stop-color="#6A00FF"/>
+      <stop offset="25%"  stop-color="#FF3DB8"/>
+      <stop offset="45%"  stop-color="#FF8A00"/>
+      <stop offset="65%"  stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FF0000"/>
+    </linearGradient>
+
+    <mask id="hole">
+      <rect width="100%" height="100%" fill="white"/>
+      <circle cx="100" cy="90" r="42" fill="black"/>
+    </mask>
+  </defs>
+
+  <path
+    d="
+      M100 20
+      C58 20 30 50 30 92
+      C30 140 70 170 92 220
+      C96 232 104 232 108 220
+      C130 170 170 140 170 92
+      C170 50 142 20 100 20
+      Z
+    "
+    fill="url(#pinGradient)"
+    mask="url(#hole)"
+  />
+</svg>

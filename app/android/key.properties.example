@@ -1,0 +1,4 @@
+storeFile=release-keystore.jks
+storePassword=change_me
+keyAlias=upload
+keyPassword=change_me

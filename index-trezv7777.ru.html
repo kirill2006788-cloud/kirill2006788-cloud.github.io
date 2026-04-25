@@ -1,0 +1,3594 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%231b1b1f'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='%23ffb24a'>A</text></svg>" />
+  <title>Admin Panel</title>
+  <style>
+    :root{
+      --bg:#000;
+      --side:#1b1b1f;          /* темно-серый сайдбар */
+      --panel:#0e0e12;         /* карточки/таблица */
+      --lineRed:#ff2b2b;       /* сияющие красные линии */
+      --red:#e11b22;           /* красные кнопки */
+      --yellow:#ffb24a;        /* желтая подсветка */
+      --text:#ffffff;
+      --muted:#cfcfd6;
+      --stroke:#000;          /* тонкая черная обводка */
+      --shadow:0 14px 40px rgba(0,0,0,.65);
+      --r:14px;
+      --sideW:260px;
+      --topH:0px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1100px 700px at 65% 30%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(900px 620px at 25% 70%, rgba(255,255,255,.04), transparent 62%),
+        radial-gradient(1200px 900px at 50% 50%, rgba(255,255,255,.03), transparent 65%),
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.0) 40%, rgba(0,0,0,.25)),
+        var(--bg);
+      color:var(--text);
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 4px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 6px);
+      opacity:.08;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+      z-index:0;
+    }
+
+    /* layout */
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-rows: 1fr;
+      grid-template-columns: var(--sideW) 1fr;
+      position:relative;
+      z-index:1;
+      overflow-x:hidden;
+    }
+
+    .topbar{
+      grid-column: 1 / -1;
+      grid-row: 1;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding: 10px 18px;
+      background:
+        radial-gradient(900px 420px at 60% 20%, rgba(255,255,255,.06), transparent 65%),
+        linear-gradient(180deg, rgba(0,0,0,.78), rgba(0,0,0,.45));
+    }
+
+    /* glowing dividers */
+    .glowTop{
+      position:fixed;
+      left:0; right:0; top:var(--topH);
+      height:2px;
+      background: var(--lineRed);
+      box-shadow: 0 0 16px rgba(255,43,43,.75), 0 0 40px rgba(255,43,43,.35);
+      pointer-events:none;
+      z-index:5;
+    }
+    .glowVert{
+      position:fixed;
+      top:var(--topH); bottom:0; left:var(--sideW);
+      width:2px;
+      background: rgba(255,43,43,.45);
+      box-shadow: 0 0 16px rgba(255,43,43,.55), 0 0 40px rgba(255,43,43,.25);
+      pointer-events:none;
+      z-index:5;
+    }
+
+    /* sidebar */
+    .sidebar{
+      grid-column: 1;
+      grid-row: 1;
+      background:
+        radial-gradient(800px 500px at 60% 20%, rgba(255,255,255,.05), transparent 65%),
+        linear-gradient(180deg, rgba(40,40,46,.95), rgba(10,10,12,.98));
+      padding: 16px 0 0;
+      position:relative;
+      box-shadow: 12px 0 40px rgba(0,0,0,.55);
+    }
+
+    .avatarBox{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+      padding: 0;
+      margin-top: 0;
+    }
+    .avatar{
+      width:92px; height:92px;
+      border-radius:50%;
+      background: #cfe4ff;
+      display:grid;
+      place-items:center;
+      border: 4px solid rgba(0,0,0,.95);
+      box-shadow:
+        0 0 0 3px rgba(255,255,255,.14),
+        0 16px 26px rgba(0,0,0,.55);
+    }
+    .avatar svg{ width:74px; height:74px; }
+    .hello{
+      font-weight:800;
+      font-size:20px;
+      letter-spacing:.2px;
+      text-shadow:
+        -1px -1px 0 var(--stroke),
+         1px -1px 0 var(--stroke),
+        -1px  1px 0 var(--stroke),
+         1px  1px 0 var(--stroke);
+    }
+
+    .nav{
+      margin-top: 18px;
+      padding: 0 12px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .navBtn{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding: 14px 12px;
+      border-radius: 10px;
+      background: rgba(0,0,0,.28);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow:
+        0 14px 26px rgba(0,0,0,.35),
+        inset 0 0 0 1px rgba(255,255,255,.02);
+      color: rgba(255,255,255,.86);
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .navBtn:hover{
+      background: rgba(0,0,0,.34);
+      border-color: rgba(255,255,255,.12);
+    }
+
+    .navBtn .icoWrap{
+      width:44px; height:44px;
+      border-radius:12px;
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      display:grid;
+      place-items:center;
+      flex: 0 0 44px;
+    }
+
+    .navBtn svg{
+      width:26px; height:26px;
+      fill: var(--red);
+      stroke: var(--red);
+      stroke-width: 1.8;
+      filter: drop-shadow(0 0 0 rgba(0,0,0,.0));
+    }
+
+    .navBtn span{
+      font-weight:900;
+      letter-spacing:.2px;
+      text-shadow: 0 2px 12px rgba(0,0,0,.55);
+    }
+
+    /* active */
+    .navBtn.active{
+      border-color: rgba(255,178,74,.85);
+      outline: 1px solid rgba(255,178,74,.25);
+      box-shadow:
+        0 0 0 1px rgba(255,178,74,.18) inset,
+        0 0 22px rgba(255,178,74,.35),
+        0 18px 34px rgba(0,0,0,.55);
+      background: rgba(0,0,0,.36);
+      position:relative;
+    }
+
+    .navBtn.active::before{
+      content:"";
+      position:absolute;
+      left:-1px;
+      top:10px;
+      bottom:10px;
+      width:4px;
+      border-radius: 4px;
+      background: rgba(255,178,74,.95);
+      box-shadow: 0 0 18px rgba(255,178,74,.45);
+    }
+
+    .navBtn.active .icoWrap{
+      background: rgba(255,178,74,.14);
+      border-color: rgba(255,178,74,.30);
+      box-shadow: 0 0 18px rgba(255,178,74,.25);
+    }
+
+    .navBtn.active svg{
+      fill: var(--yellow);
+      stroke: var(--yellow);
+    }
+
+    /* bottom icons */
+    .sideBottom{
+      position:absolute;
+      left:14px; right:14px; bottom:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding-top: 10px;
+    }
+    .miniIcon{
+      width:44px; height:44px;
+      border-radius:12px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.06);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+    }
+    .miniIcon svg{
+      width:22px; height:22px;
+      fill: none;
+      stroke: #bdbdc7;
+      stroke-width: 2.2;
+    }
+
+    html, body{
+      overflow-x:hidden;
+    }
+
+    /* content */
+    .content{
+      grid-column: 2;
+      grid-row: 1;
+      padding: 18px 34px 34px;
+      background: transparent;
+      position:relative;
+      overflow-x:hidden;
+      min-width:0;
+    }
+    .page{
+      max-width:100%;
+      overflow-x:hidden;
+    }
+
+    /* ─── Orders toolbar ─── */
+    .ordersToolbar{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-bottom:18px;
+    }
+    .ordersToolbarTabs{
+      display:flex;
+      gap:8px;
+    }
+    .ordersFilterBar{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      padding:10px 14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:12px;
+    }
+    .oFilter{
+      height:36px;
+      padding:0 10px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.45);
+      color:#fff;
+      font-size:13px;
+      font-weight:700;
+      outline:none;
+      transition:border-color .15s;
+    }
+    .oFilter:focus{
+      border-color:rgba(255,43,43,.55);
+    }
+    select.oFilter{
+      min-width:110px;
+      cursor:pointer;
+      -webkit-appearance:none;
+      appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 10px center;
+      padding-right:26px;
+    }
+    select.oFilter option{
+      background:#1a1a1e;
+      color:#fff;
+    }
+    .oFilterWide{
+      min-width:160px;
+      flex:1 1 160px;
+      max-width:240px;
+    }
+    .oFilterCheck{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:0 10px;
+      height:36px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.45);
+      cursor:pointer;
+      font-size:12px;
+      font-weight:800;
+      color:rgba(255,255,255,.7);
+      white-space:nowrap;
+      transition:border-color .15s, background .15s;
+      user-select:none;
+    }
+    .oFilterCheck:hover{
+      border-color:rgba(255,255,255,.2);
+      background:rgba(255,255,255,.06);
+    }
+    .oFilterCheck:has(input:checked){
+      border-color:rgba(124,58,237,.5);
+      background:rgba(124,58,237,.12);
+      color:#b07cff;
+    }
+    .oFilterCheck input{
+      accent-color:#7c3aed;
+      width:14px;
+      height:14px;
+      cursor:pointer;
+    }
+    .oFilterBtn{
+      height:36px;
+      padding:0 18px;
+      border-radius:8px;
+      border:none;
+      font-size:13px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .1s, box-shadow .15s;
+      white-space:nowrap;
+    }
+    .oFilterBtn:active{
+      transform:scale(.97);
+    }
+    .oFilterApply{
+      background:linear-gradient(135deg, rgba(255,43,43,.85), rgba(200,30,30,.95));
+      color:#fff;
+      box-shadow:0 2px 12px rgba(255,43,43,.3);
+    }
+    .oFilterApply:hover{
+      box-shadow:0 4px 20px rgba(255,43,43,.45);
+    }
+    .oFilterReset{
+      background:rgba(255,255,255,.08);
+      color:rgba(255,255,255,.6);
+    }
+    .oFilterReset:hover{
+      background:rgba(255,255,255,.12);
+      color:rgba(255,255,255,.85);
+    }
+
+    .title{
+      margin: 0 0 14px;
+      font-size: 34px;
+      font-weight: 950;
+      letter-spacing:.3px;
+      text-shadow:
+        -1px -1px 0 var(--stroke),
+         1px -1px 0 var(--stroke),
+        -1px  1px 0 var(--stroke),
+         1px  1px 0 var(--stroke);
+    }
+
+    .searchRow{
+      margin: 0 0 18px;
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .searchWrap{
+      position:relative;
+      flex: 1 1 auto;
+      min-width: 240px;
+    }
+
+    .searchWrap input{
+      width:100%;
+      padding: 14px 46px 14px 16px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      outline:none;
+      font-weight:700;
+    }
+    .searchWrap input::placeholder{ color: rgba(255,255,255,.55); font-weight:700; }
+    .searchWrap .mag{
+      position:absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      width:26px; height:26px;
+      opacity:.9;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex: 0 0 auto;
+      flex-wrap:wrap;
+    }
+
+    .actionBtn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-decoration:none;
+      font-weight:900;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.92);
+      box-shadow:
+        0 14px 26px rgba(0,0,0,.35),
+        inset 0 0 0 1px rgba(255,255,255,.02);
+      user-select:none;
+      cursor:pointer;
+    }
+
+    .actionBtn:hover{
+      background: rgba(0,0,0,.42);
+      border-color: rgba(255,255,255,.18);
+    }
+
+    .actionBtn.add{
+      border-color: rgba(255,178,74,.55);
+      box-shadow:
+        0 0 18px rgba(255,178,74,.18),
+        0 14px 26px rgba(0,0,0,.35),
+        inset 0 0 0 1px rgba(255,178,74,.10);
+    }
+
+    .actionBtn.del{
+      border-color: rgba(255,43,43,.35);
+      box-shadow:
+        0 0 18px rgba(255,43,43,.14),
+        0 14px 26px rgba(0,0,0,.35),
+        inset 0 0 0 1px rgba(255,43,43,.10);
+    }
+
+    .actionBtn.tabBtn{
+      background: transparent;
+      border-color: rgba(255,43,43,.45);
+      color: rgba(255,255,255,.92);
+    }
+
+    .actionBtn.tabBtn:hover{
+      background: rgba(255,255,255,.03);
+      border-color: rgba(255,43,43,.55);
+    }
+
+    .actionBtn.tabBtn.active{
+      border-color: rgba(255,178,74,.85);
+      outline: 1px solid rgba(255,178,74,.25);
+      box-shadow:
+        0 0 0 1px rgba(255,178,74,.18) inset,
+        0 0 22px rgba(255,178,74,.35),
+        0 18px 34px rgba(0,0,0,.55);
+    }
+
+    .statsGrid{
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap:18px;
+      align-items:start;
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .statsInner{
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap:18px;
+      align-items:start;
+      padding: 0 14px 14px;
+      min-width:0;
+      overflow:hidden;
+    }
+    .statsInner > div{
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .statsPeriodRow{
+      padding: 14px 14px 0;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .chartTitle{
+      padding: 14px 14px 0;
+      font-weight: 1000;
+      text-shadow:
+        -1px -1px 0 var(--stroke),
+         1px -1px 0 var(--stroke),
+        -1px  1px 0 var(--stroke),
+         1px  1px 0 var(--stroke);
+    }
+
+    .barChart{
+      height: 240px;
+      padding: 14px 14px 18px;
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+    }
+
+    .bar{
+      flex: 1 1 0;
+      min-width: 28px;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      gap:8px;
+      height: 100%;
+    }
+
+    .barTrack{
+      flex: 1 1 auto;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      overflow:hidden;
+      display:flex;
+      align-items:flex-end;
+    }
+
+    .barFill{
+      width: 100%;
+      background: rgba(255,178,74,.95);
+      box-shadow: 0 0 18px rgba(255,178,74,.18);
+      border-radius: 12px;
+    }
+
+    .groupChart{
+      height: 260px;
+      padding: 14px 14px 18px;
+      display:flex;
+      gap:14px;
+      align-items:flex-end;
+    }
+
+    .group{
+      flex: 1 1 0;
+      min-width: 44px;
+      height: 100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      gap:8px;
+    }
+
+    .groupBars{
+      flex: 1 1 auto;
+      display:flex;
+      align-items:flex-end;
+      gap:6px;
+      padding: 10px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+    }
+
+    .gbar{
+      flex: 1 1 0;
+      display:flex;
+      align-items:flex-end;
+      height: 100%;
+    }
+
+    .gbarFill{
+      display: block;
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .gbarFill.s1{ background: rgba(56, 130, 246, .95); box-shadow: 0 0 18px rgba(56,130,246,.18); }
+    .gbarFill.s2{ background: rgba(255, 43, 43, .90); box-shadow: 0 0 18px rgba(255,43,43,.16); }
+    .gbarFill.s3{ background: rgba(255,178,74,.95); box-shadow: 0 0 18px rgba(255,178,74,.18); }
+
+    .barLabel{
+      text-align:center;
+      font-weight: 900;
+      color: rgba(255,255,255,.82);
+      font-size: 12px;
+    }
+
+    .statList{
+      padding: 14px;
+      display:grid;
+      gap:10px;
+    }
+
+    .statItem{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding: 10px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.28);
+      border: 1px solid rgba(255,255,255,.10);
+      font-weight: 900;
+    }
+
+    .statItem span:last-child{
+      color: rgba(255,178,74,.95);
+    }
+
+    .orderRow{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .orderRow .orderHeader{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .orderRow .orderIdBadge{
+      font-size:11px;
+      font-weight:800;
+      color:rgba(255,255,255,.45);
+      background:rgba(255,255,255,.06);
+      padding:3px 8px;
+      border-radius:6px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:140px;
+    }
+
+    .orderRow .orderStatusBadge{
+      font-size:11px;
+      font-weight:800;
+      padding:3px 10px;
+      border-radius:6px;
+      white-space:nowrap;
+      margin-left:auto;
+    }
+    .orderRow .orderStatusBadge.st-searching{background:rgba(255,178,74,.18);color:#ffb24a;}
+    .orderRow .orderStatusBadge.st-accepted{background:rgba(74,178,255,.18);color:#4ab2ff;}
+    .orderRow .orderStatusBadge.st-enroute{background:rgba(74,178,255,.18);color:#4ab2ff;}
+    .orderRow .orderStatusBadge.st-arrived{background:rgba(100,220,140,.18);color:#64dc8c;}
+    .orderRow .orderStatusBadge.st-started{background:rgba(100,220,140,.18);color:#64dc8c;}
+    .orderRow .orderStatusBadge.st-completed{background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);}
+    .orderRow .orderStatusBadge.st-canceled{background:rgba(225,27,34,.15);color:#e11b22;}
+
+    .orderRow .preorderBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      font-size:11px;
+      font-weight:800;
+      padding:3px 10px;
+      border-radius:6px;
+      background:rgba(124,58,237,.18);
+      color:#b07cff;
+      white-space:nowrap;
+      animation: preorderPulse 2s ease-in-out infinite;
+    }
+    @keyframes preorderPulse{
+      0%,100%{opacity:1;}
+      50%{opacity:.7;}
+    }
+
+    .orderRow .orderRoute{
+      font-weight:800;
+      font-size:13px;
+      line-height:1.4;
+      color:rgba(255,255,255,.92);
+      word-break:break-word;
+      overflow-wrap:break-word;
+    }
+    .orderRow .orderRoute .routeArrow{
+      color:rgba(255,178,74,.80);
+      margin:0 4px;
+    }
+
+    .orderRow .orderDetails{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px 14px;
+      font-size:12px;
+      font-weight:700;
+      color:rgba(255,255,255,.50);
+    }
+    .orderRow .orderDetails .orderPrice{
+      color:rgba(255,178,74,.95);
+      font-weight:900;
+    }
+
+    .orderRow .orderActions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+      padding-top:4px;
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+
+    #ordersRealListWrap{
+      margin-top:14px;
+    }
+    #ordersRealListWrap .ordersRealTitle{
+      padding:14px 14px 0;
+      font-weight:900;
+      font-size:16px;
+      color:rgba(255,255,255,.85);
+    }
+
+    #historyModal .modalBody{
+      max-height:min(500px, calc(100vh - 220px));
+      overflow-y:auto;
+    }
+
+    .pendingList{
+      display:grid;
+      gap:10px;
+    }
+
+    .pendingItem{
+      display:grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap:12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.28);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .pendingMeta{
+      font-weight: 800;
+      line-height: 1.35;
+      color: rgba(255,255,255,.92);
+    }
+
+    .pendingMeta small{
+      display:block;
+      color: rgba(255,255,255,.6);
+      font-weight: 700;
+    }
+
+    .pendingActions{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .promoGrid{
+      display:grid;
+      gap:12px;
+      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    }
+
+    @media (max-width: 980px){
+      .promoGrid{ grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 980px){
+      .statsGrid{ grid-template-columns: 1fr; }
+      .statsInner{ grid-template-columns: 1fr; }
+    }
+
+    body.modalOpen{
+      overflow:hidden;
+    }
+
+    body.modalOpen .glowTop,
+    body.modalOpen .glowVert{
+      display:none;
+    }
+
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(6px);
+      display:grid;
+      place-items:center;
+      z-index: 20;
+      padding: 18px;
+    }
+
+    .modalOverlay[hidden]{
+      display:none;
+    }
+
+    .modal{
+      width: min(620px, 100%);
+      background: rgba(0,0,0,.62);
+      border: 1px solid rgba(255,43,43,.28);
+      border-radius: 12px;
+      box-shadow:
+        0 0 0 1px rgba(255,43,43,.10) inset,
+        0 0 28px rgba(255,43,43,.16),
+        0 22px 60px rgba(0,0,0,.80);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .modal::before{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      top:0;
+      height:2px;
+      background: rgba(255,43,43,.70);
+      box-shadow: 0 0 16px rgba(255,43,43,.35);
+      pointer-events:none;
+    }
+
+    .modalHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.35);
+    }
+
+    .modalTitle{
+      font-weight:950;
+      font-size: 18px;
+      text-shadow:
+        -1px -1px 0 var(--stroke),
+         1px -1px 0 var(--stroke),
+        -1px  1px 0 var(--stroke),
+         1px  1px 0 var(--stroke);
+    }
+
+    #loginModal .modalHeader{
+      position: relative;
+      justify-content: center;
+    }
+
+    #loginModalTitle{
+      width: 100%;
+      text-align: center;
+      font-size: 26px;
+    }
+
+    #loginModal .closeBtn{
+      position: absolute;
+      right: 12px;
+      top: 10px;
+    }
+
+    .closeBtn{
+      width:40px;
+      height:40px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.92);
+      cursor:pointer;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .modalBody{
+      padding: 16px;
+      display:grid;
+      gap: 14px;
+    }
+
+    .field{
+      display:grid;
+      gap:8px;
+    }
+
+    .label{
+      font-weight:900;
+      color: rgba(255,255,255,.92);
+      text-shadow:
+        -1px -1px 0 var(--stroke),
+         1px -1px 0 var(--stroke),
+        -1px  1px 0 var(--stroke),
+         1px  1px 0 var(--stroke);
+    }
+
+    .input{
+      width:100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      outline:none;
+      font-weight:800;
+    }
+
+    .input::placeholder{
+      color: rgba(255,255,255,.55);
+      font-weight:800;
+    }
+
+    .input:focus{
+      border-color: rgba(255,178,74,.55);
+      box-shadow: 0 0 0 1px rgba(255,178,74,.14) inset, 0 0 18px rgba(255,178,74,.12);
+    }
+
+    .modalFooter{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.28);
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight:900;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.92);
+      cursor:pointer;
+    }
+
+    .btn.primary{
+      border-color: rgba(255,178,74,.55);
+      box-shadow: 0 0 18px rgba(255,178,74,.12);
+    }
+
+    .btn.small{
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+
+    .results{
+      display:grid;
+      gap:10px;
+    }
+
+    .resultItem{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:12px;
+      align-items:center;
+      padding: 12px 12px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .resultActions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .resultMain{
+      display:grid;
+      gap:4px;
+    }
+
+    .resultName{
+      font-weight: 950;
+      color: rgba(255,255,255,.92);
+    }
+
+    .resultMeta{
+      font-weight: 750;
+      color: rgba(255,255,255,.72);
+      font-size: 13px;
+    }
+
+    .btn.danger{
+      border-color: rgba(255,43,43,.40);
+      box-shadow: 0 0 18px rgba(255,43,43,.12);
+    }
+
+    .editPanel{
+      padding: 14px 12px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(255,178,74,.22);
+      box-shadow: 0 0 18px rgba(255,178,74,.10);
+      display:grid;
+      gap:12px;
+    }
+
+    .empty{
+      padding: 10px 2px;
+      color: rgba(255,255,255,.70);
+      font-weight: 800;
+    }
+
+    .card{
+      background: rgba(0,0,0,.42);
+      border: 1px solid rgba(255,43,43,.28);
+      border-radius: 12px;
+      box-shadow:
+        0 0 0 1px rgba(255,43,43,.10) inset,
+        0 0 28px rgba(255,43,43,.16),
+        0 22px 60px rgba(0,0,0,.75);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .card.tableCard{
+      overflow: auto;
+      max-height: min(560px, calc(100vh - 260px));
+    }
+
+    .card::before,
+    .card::after{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      height:2px;
+      background: rgba(255,43,43,.70);
+      box-shadow: 0 0 16px rgba(255,43,43,.35);
+      pointer-events:none;
+    }
+
+    .card::before{ top:0; }
+    .card::after{ bottom:0; }
+
+    .table{
+      width:100%;
+      border-collapse:collapse;
+      font-weight:700;
+    }
+
+    .table th,
+    .table td{
+      border-right: 1px solid rgba(255,255,255,.10);
+    }
+
+    .table th:last-child,
+    .table td:last-child{
+      border-right: none;
+    }
+    .table thead th{
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 14px 14px;
+      text-align:center;
+      border-bottom: 1px solid rgba(255,43,43,.35);
+      font-weight:1000;
+      text-shadow:
+        -1px -1px 0 var(--stroke),
+         1px -1px 0 var(--stroke),
+        -1px  1px 0 var(--stroke),
+         1px  1px 0 var(--stroke);
+    }
+    .table tbody td{
+      padding: 14px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      color: rgba(255,255,255,.92);
+    }
+    .table tbody tr:hover{
+      background: rgba(255,255,255,.04);
+    }
+
+    #pageBlocks .table thead th:nth-child(5),
+    #pageBlocks .table tbody td:nth-child(5){
+      text-align: center;
+    }
+
+    .colN{ width:70px; text-align:center; }
+    .stars{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+    .star{
+      width:18px; height:18px;
+      display:inline-block;
+    }
+    .star svg{ width:18px; height:18px; }
+    .star.on svg{ fill: var(--yellow); stroke: rgba(0,0,0,.35); stroke-width:1; }
+    .star.off svg{ fill: #7b7b86; stroke: rgba(0,0,0,.35); stroke-width:1; }
+
+    /* responsive */
+    @media (max-width: 900px){
+      .app{ grid-template-columns: 1fr; }
+      .glowVert{ display:none; }
+      .sidebar{ position:sticky; top:0; z-index:10; }
+      .glowTop{ top: var(--topH); }
+    }
+
+    @media (max-width: 560px){
+      .searchRow{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .actions{
+        width:100%;
+      }
+
+      .actionBtn{
+        flex: 1 1 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="api-debug" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.85);color:#ffb24a;font-size:11px;padding:4px 8px;text-align:center;z-index:9998;"></div>
+  <div class="glowTop"></div>
+  <div class="glowVert"></div>
+
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="avatarBox">
+        <div class="avatar" aria-label="avatar">
+          <!-- простая аватарка -->
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="24" r="12" fill="#1b2b3a"/>
+            <path d="M16 56c2-12 12-16 16-16s14 4 16 16" fill="#1b2b3a"/>
+            <path d="M26 38l6 6 6-6" fill="none" stroke="#e11b22" stroke-width="3" />
+          </svg>
+        </div>
+        <div class="hello">Hello, Admin!</div>
+      </div>
+      <nav class="nav">
+        <div class="navBtn active" data-page="drivers">
+          <div class="icoWrap">
+            <!-- водитель -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8Z" fill="#fff"/>
+              <path d="M4 22c1-6 5-8 8-8s7 2 8 8" fill="none"/>
+              <path d="M8 22c.6-4 3-6 4-6s3.4 2 4 6" fill="none"/>
+            </svg>
+          </div>
+          <span>Управление водителями</span>
+        </div>
+
+        <div class="navBtn" data-page="orders">
+          <div class="icoWrap">
+            <!-- блокнот + галочка -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 3h10v18H7z" fill="none"/>
+              <path d="M9 7h6M9 10h6M9 13h4" />
+              <path d="M9 3v3M12 3v3M15 3v3" />
+              <path d="M8 18l2 2 5-6" fill="none"/>
+            </svg>
+          </div>
+          <span>Просмотр заказов</span>
+        </div>
+
+        <div class="navBtn" data-page="promos">
+          <div class="icoWrap">
+            <!-- промокоды -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 7h18v10H3z" fill="none"/>
+              <path d="M7 7v10M17 7v10" fill="none"/>
+              <circle cx="8.5" cy="12" r="1.5" />
+              <circle cx="15.5" cy="12" r="1.5" />
+            </svg>
+          </div>
+          <span>Бонусы и промокоды</span>
+        </div>
+
+        <div class="navBtn" data-page="blocks">
+          <div class="icoWrap">
+            <!-- замок -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 11V8a5 5 0 0 1 10 0v3" fill="none"/>
+              <path d="M6 11h12v10H6z" fill="none"/>
+              <path d="M12 15v3" />
+            </svg>
+          </div>
+          <span>Блокировки</span>
+        </div>
+
+        <div class="navBtn" data-page="verification">
+          <div class="icoWrap">
+            <!-- верификация: галочка в щите -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3Z" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 12l2 2 4-4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span>Верификация</span>
+        </div>
+
+        <div class="navBtn" data-page="stats">
+          <div class="icoWrap">
+            <!-- статистика: стрелки вверх -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 20h3V12H4v8Zm5 0h3V14H9v6Zm5 0h3V10h-3v10Zm5 0h3V6h-3v14Z" stroke="none"/>
+              <path d="M3.5 13.5C7 11.5 10.5 11 14 8.5S19.5 4 20.5 3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20.5 3v5" fill="none" stroke-linecap="round"/>
+              <path d="M20.5 3h-5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>Статистика</span>
+        </div>
+      </nav>
+
+      <div class="sideBottom">
+        <!-- шестеренка -->
+        <div class="miniIcon" title="Настройки">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+          </svg>
+        </div>
+        <!-- выход -->
+        <div class="miniIcon" title="Выход" id="openLoginModal">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 17l5-5-5-5" />
+            <path d="M15 12H4" />
+            <path d="M20 4v16" />
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+      <section id="pageDrivers" class="page">
+        <h1 class="title">Управление водителями</h1>
+
+        <div class="searchRow">
+          <div class="searchWrap">
+            <input placeholder="поиск" id="driversSearch" />
+            <svg class="mag" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10.5 3a7.5 7.5 0 1 0 4.7 13.3l4.2 4.2 1.4-1.4-4.2-4.2A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11a5.5 5.5 0 0 1 0-11Z" fill="rgba(255,255,255,.9)"/>
+            </svg>
+          </div>
+          <div class="actions">
+            <select class="input" id="driversFilter">
+              <option value="all">Фильтр: все</option>
+              <option value="pendingDocs">Ожидают проверки</option>
+              <option value="completed">Подтвержденные</option>
+              <option value="rejected">Отклоненные</option>
+              <option value="docsSigned">Документы подписаны</option>
+            </select>
+            <button class="actionBtn add" type="button" id="openAddModal">Добавить</button>
+            <button class="actionBtn del" type="button" id="openEditModal">Изменить</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="title" style="margin:0 0 10px 0; font-size:18px;">Заявки на подтверждение</h3>
+          <div class="pendingList" id="pendingDriversList">
+            <div class="pendingItem">
+              <div class="pendingMeta">Загрузка…</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card tableCard">
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="colN">№</th>
+                <th style="width:52px;">Фото</th>
+                <th>ФИО</th>
+                <th>E-mail</th>
+                <th>Номер</th>
+                <th>Оценка</th>
+                <th>ИНН</th>
+                <th>Паспорт</th>
+                <th>Регистрация</th>
+                <th>Заработок</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pageOrders" class="page" hidden>
+        <h1 class="title">Просмотр заказов</h1>
+
+        <div class="ordersToolbar">
+          <div class="ordersToolbarTabs">
+            <button class="actionBtn tabBtn active" type="button" id="ordersTabStats">Статистика заказов</button>
+            <button class="actionBtn tabBtn" type="button" id="ordersTabFees">Комиссии</button>
+          </div>
+          <div class="ordersFilterBar">
+            <select class="oFilter" id="ordersFilterStatus">
+              <option value="">Статус</option>
+              <option value="searching">Ищем</option>
+              <option value="accepted">Принят</option>
+              <option value="enroute">В пути</option>
+              <option value="arrived">На месте</option>
+              <option value="started">Поездка</option>
+              <option value="completed">Завершён</option>
+              <option value="canceled">Отменён</option>
+            </select>
+            <select class="oFilter" id="ordersFilterPayment">
+              <option value="">Оплата</option>
+              <option value="unpaid">Не оплачено</option>
+              <option value="paid">Оплачено</option>
+              <option value="failed">Ошибка</option>
+            </select>
+            <input class="oFilter oFilterWide" id="ordersFilterDriver" type="text" placeholder="Телефон водителя" />
+            <label class="oFilterCheck"><input type="checkbox" id="ordersFilterActive" /><span>Активные</span></label>
+            <label class="oFilterCheck"><input type="checkbox" id="ordersFilterPreorder" /><span>Предзаказы</span></label>
+            <button class="oFilterBtn oFilterApply" type="button" id="ordersFilterApply">Найти</button>
+            <button class="oFilterBtn oFilterReset" type="button" id="ordersFilterReset">Сброс</button>
+          </div>
+          <input type="hidden" id="ordersFilterClient" value="" />
+          <input type="hidden" id="ordersFilterFrom" value="" />
+          <input type="hidden" id="ordersFilterTo" value="" />
+          <input type="hidden" id="ordersFilterPriceMin" value="" />
+          <input type="hidden" id="ordersFilterPriceMax" value="" />
+        </div>
+
+        <div class="card" id="ordersStatsWrap">
+          <div class="statsPeriodRow">
+            <button class="actionBtn tabBtn" type="button" id="ordersPeriodHour">В час</button>
+            <button class="actionBtn tabBtn active" type="button" id="ordersPeriodDay">В день</button>
+            <button class="actionBtn tabBtn" type="button" id="ordersPeriodMonth">В месяц</button>
+            <button class="actionBtn tabBtn" type="button" id="ordersPeriodYear">В год</button>
+          </div>
+
+          <div class="statsInner">
+            <div>
+              <div class="chartTitle" id="ordersChartTitle">Статистика заказов</div>
+              <div class="groupChart" id="ordersBarChart" aria-label="orders bar chart"></div>
+            </div>
+            <div>
+              <div class="chartTitle">Описание</div>
+              <div class="statList" id="ordersStatsList"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="ordersRealListWrap">
+          <div class="ordersRealTitle">Список заказов</div>
+          <div class="statList" id="ordersRealList">
+            <div class="statItem"><span>Нажмите «Применить» для загрузки</span><span></span></div>
+          </div>
+        </div>
+
+        <div class="card" id="ordersFeesWrap" hidden></div>
+      </section>
+
+      <section id="pagePromos" class="page" hidden>
+        <h1 class="title">Бонусы и промокоды</h1>
+
+        <div class="promoGrid">
+          <form class="card tableCard" id="promoForm">
+            <h3 class="title" style="margin:0 0 10px 0; font-size:18px;">Создать промокод</h3>
+            <div class="statList">
+              <div class="statItem">
+                <input class="input" id="promoCode" placeholder="Код" />
+                <input class="input" id="promoDiscount" placeholder="Скидка %" type="number" />
+                <input class="input" id="promoExpires" placeholder="ГГГГ-ММ-ДД" type="date" />
+              </div>
+            </div>
+            <button class="actionBtn add" type="submit">СОХРАНИТЬ</button>
+          </form>
+
+          <div class="card tableCard">
+            <h3 class="title" style="margin:0 0 10px 0; font-size:18px;">Список промокодов</h3>
+            <div class="statList" id="promosList">
+              <div class="statItem"><span>Загрузка...</span><span></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pageBlocks" class="page" hidden>
+        <h1 class="title">Блокировки</h1>
+
+        <div class="searchRow">
+          <div class="actions">
+            <button class="actionBtn tabBtn active" type="button" id="blocksTabClients">Клиенты</button>
+            <button class="actionBtn tabBtn" type="button" id="blocksTabDrivers">Водители</button>
+          </div>
+          <div class="actions">
+            <button class="actionBtn" type="button" id="openBlockAddModal">Добавить</button>
+          </div>
+        </div>
+
+        <div class="card tableCard" id="blocksClientsTableWrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="colN">№</th>
+                <th>ФИО</th>
+                <th>E-mail</th>
+                <th>Номер</th>
+                <th>ID</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="blocksClientsTbody">
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card tableCard" id="blocksDriversTableWrap" hidden>
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="colN">№</th>
+                <th>ФИО</th>
+                <th>E-mail</th>
+                <th>Номер</th>
+                <th>ID</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="blocksDriversTbody">
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pageVerification" class="page" hidden>
+        <h1 class="title">Верификация водителей</h1>
+
+        <div class="searchRow">
+          <div class="actions">
+            <button class="actionBtn tabBtn active" type="button" id="verifyTabPending">Ожидающие</button>
+            <button class="actionBtn tabBtn" type="button" id="verifyTabAll">Все заявки</button>
+          </div>
+        </div>
+
+        <div class="card tableCard" id="verifyPendingWrap">
+          <div class="statList" id="verifyPendingList">
+            <div class="statItem"><span>Загрузка...</span><span></span></div>
+          </div>
+        </div>
+
+        <div class="card tableCard" id="verifyAllWrap" hidden>
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="colN">№</th>
+                <th style="width:52px;">Фото</th>
+                <th>ФИО</th>
+                <th>Телефон</th>
+                <th>ИНН</th>
+                <th>Паспорт</th>
+                <th>Документы</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="verifyAllTbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pageStats" class="page" hidden>
+        <h1 class="title">Статистика</h1>
+
+        <div class="card">
+          <div class="statsPeriodRow">
+            <button class="actionBtn tabBtn active" type="button" id="statsModeCompany">Компания</button>
+            <button class="actionBtn tabBtn" type="button" id="statsModeDrivers">Водители</button>
+          </div>
+
+          <div class="statsPeriodRow">
+            <button class="actionBtn tabBtn" type="button" id="statsPeriodHour">В час</button>
+            <button class="actionBtn tabBtn active" type="button" id="statsPeriodDay">В день</button>
+            <button class="actionBtn tabBtn" type="button" id="statsPeriodMonth">В месяц</button>
+            <button class="actionBtn tabBtn" type="button" id="statsPeriodYear">В год</button>
+          </div>
+
+          <div class="statsInner">
+            <div>
+              <div class="chartTitle" id="statsChartTitle">Статистика</div>
+              <div class="groupChart" id="statsBarChart" aria-label="bar chart"></div>
+            </div>
+            <div>
+              <div class="chartTitle">Описание</div>
+              <div class="statList" id="statsList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="modalOverlay" id="addModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+        <div class="modalHeader">
+          <div class="modalTitle" id="addModalTitle">Добавить</div>
+          <button class="closeBtn" type="button" id="closeAddModal" aria-label="Закрыть">×</button>
+        </div>
+        <form id="addForm">
+          <div class="modalBody">
+            <div class="field">
+              <label class="label" for="fio">ФИО</label>
+              <input class="input" id="fio" name="fio" type="text" placeholder="Введите ФИО" required />
+            </div>
+            <div class="field">
+              <label class="label" for="phone">Номер</label>
+              <input class="input" id="phone" name="phone" type="tel" placeholder="Введите номер" required />
+            </div>
+            <div class="field">
+              <label class="label" for="email">E-mail</label>
+              <input class="input" id="email" name="email" type="email" placeholder="Введите e-mail" required />
+            </div>
+          </div>
+          <div class="modalFooter">
+            <button class="btn" type="button" id="cancelAdd">Отмена</button>
+            <button class="btn primary" type="submit">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modalOverlay" id="editModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+        <div class="modalHeader">
+          <div class="modalTitle" id="editModalTitle">Изменить / Удалить</div>
+          <button class="closeBtn" type="button" id="closeEditModal" aria-label="Закрыть">×</button>
+        </div>
+        <div class="modalBody">
+          <div class="field">
+            <label class="label" for="editQuery">Поиск (ФИО / номер / e-mail)</label>
+            <input class="input" id="editQuery" type="text" placeholder="Начните вводить..." />
+          </div>
+
+          <div class="editPanel" id="editPanel" hidden>
+            <div class="resultName">Редактировать пользователя</div>
+            <div class="field">
+              <label class="label" for="editFio">ФИО</label>
+              <input class="input" id="editFio" type="text" placeholder="Введите ФИО" />
+            </div>
+            <div class="field">
+              <label class="label" for="editPhone">Номер</label>
+              <input class="input" id="editPhone" type="tel" placeholder="Введите номер" />
+            </div>
+            <div class="field">
+              <label class="label" for="editEmail">E-mail</label>
+              <input class="input" id="editEmail" type="email" placeholder="Введите e-mail" />
+            </div>
+            <div class="resultActions">
+              <button class="btn small" type="button" id="editCancel">Отмена</button>
+              <button class="btn small primary" type="button" id="editSave">Сохранить</button>
+            </div>
+          </div>
+
+          <div class="results" id="editResults"></div>
+        </div>
+        <div class="modalFooter">
+          <button class="btn" type="button" id="closeEdit">Закрыть</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modalOverlay" id="historyModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+        <div class="modalHeader">
+          <div class="modalTitle" id="historyModalTitle">История заказов</div>
+          <button class="closeBtn" type="button" id="closeHistoryModal" aria-label="Закрыть">×</button>
+        </div>
+        <div class="modalBody">
+          <div class="statList" id="historyList"></div>
+        </div>
+        <div class="modalFooter">
+          <button class="btn" type="button" id="closeHistory">Закрыть</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modalOverlay" id="blockAddModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="blockAddModalTitle">
+        <div class="modalHeader">
+          <div class="modalTitle" id="blockAddModalTitle">Добавить</div>
+          <button class="closeBtn" type="button" id="closeBlockAddModal" aria-label="Закрыть">×</button>
+        </div>
+        <form id="blockAddForm">
+          <div class="modalBody">
+            <div class="field">
+              <label class="label" for="blockFio">ФИО</label>
+              <input class="input" id="blockFio" name="fio" type="text" placeholder="Введите ФИО" required />
+            </div>
+            <div class="field">
+              <label class="label" for="blockPhone">Номер</label>
+              <input class="input" id="blockPhone" name="phone" type="tel" placeholder="Введите номер" required />
+            </div>
+            <div class="field">
+              <label class="label" for="blockEmail">E-mail</label>
+              <input class="input" id="blockEmail" name="email" type="email" placeholder="Введите e-mail" required />
+            </div>
+            <div class="field">
+              <label class="label" for="blockId">ID</label>
+              <input class="input" id="blockId" name="id" type="text" placeholder="Введите ID" required />
+            </div>
+          </div>
+          <div class="modalFooter">
+            <button class="btn" type="button" id="cancelBlockAdd">Отмена</button>
+            <button class="btn primary" type="submit">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modalOverlay" id="loginModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+        <div class="modalHeader">
+          <div class="modalTitle" id="loginModalTitle">Вход</div>
+          <button class="closeBtn" type="button" id="closeLoginModal" aria-label="Закрыть">×</button>
+        </div>
+        <form id="loginForm">
+          <div class="modalBody">
+            <div class="field">
+              <label class="label" for="loginEmail">Логин</label>
+              <input class="input" id="loginEmail" name="email" type="text" placeholder="Введите логин" required />
+            </div>
+            <div class="field">
+              <label class="label" for="loginPassword">Пароль</label>
+              <input class="input" id="loginPassword" name="password" type="password" placeholder="Введите пароль" required />
+            </div>
+          </div>
+          <div class="modalFooter">
+            <button class="btn" type="button" id="cancelLogin">Отмена</button>
+            <button class="btn primary" type="submit">Войти</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toastContainer" style="position:fixed;top:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
+  <style>
+    .admin-toast{
+      pointer-events:auto;
+      min-width:280px; max-width:420px;
+      padding:12px 18px; border-radius:12px;
+      background:linear-gradient(135deg,#1a1a24,#0e0e14);
+      border:1px solid rgba(255,43,43,.35);
+      box-shadow:0 8px 32px rgba(0,0,0,.55), 0 0 12px rgba(255,43,43,.18);
+      color:#fff; font-size:13px; font-weight:600;
+      display:flex; align-items:center; gap:10px;
+      animation: toastIn .35s ease-out;
+    }
+    .admin-toast.fade-out{ animation: toastOut .35s ease-in forwards; }
+    .admin-toast .toast-icon{ font-size:18px; flex-shrink:0; }
+    .admin-toast .toast-text{ flex:1; }
+    .admin-toast .toast-time{ font-size:11px; color:rgba(255,255,255,.4); flex-shrink:0; }
+    @keyframes toastIn{ from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes toastOut{ from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(40px)} }
+
+    .auto-refresh-indicator{
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:11px; color:rgba(255,255,255,.4);
+      margin-left:auto; padding:0 12px;
+    }
+    .auto-refresh-indicator .dot{
+      width:7px; height:7px; border-radius:50%;
+      background:#4caf50;
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.3} }
+    #photoLightbox{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.92);z-index:9999;display:none;align-items:center;justify-content:center;cursor:pointer;}
+    #photoLightbox img{max-width:92vw;max-height:90vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.6);}
+    #photoLightbox .lb-close{position:absolute;top:20px;right:28px;font-size:32px;color:#fff;font-weight:900;cursor:pointer;}
+  </style>
+
+  <script>
+    (function () {
+      var apiFromUrl = (function(){ var p = new URLSearchParams(location.search); var u = p.get('api'); return u ? (u.replace(/\/$/, '') + '/api') : ''; })();
+      const API_BASE = apiFromUrl || 'https://api.trezv7777.ru/api';
+      window.__ADMIN_API__ = API_BASE;
+      document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById('api-debug');
+        if (el) el.textContent = 'API: ' + API_BASE;
+      });
+      const ADMIN_TOKEN_KEY = 'admin_token';
+      let adminToken = localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+
+      function setAdminToken(token) {
+        adminToken = token || '';
+        if (adminToken) {
+          localStorage.setItem(ADMIN_TOKEN_KEY, adminToken);
+        } else {
+          localStorage.removeItem(ADMIN_TOKEN_KEY);
+        }
+      }
+
+      async function adminFetch(url, options = {}) {
+        if (!adminToken) {
+          openLoginModal();
+          throw new Error('NO_ADMIN_TOKEN');
+        }
+        const headers = Object.assign({}, options.headers || {}, {
+          Authorization: `Bearer ${adminToken}`,
+        });
+        return fetch(url, Object.assign({}, options, { headers }));
+      }
+      const modal = document.getElementById('addModal');
+      const openBtn = document.getElementById('openAddModal');
+      const closeBtn = document.getElementById('closeAddModal');
+      const cancelBtn = document.getElementById('cancelAdd');
+      const form = document.getElementById('addForm');
+
+      const editModal = document.getElementById('editModal');
+      const openEditBtn = document.getElementById('openEditModal');
+      const closeEditBtn = document.getElementById('closeEditModal');
+      const closeEditFooterBtn = document.getElementById('closeEdit');
+      const editQuery = document.getElementById('editQuery');
+      const editResults = document.getElementById('editResults');
+      const editPanel = document.getElementById('editPanel');
+      const editFio = document.getElementById('editFio');
+      const editPhone = document.getElementById('editPhone');
+      const editEmail = document.getElementById('editEmail');
+      const editSave = document.getElementById('editSave');
+      const editCancel = document.getElementById('editCancel');
+      const historyModal = document.getElementById('historyModal');
+      const closeHistoryModalBtn = document.getElementById('closeHistoryModal');
+      const closeHistoryBtn = document.getElementById('closeHistory');
+      const historyList = document.getElementById('historyList');
+
+      const driversSearch = document.getElementById('driversSearch');
+      const driversFilter = document.getElementById('driversFilter');
+      const pendingDriversList = document.getElementById('pendingDriversList');
+
+      const blocksTabClients = document.getElementById('blocksTabClients');
+      const blocksTabDrivers = document.getElementById('blocksTabDrivers');
+      const blocksClientsTableWrap = document.getElementById('blocksClientsTableWrap');
+      const blocksDriversTableWrap = document.getElementById('blocksDriversTableWrap');
+      const blocksClientsTbody = document.getElementById('blocksClientsTbody');
+      const blocksDriversTbody = document.getElementById('blocksDriversTbody');
+      const openBlockAddModalBtn = document.getElementById('openBlockAddModal');
+      const blockAddModal = document.getElementById('blockAddModal');
+      const closeBlockAddModalBtn = document.getElementById('closeBlockAddModal');
+      const cancelBlockAddBtn = document.getElementById('cancelBlockAdd');
+      const blockAddForm = document.getElementById('blockAddForm');
+      const blockFio = document.getElementById('blockFio');
+      const blockPhone = document.getElementById('blockPhone');
+      const blockEmail = document.getElementById('blockEmail');
+      const blockId = document.getElementById('blockId');
+
+      const openLoginModalBtn = document.getElementById('openLoginModal');
+      const loginModal = document.getElementById('loginModal');
+      const closeLoginModalBtn = document.getElementById('closeLoginModal');
+      const cancelLoginBtn = document.getElementById('cancelLogin');
+      const loginForm = document.getElementById('loginForm');
+      const loginEmail = document.getElementById('loginEmail');
+      const loginPassword = document.getElementById('loginPassword');
+
+      const statsPeriodHour = document.getElementById('statsPeriodHour');
+      const statsPeriodDay = document.getElementById('statsPeriodDay');
+      const statsPeriodMonth = document.getElementById('statsPeriodMonth');
+      const statsPeriodYear = document.getElementById('statsPeriodYear');
+      const statsModeCompany = document.getElementById('statsModeCompany');
+      const statsModeDrivers = document.getElementById('statsModeDrivers');
+      const statsChartTitle = document.getElementById('statsChartTitle');
+      const statsBarChart = document.getElementById('statsBarChart');
+      const statsList = document.getElementById('statsList');
+
+      const ordersTabStats = document.getElementById('ordersTabStats');
+      const ordersTabFees = document.getElementById('ordersTabFees');
+      const ordersStatsWrap = document.getElementById('ordersStatsWrap');
+      const ordersFeesWrap = document.getElementById('ordersFeesWrap');
+      const ordersChartTitle = document.getElementById('ordersChartTitle');
+      const ordersBarChart = document.getElementById('ordersBarChart');
+      const ordersStatsList = document.getElementById('ordersStatsList');
+      const ordersRealList = document.getElementById('ordersRealList');
+      const ordersRealListWrap = document.getElementById('ordersRealListWrap');
+      const ordersFilterStatus = document.getElementById('ordersFilterStatus');
+      const ordersFilterPayment = document.getElementById('ordersFilterPayment');
+      const ordersFilterClient = document.getElementById('ordersFilterClient');
+      const ordersFilterDriver = document.getElementById('ordersFilterDriver');
+      const ordersFilterFrom = document.getElementById('ordersFilterFrom');
+      const ordersFilterTo = document.getElementById('ordersFilterTo');
+      const ordersFilterPriceMin = document.getElementById('ordersFilterPriceMin');
+      const ordersFilterPriceMax = document.getElementById('ordersFilterPriceMax');
+      const ordersFilterActive = document.getElementById('ordersFilterActive');
+      const ordersFilterPreorder = document.getElementById('ordersFilterPreorder');
+      const ordersFilterApply = document.getElementById('ordersFilterApply');
+      const ordersFilterReset = document.getElementById('ordersFilterReset');
+
+      const promoForm = document.getElementById('promoForm');
+      const promoCodeInput = document.getElementById('promoCode');
+      const promoDiscountInput = document.getElementById('promoDiscount');
+      const promoExpiresInput = document.getElementById('promoExpires');
+      const promosList = document.getElementById('promosList');
+
+      const ordersPeriodHour = document.getElementById('ordersPeriodHour');
+      const ordersPeriodDay = document.getElementById('ordersPeriodDay');
+      const ordersPeriodMonth = document.getElementById('ordersPeriodMonth');
+      const ordersPeriodYear = document.getElementById('ordersPeriodYear');
+
+      const tariffForm = document.createElement('form');
+      tariffForm.className = 'card tableCard';
+      tariffForm.innerHTML = `
+        <h2 class="chartTitle">Тарифы и комиссии</h2>
+        <div class="statList" id="tariffsList"></div>
+        <div class="statsPeriodRow">
+          <button class="actionBtn add" type="button" id="addTariffRow">Добавить тариф</button>
+          <button class="actionBtn" type="submit">Сохранить</button>
+        </div>
+      `;
+      ordersFeesWrap?.appendChild(tariffForm);
+
+      const tariffsList = tariffForm.querySelector('#tariffsList');
+      const addTariffRow = tariffForm.querySelector('#addTariffRow');
+
+      const payoutsWrap = document.createElement('div');
+      payoutsWrap.className = 'card tableCard';
+      payoutsWrap.innerHTML = `
+        <h2 class="chartTitle">Выплаты</h2>
+        <div class="statList" id="payoutsList"></div>
+        <form id="payoutForm" class="statsPeriodRow">
+          <input class="input" id="payoutDriver" placeholder="Driver phone" />
+          <input class="input" id="payoutAmount" type="number" placeholder="Сумма" />
+          <input class="input" id="payoutOrder" placeholder="Order ID (опц.)" />
+          <button class="actionBtn" type="submit">Добавить выплату</button>
+        </form>
+      `;
+      ordersFeesWrap?.appendChild(payoutsWrap);
+
+      const payoutsList = payoutsWrap.querySelector('#payoutsList');
+      const payoutForm = payoutsWrap.querySelector('#payoutForm');
+      const payoutDriver = payoutsWrap.querySelector('#payoutDriver');
+      const payoutAmount = payoutsWrap.querySelector('#payoutAmount');
+      const payoutOrder = payoutsWrap.querySelector('#payoutOrder');
+
+      const navButtons = Array.from(document.querySelectorAll('.nav .navBtn'));
+      const pages = {
+        drivers: document.getElementById('pageDrivers'),
+        orders: document.getElementById('pageOrders'),
+        promos: document.getElementById('pagePromos'),
+        blocks: document.getElementById('pageBlocks'),
+        verification: document.getElementById('pageVerification'),
+        stats: document.getElementById('pageStats'),
+      };
+
+      let currentEditTr = null;
+
+      async function loadDrivers() {
+        const tbody = getTbody();
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Загрузка...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/drivers`);
+          const data = await res.json();
+          if (!data || data.ok !== true) throw new Error('bad response');
+          const drivers = Array.isArray(data.drivers) ? data.drivers : [];
+          if (pendingDriversList) {
+            const pending = drivers.filter((d) => {
+              const profile = d.profile || {};
+              return profile.registrationStatus === 'pending';
+            });
+            pendingDriversList.innerHTML = '';
+            if (!pending.length) {
+              pendingDriversList.innerHTML = '<div class="pendingItem"><div class="pendingMeta">Нет заявок</div></div>';
+            } else {
+              pending.forEach((d) => {
+                const profile = d.profile || {};
+                const meta = document.createElement('div');
+                meta.className = 'pendingMeta';
+                const pHasPhotos = profile.passportFrontBase64 || profile.selfieBase64;
+                meta.innerHTML = `
+                  ${profile.fullName || '—'} · ${d.phone || '—'}
+                  <small>ИНН: ${profile.inn || '—'} · Паспорт: ${profile.passport || '—'}</small>
+                  <small>Документы подписаны: ${profile.docsSigned ? 'Да' : 'Нет'}</small>
+                  <small>${pHasPhotos ? '📷 Фото загружены' : '⚠ Фото не загружены'}</small>
+                `;
+                const actions = document.createElement('div');
+                actions.className = 'pendingActions';
+                const approveBtn = document.createElement('button');
+                approveBtn.className = 'btn';
+                approveBtn.textContent = 'Подтвердить';
+                approveBtn.addEventListener('click', async () => {
+                  await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/approve`, {
+                    method: 'POST',
+                  });
+                  loadDrivers();
+                });
+                const rejectBtn = document.createElement('button');
+                rejectBtn.className = 'btn';
+                rejectBtn.textContent = 'Отклонить';
+                rejectBtn.addEventListener('click', async () => {
+                  await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/reject`, {
+                    method: 'POST',
+                  });
+                  loadDrivers();
+                });
+                actions.appendChild(approveBtn);
+                actions.appendChild(rejectBtn);
+                const item = document.createElement('div');
+                item.className = 'pendingItem';
+                item.appendChild(meta);
+                item.appendChild(actions);
+                pendingDriversList.appendChild(item);
+              });
+            }
+          }
+          tbody.innerHTML = '';
+          if (!drivers.length) {
+            tbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Нет водителей</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+            return;
+          }
+          const filterValue = (driversFilter?.value || 'all').toString();
+          const filtered = drivers.filter((d) => {
+            const profile = d.profile || {};
+            const regStatus = profile.registrationStatus || 'incomplete';
+            if (filterValue === 'pendingDocs') {
+              return regStatus === 'pending' && profile.docsSigned === true;
+            }
+            if (filterValue === 'completed') return regStatus === 'completed';
+            if (filterValue === 'rejected') return regStatus === 'rejected';
+            if (filterValue === 'docsSigned') return profile.docsSigned === true;
+            return true;
+          });
+          if (!filtered.length) {
+            tbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Нет подходящих водителей</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+            return;
+          }
+          filtered.forEach((d, i) => {
+            const tr = document.createElement('tr');
+            const profile = d.profile || {};
+            const status = d.blocked ? 'blocked' : (d.status || 'offline');
+            const statusLabel = status === 'blocked' ? 'blocked' : status;
+            const regStatus = profile.registrationStatus || 'incomplete';
+            const regLabel = regStatus === 'completed'
+              ? 'Да'
+              : regStatus === 'pending'
+                ? 'Ожидает'
+                : regStatus === 'rejected'
+                  ? 'Отклонено'
+                  : 'Нет';
+            const earn = d.earnings || {};
+            const earnGross = Number(earn.gross || 0);
+            const earnNet = Number(earn.net || 0);
+            const earnComm = Number(earn.commission || 0);
+            const limitReached = d.limitReached === true;
+            const avatarB64 = profile.avatarBase64 || profile.selfieBase64 || profile.passportFrontBase64;
+            const avatarCell = avatarB64
+              ? `<td style="vertical-align:middle;"><img src="data:image/jpeg;base64,${avatarB64}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.12);" title="Фото водителя"></td>`
+              : '<td style="vertical-align:middle;width:52px;"><span style="display:inline-block;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.35);font-size:18px;line-height:40px;text-align:center;">—</span></td>';
+            tr.innerHTML = `
+              <td class="colN">${i + 1}</td>
+              ${avatarCell}
+              <td>${profile.fullName || '—'}</td>
+              <td>${profile.email || '—'}</td>
+              <td>${d.phone || '—'}</td>
+              <td>${profile.rating || '—'} · ${statusLabel}</td>
+              <td>${profile.inn || '—'}</td>
+              <td>${profile.passport || '—'}</td>
+              <td>${regLabel} / ${profile.docsSigned ? 'Да' : 'Нет'}</td>
+              <td style="white-space:nowrap">
+                <span>${formatMoney(earnGross)}</span>
+                <small style="color:${limitReached ? '#ff4444' : '#aaa'};margin-left:4px">
+                  ${limitReached ? '⚠ ЛИМИТ' : ''}
+                </small>
+              </td>
+            `;
+            if (d.phone) {
+              const td = document.createElement('td');
+              td.style.display = 'flex';
+              td.style.gap = '4px';
+              td.style.flexWrap = 'wrap';
+              // Кнопка «Погашено» — сбросить комиссию
+              if (limitReached) {
+                const clearBtn = document.createElement('button');
+                clearBtn.className = 'btn';
+                clearBtn.style.background = '#1B7F3A';
+                clearBtn.style.color = '#fff';
+                clearBtn.textContent = 'Погашено';
+                clearBtn.addEventListener('click', async (e) => {
+                  e.stopPropagation();
+                  if (!confirm(`Погасить комиссию для ${d.phone}?\nЗаработок: ₽${formatMoney(earnGross)}, комиссия: ₽${formatMoney(earnComm)}`)) return;
+                  await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/commission/clear`, {
+                    method: 'POST',
+                  });
+                  loadDrivers();
+                });
+                td.appendChild(clearBtn);
+              }
+              const historyBtn = document.createElement('button');
+              historyBtn.className = 'btn';
+              historyBtn.textContent = 'История';
+              historyBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await openHistory('driver', d.phone);
+              });
+              const btn = document.createElement('button');
+              btn.className = 'btn';
+              btn.textContent = d.blocked ? 'Разблок' : 'Блок';
+              btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/${d.blocked ? 'unblock' : 'block'}`, {
+                  method: 'POST',
+                });
+                loadDrivers();
+              });
+              if (regStatus === 'pending') {
+                const approveBtn = document.createElement('button');
+                approveBtn.className = 'btn';
+                approveBtn.textContent = 'Подтвердить';
+                approveBtn.addEventListener('click', async (e) => {
+                  e.stopPropagation();
+                  await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/approve`, {
+                    method: 'POST',
+                  });
+                  loadDrivers();
+                });
+                const rejectBtn = document.createElement('button');
+                rejectBtn.className = 'btn';
+                rejectBtn.textContent = 'Отклонить';
+                rejectBtn.addEventListener('click', async (e) => {
+                  e.stopPropagation();
+                  await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/reject`, {
+                    method: 'POST',
+                  });
+                  loadDrivers();
+                });
+                td.appendChild(approveBtn);
+                td.appendChild(rejectBtn);
+              }
+              if (profile.passportFrontBase64 || profile.passportRegBase64 || profile.selfieBase64) {
+                const photoBtn = document.createElement('button');
+                photoBtn.className = 'btn';
+                photoBtn.textContent = '📷 Фото';
+                photoBtn.style.cssText = 'background:rgba(100,180,255,.15);color:rgba(100,180,255,.9);';
+                photoBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  let existingRow = tr.nextElementSibling;
+                  if (existingRow && existingRow.classList.contains('photo-row')) {
+                    existingRow.remove();
+                    return;
+                  }
+                  const photoTr = document.createElement('tr');
+                  photoTr.className = 'photo-row';
+                  const photoTd = document.createElement('td');
+                  photoTd.colSpan = 10;
+                  photoTd.style.cssText = 'padding:12px 16px;background:rgba(255,255,255,.03);';
+                  let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
+                  if (profile.passportFrontBase64) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${profile.passportFrontBase64}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Паспорт (главная)"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Паспорт</div></div>`;
+                  if (profile.passportRegBase64) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${profile.passportRegBase64}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Вод. удостоверение"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Вод. удост.</div></div>`;
+                  if (profile.selfieBase64) html += `<div style="text-align:center;"><img src="data:image/jpeg;base64,${profile.selfieBase64}" style="height:140px;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;" title="Селфи с паспортом"><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Селфи</div></div>`;
+                  html += '</div>';
+                  photoTd.innerHTML = html;
+                  photoTr.appendChild(photoTd);
+                  tr.after(photoTr);
+                });
+                td.appendChild(photoBtn);
+              }
+              td.appendChild(historyBtn);
+              td.appendChild(btn);
+              tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+          });
+        } catch (e) {
+          tbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Ошибка загрузки</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        }
+      }
+
+      async function loadClients() {
+        if (!blocksClientsTbody) return;
+        blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Загрузка...</td><td></td><td></td><td></td><td></td></tr>';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/clients`);
+          const data = await res.json();
+          if (!data || data.ok !== true) throw new Error('bad response');
+          const clients = Array.isArray(data.clients) ? data.clients : [];
+          blocksClientsTbody.innerHTML = '';
+          if (!clients.length) {
+            blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Нет клиентов</td><td></td><td></td><td></td><td></td></tr>';
+            return;
+          }
+          clients.forEach((c, i) => {
+            const tr = document.createElement('tr');
+            const blockedBadge = c.blocked
+              ? '<span style="font-size:11px;font-weight:800;color:#e11b22;background:rgba(225,27,34,.15);padding:2px 8px;border-radius:6px;">Блок</span>'
+              : '<span style="font-size:11px;font-weight:800;color:#64dc8c;background:rgba(100,220,140,.15);padding:2px 8px;border-radius:6px;">Актив</span>';
+            tr.innerHTML = `
+              <td class="colN">${i + 1}</td>
+              <td>${c.fullName || '—'}</td>
+              <td>${c.email || '—'}</td>
+              <td>${c.phone || '—'}</td>
+              <td>${c.id || '—'}</td>
+            `;
+            const actTd = document.createElement('td');
+            actTd.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
+            actTd.innerHTML = blockedBadge;
+            if (c.id) {
+              const historyBtn = document.createElement('button');
+              historyBtn.className = 'btn';
+              historyBtn.textContent = 'История';
+              historyBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await openHistory('client', c.id);
+              });
+              const btn = document.createElement('button');
+              btn.className = 'btn';
+              btn.textContent = c.blocked ? 'Разблок' : 'Блок';
+              btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await adminFetch(`${API_BASE}/admin/clients/${encodeURIComponent(c.id)}/${c.blocked ? 'unblock' : 'block'}`, {
+                  method: 'POST',
+                });
+                loadClients();
+              });
+              actTd.appendChild(historyBtn);
+              actTd.appendChild(btn);
+            }
+            tr.appendChild(actTd);
+            tr.addEventListener('click', () => {
+              currentClientId = c.id || '';
+              if (!editModal) return;
+              editModal.hidden = false;
+              document.body.classList.add('modalOpen');
+              if (editFio) editFio.value = c.fullName || '';
+              if (editEmail) editEmail.value = c.email || '';
+              if (editPhone) editPhone.value = c.phone || '';
+              if (editQuery) editQuery.value = c.id || '';
+              if (editPanel) editPanel.hidden = true;
+            });
+            blocksClientsTbody.appendChild(tr);
+          });
+        } catch (e) {
+          blocksClientsTbody.innerHTML = '<tr><td class="colN">1</td><td>Ошибка загрузки</td><td></td><td></td><td></td><td></td></tr>';
+        }
+      }
+
+      function getTbody() {
+        return document.querySelector('#pageDrivers .table tbody');
+      }
+
+      function renumberTable() {
+        const tbody = getTbody();
+        if (!tbody) return;
+        let n = 1;
+        Array.from(tbody.querySelectorAll('tr')).forEach((tr) => {
+          if (tr.hidden) return;
+          const cell = tr.querySelector('.colN');
+          if (cell) cell.textContent = String(n++);
+        });
+      }
+
+      function applyTableSearch(queryRaw) {
+        const tbody = getTbody();
+        if (!tbody) return;
+
+        const query = (queryRaw || '').trim().toLowerCase();
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows.forEach((tr) => {
+          if (!query) {
+            tr.hidden = false;
+            return;
+          }
+
+          const tds = tr.querySelectorAll('td');
+          const fio = (tds[1]?.textContent || '').trim();
+          const email = (tds[2]?.textContent || '').trim();
+          const phone = (tds[3]?.textContent || '').trim();
+          const hay = `${fio} ${email} ${phone}`.toLowerCase();
+          tr.hidden = !hay.includes(query);
+        });
+
+        renumberTable();
+      }
+
+      function openModal() {
+        modal.hidden = false;
+        document.body.classList.add('modalOpen');
+        const first = modal.querySelector('input');
+        if (first) first.focus();
+      }
+
+      function closeModal() {
+        modal.hidden = true;
+        document.body.classList.remove('modalOpen');
+        if (openBtn) openBtn.focus();
+      }
+
+      openBtn?.addEventListener('click', openModal);
+      closeBtn?.addEventListener('click', closeModal);
+      cancelBtn?.addEventListener('click', closeModal);
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fio = (document.getElementById('fio')?.value || '').trim();
+        const phone = (document.getElementById('phone')?.value || '').trim();
+        const email = (document.getElementById('email')?.value || '').trim();
+        if (!fio || !phone || !email) return;
+        try {
+          await adminFetch(`${API_BASE}/admin/drivers`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, fullName: fio, email, rating: 5 }),
+          });
+        } catch (_) {}
+        closeModal();
+        loadDrivers();
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      function openEdit() {
+        editModal.hidden = false;
+        document.body.classList.add('modalOpen');
+        if (editQuery) {
+          editQuery.value = '';
+          editQuery.focus();
+        }
+        if (editPanel) editPanel.hidden = true;
+        currentEditTr = null;
+        renderResults('');
+      }
+
+      function closeEdit() {
+        editModal.hidden = true;
+        document.body.classList.remove('modalOpen');
+        if (editPanel) editPanel.hidden = true;
+        currentEditTr = null;
+        if (openEditBtn) openEditBtn.focus();
+      }
+
+      function openHistoryModal() {
+        if (!historyModal) return;
+        historyModal.hidden = false;
+        document.body.classList.add('modalOpen');
+      }
+
+      function closeHistoryModal() {
+        if (!historyModal) return;
+        historyModal.hidden = true;
+        document.body.classList.remove('modalOpen');
+      }
+
+      function formatMoney(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return '—';
+        return `${Math.round(n)} ₽`;
+      }
+
+      function formatDate(value) {
+        if (!value) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '—';
+        return date.toLocaleString();
+      }
+
+      async function openHistory(type, id) {
+        if (!historyList) return;
+        openHistoryModal();
+        historyList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        try {
+          const url = type === 'driver'
+            ? `${API_BASE}/admin/drivers/${encodeURIComponent(id)}/orders?limit=50`
+            : `${API_BASE}/admin/clients/${encodeURIComponent(id)}/orders?limit=50`;
+          const res = await adminFetch(url);
+          const data = await res.json();
+          const orders = Array.isArray(data.orders) ? data.orders : [];
+          historyList.innerHTML = '';
+          if (!orders.length) {
+            historyList.innerHTML = '<div class="statItem"><span>Нет заказов</span><span></span></div>';
+            return;
+          }
+          orders.forEach((o) => {
+            const from = o?.fromAddress || (o?.from ? `${o.from.lat?.toFixed?.(4)}, ${o.from.lng?.toFixed?.(4)}` : '—');
+            const to = o?.toAddress || (o?.to ? `${o.to.lat?.toFixed?.(4)}, ${o.to.lng?.toFixed?.(4)}` : '—');
+            const row = document.createElement('div');
+            row.className = 'statItem';
+            row.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+            const schedHtml = o.scheduledAt
+              ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:#b07cff;background:rgba(124,58,237,.15);padding:2px 8px;border-radius:6px;">⏰ Предзаказ на ${formatDate(o.scheduledAt)}</span>`
+              : '';
+            row.innerHTML = `
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <span style="font-weight:700;color:#fff;">${formatDate(o.createdAt)}</span>
+                <span style="font-weight:800;color:rgba(255,255,255,.7);">${o.status || '—'} · ${formatMoney(o.priceFrom)}</span>
+              </div>
+              <div style="font-size:12px;color:rgba(255,255,255,.5);">${from} → ${to}</div>
+              ${schedHtml}
+            `;
+            historyList.appendChild(row);
+          });
+        } catch (_) {
+          historyList.innerHTML = '<div class="statItem"><span>Не удалось загрузить</span><span></span></div>';
+        }
+      }
+
+      function buildOrdersQuery() {
+        const params = new URLSearchParams();
+        params.set('limit', '200');
+        const status = (ordersFilterStatus?.value || '').trim();
+        const paymentStatus = (ordersFilterPayment?.value || '').trim();
+        const clientId = (ordersFilterClient?.value || '').trim();
+        const driverPhone = (ordersFilterDriver?.value || '').trim();
+        const dateFrom = (ordersFilterFrom?.value || '').trim();
+        const dateTo = (ordersFilterTo?.value || '').trim();
+        const priceMin = (ordersFilterPriceMin?.value || '').trim();
+        const priceMax = (ordersFilterPriceMax?.value || '').trim();
+        const activeOnly = ordersFilterActive?.checked;
+        if (status) params.set('status', status);
+        if (paymentStatus) params.set('paymentStatus', paymentStatus);
+        if (clientId) params.set('clientId', clientId);
+        if (driverPhone) params.set('driverPhone', driverPhone);
+        if (dateFrom) params.set('from', dateFrom);
+        if (dateTo) params.set('to', dateTo);
+        if (priceMin) params.set('priceMin', priceMin);
+        if (priceMax) params.set('priceMax', priceMax);
+        if (activeOnly) params.set('active', '1');
+        return params.toString();
+      }
+
+      async function loadOrders() {
+        if (!ordersRealList) return;
+        ordersRealList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        try {
+          const query = buildOrdersQuery();
+          const res = await adminFetch(`${API_BASE}/orders?${query}`);
+          const data = await res.json();
+          if (!data || data.ok !== true) throw new Error('bad response');
+          let orders = Array.isArray(data.orders) ? data.orders : [];
+          if (ordersFilterPreorder?.checked) {
+            orders = orders.filter((o) => !!o.scheduledAt);
+          }
+          ordersRealList.innerHTML = '';
+          if (orders.length === 0) {
+            ordersRealList.innerHTML = '<div class="statItem"><span>Нет заказов</span><span></span></div>';
+            return;
+          }
+          orders.forEach((o) => {
+            const from = o?.fromAddress || (o?.from ? `${o.from.lat?.toFixed?.(4)}, ${o.from.lng?.toFixed?.(4)}` : '—');
+            const to = o?.toAddress || (o?.to ? `${o.to.lat?.toFixed?.(4)}, ${o.to.lng?.toFixed?.(4)}` : '—');
+            const status = o?.status || '-';
+            const price = formatMoney(o?.priceFrom);
+            const driver = o?.driverPhone || '—';
+            const pay = o?.paymentStatus || '—';
+            const created = o?.createdAt ? formatDate(o.createdAt) : '';
+            const shortId = (o.id || '').slice(0, 8);
+            const row = document.createElement('div');
+            row.className = 'orderRow';
+            const stClass = `st-${status}`;
+            const cancelBtn = status === 'canceled' || status === 'completed'
+              ? ''
+              : `<button class="btn" data-cancel="${o.id}">Отменить</button>`;
+            const assignBtn = status === 'completed' || status === 'canceled'
+              ? ''
+              : `<button class="btn" data-assign="${o.id}">${o.driverPhone ? 'Переназн.' : 'Назначить'}</button>`;
+            const payBtn = pay === 'paid'
+              ? '<span style="font-size:11px;color:rgba(100,220,140,.85);font-weight:800;">✓ Оплачен</span>'
+              : `<button class="btn" data-pay="${o.id}">Оплата</button>`;
+            const schedAt = o?.scheduledAt;
+            const preorderBadge = schedAt
+              ? `<span class="preorderBadge">⏰ Предзаказ на ${formatDate(schedAt)}</span>`
+              : '';
+            row.innerHTML = `
+              <div class="orderHeader">
+                <span class="orderIdBadge">#${shortId}</span>
+                ${preorderBadge}
+                <span class="orderStatusBadge ${stClass}">${status}</span>
+              </div>
+              <div class="orderRoute">${from}<span class="routeArrow">→</span>${to}</div>
+              <div class="orderDetails">
+                <span class="orderPrice">${price}</span>
+                <span>Водитель: ${driver}</span>
+                <span>Оплата: ${pay}</span>
+                ${created ? `<span>${created}</span>` : ''}
+              </div>
+              <div class="orderActions">
+                ${payBtn}
+                ${cancelBtn}
+                ${assignBtn}
+              </div>
+            `;
+            ordersRealList.appendChild(row);
+          });
+          ordersRealList.querySelectorAll('button[data-cancel]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const id = b.getAttribute('data-cancel');
+              if (!id) return;
+              const reason = prompt('Причина отмены?') || '';
+              await adminFetch(`${API_BASE}/admin/orders/${id}/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason }),
+              });
+              loadOrders();
+            });
+          });
+          ordersRealList.querySelectorAll('button[data-assign]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const id = b.getAttribute('data-assign');
+              if (!id) return;
+              const driverPhone = prompt('Телефон водителя для назначения?');
+              if (!driverPhone) return;
+              await adminFetch(`${API_BASE}/admin/orders/${id}/assign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ driverPhone }),
+              });
+              loadOrders();
+            });
+          });
+          ordersRealList.querySelectorAll('button[data-pay]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const id = b.getAttribute('data-pay');
+              if (!id) return;
+              await adminFetch(`${API_BASE}/admin/orders/${id}/pay`, { method: 'POST' });
+              loadOrders();
+            });
+          });
+        } catch (e) {
+          ordersRealList.innerHTML = '<div class="statItem"><span>Не удалось загрузить</span><span></span></div>';
+        }
+      }
+
+      function renderTariffRow({ name = '', base = '', perKm = '', commission = '' } = {}) {
+        const row = document.createElement('div');
+        row.className = 'statItem';
+        row.innerHTML = `
+          <input class="input" placeholder="Название" value="${name}" />
+          <input class="input" placeholder="База" value="${base}" />
+          <input class="input" placeholder="₽/км" value="${perKm}" />
+          <input class="input" placeholder="Комиссия %" value="${commission}" />
+        `;
+        return row;
+      }
+
+      async function loadTariffs() {
+        if (!tariffsList) return;
+        tariffsList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/tariffs`);
+          const data = await res.json();
+          const list = Array.isArray(data.tariffs) ? data.tariffs : [];
+          tariffsList.innerHTML = '';
+          if (!list.length) {
+            tariffsList.appendChild(renderTariffRow());
+            return;
+          }
+          list.forEach((t) => {
+            tariffsList.appendChild(renderTariffRow(t));
+          });
+        } catch (_) {
+          tariffsList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
+        }
+      }
+
+      async function loadPromos() {
+        if (!promosList) return;
+        promosList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/promos`);
+          const data = await res.json();
+          const list = Array.isArray(data.promos) ? data.promos : [];
+          promosList.innerHTML = '';
+          if (!list.length) {
+            promosList.innerHTML = '<div class="statItem"><span>Нет промокодов</span><span></span></div>';
+            return;
+          }
+          list.forEach((p) => {
+            const row = document.createElement('div');
+            row.className = 'statItem';
+            row.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+            const isActive = p.active === true;
+            const statusColor = isActive ? 'rgba(100,220,140,.90)' : 'rgba(225,27,34,.80)';
+            const statusText = isActive ? 'активен' : 'отключен';
+            const expires = p.expiresAt ? `до ${p.expiresAt.slice(0, 10)}` : 'без срока';
+            const created = p.createdAt ? formatDate(p.createdAt) : '';
+            const action =
+              isActive
+                ? `<button class="btn" data-disable="${p.code}">Отключить</button>`
+                : '';
+            row.innerHTML = `
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <span style="font-weight:900;font-size:15px;color:#fff;letter-spacing:.5px;">${p.code}</span>
+                <span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:6px;background:${isActive ? 'rgba(100,220,140,.15)' : 'rgba(225,27,34,.12)'};color:${statusColor};">${statusText}</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;font-weight:700;color:rgba(255,255,255,.50);">
+                <span style="color:rgba(255,178,74,.95);font-weight:900;">-${p.discount}%</span>
+                <span>${expires}</span>
+                ${created ? `<span>создан ${created}</span>` : ''}
+              </div>
+              ${action ? `<div style="padding-top:4px;border-top:1px solid rgba(255,255,255,.06);">${action}</div>` : ''}
+            `;
+            promosList.appendChild(row);
+          });
+          promosList.querySelectorAll('button[data-disable]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const code = b.getAttribute('data-disable');
+              if (!code) return;
+              await adminFetch(`${API_BASE}/admin/promos/${encodeURIComponent(code)}/disable`, {
+                method: 'POST',
+              });
+              loadPromos();
+            });
+          });
+        } catch (_) {
+          promosList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
+        }
+      }
+
+      tariffForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!tariffsList) return;
+        const rows = Array.from(tariffsList.querySelectorAll('.statItem'));
+        const tariffs = rows.map((row) => {
+          const inputs = row.querySelectorAll('input');
+          return {
+            name: inputs[0]?.value || '',
+            base: Number(inputs[1]?.value || 0),
+            perKm: Number(inputs[2]?.value || 0),
+            commission: Number(inputs[3]?.value || 0),
+          };
+        });
+        await adminFetch(`${API_BASE}/admin/tariffs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tariffs }),
+        });
+      });
+
+      promoForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = (promoCodeInput?.value || '').trim();
+        const discount = Number(promoDiscountInput?.value || 0);
+        const expiresAt = (promoExpiresInput?.value || '').trim();
+        if (!code || !Number.isFinite(discount) || discount <= 0) return;
+        await adminFetch(`${API_BASE}/admin/promos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code,
+            discount,
+            expiresAt: expiresAt || undefined,
+          }),
+        });
+        if (promoCodeInput) promoCodeInput.value = '';
+        if (promoDiscountInput) promoDiscountInput.value = '';
+        if (promoExpiresInput) promoExpiresInput.value = '';
+        loadPromos();
+      });
+
+      addTariffRow?.addEventListener('click', () => {
+        if (!tariffsList) return;
+        tariffsList.appendChild(renderTariffRow());
+      });
+
+      async function loadPayouts() {
+        if (!payoutsList) return;
+        payoutsList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/payouts?limit=50`);
+          const data = await res.json();
+          const items = Array.isArray(data.payouts) ? data.payouts : [];
+          payoutsList.innerHTML = '';
+          if (!items.length) {
+            payoutsList.innerHTML = '<div class="statItem"><span>Нет выплат</span><span></span></div>';
+            return;
+          }
+          items.forEach((p) => {
+            const row = document.createElement('div');
+            row.className = 'statItem';
+            row.innerHTML = `
+              <span>${formatDate(p.createdAt)} · ${p.driverPhone || '—'} · ${p.orderId || '—'}</span>
+              <span>${formatMoney(p.amount)}</span>
+            `;
+            payoutsList.appendChild(row);
+          });
+        } catch (_) {
+          payoutsList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
+        }
+      }
+
+      payoutForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const driverPhone = (payoutDriver?.value || '').trim();
+        const amount = Number(payoutAmount?.value || 0);
+        const orderId = (payoutOrder?.value || '').trim();
+        if (!driverPhone || !Number.isFinite(amount) || amount <= 0) return;
+        await adminFetch(`${API_BASE}/admin/payouts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ driverPhone, amount, orderId }),
+        });
+        if (payoutDriver) payoutDriver.value = '';
+        if (payoutAmount) payoutAmount.value = '';
+        if (payoutOrder) payoutOrder.value = '';
+        loadPayouts();
+      });
+
+      function setPage(pageKey) {
+        if (!pages[pageKey]) return;
+
+        if (!modal.hidden) closeModal();
+        if (!editModal.hidden) closeEdit();
+        if (blockAddModal && !blockAddModal.hidden) closeBlockAddModal();
+        if (loginModal && !loginModal.hidden) closeLoginModal();
+
+        Object.entries(pages).forEach(([key, el]) => {
+          if (!el) return;
+          el.hidden = key !== pageKey;
+        });
+
+        navButtons.forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.page === pageKey);
+        });
+
+        if (pageKey === 'orders') {
+          loadOrders();
+          setOrdersPeriod(ordersPeriod);
+        }
+        if (pageKey === 'drivers') {
+          loadDrivers();
+        }
+        if (pageKey === 'blocks') {
+          loadClients();
+          loadDrivers();
+        }
+        if (pageKey === 'stats') {
+          loadTariffs();
+          setStatsPeriod(statsPeriod);
+        }
+        if (pageKey === 'promos') {
+          loadPromos();
+        }
+        if (pageKey === 'verification') {
+          loadVerification();
+        }
+      }
+
+      openEditBtn?.addEventListener('click', openEdit);
+      closeEditBtn?.addEventListener('click', closeEdit);
+      closeEditFooterBtn?.addEventListener('click', closeEdit);
+      closeHistoryModalBtn?.addEventListener('click', closeHistoryModal);
+      closeHistoryBtn?.addEventListener('click', closeHistoryModal);
+      historyModal?.addEventListener('click', (e) => {
+        if (e.target === historyModal) closeHistoryModal();
+      });
+
+      navButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          setPage(btn.dataset.page);
+        });
+      });
+
+      driversSearch?.addEventListener('input', (e) => {
+        applyTableSearch(e.target.value);
+      });
+      driversFilter?.addEventListener('change', () => {
+        loadDrivers();
+      });
+
+      let blocksActiveTab = 'clients';
+
+      function renumberTbody(tbody) {
+        if (!tbody) return;
+        let n = 1;
+        Array.from(tbody.querySelectorAll('tr')).forEach((tr) => {
+          if (tr.hidden) return;
+          const cell = tr.querySelector('.colN');
+          if (cell) cell.textContent = String(n++);
+        });
+      }
+
+      async function loadBlockedDrivers() {
+        if (!blocksDriversTbody) return;
+        blocksDriversTbody.innerHTML = '<tr><td class="colN">1</td><td>Загрузка...</td><td></td><td></td><td></td><td></td></tr>';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/drivers`);
+          const data = await res.json();
+          if (!data || data.ok !== true) throw new Error('bad');
+          const drivers = Array.isArray(data.drivers) ? data.drivers : [];
+          const blocked = drivers.filter((d) => d.blocked === true);
+          blocksDriversTbody.innerHTML = '';
+          if (!blocked.length) {
+            blocksDriversTbody.innerHTML = '<tr><td class="colN">—</td><td colspan="5">Нет заблокированных водителей</td></tr>';
+            return;
+          }
+          blocked.forEach((d, i) => {
+            const profile = d.profile || {};
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="colN">${i + 1}</td>
+              <td>${profile.fullName || '—'}</td>
+              <td>${profile.email || '—'}</td>
+              <td>${d.phone || '—'}</td>
+              <td>${d.phone || '—'}</td>
+            `;
+            const td = document.createElement('td');
+            td.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.textContent = 'Разблокировать';
+            btn.addEventListener('click', async () => {
+              await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/unblock`, { method: 'POST' });
+              loadBlockedDrivers();
+              loadDrivers();
+            });
+            const historyBtn = document.createElement('button');
+            historyBtn.className = 'btn';
+            historyBtn.textContent = 'История';
+            historyBtn.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              await openHistory('driver', d.phone);
+            });
+            td.appendChild(historyBtn);
+            td.appendChild(btn);
+            tr.appendChild(td);
+            blocksDriversTbody.appendChild(tr);
+          });
+        } catch (_) {
+          blocksDriversTbody.innerHTML = '<tr><td class="colN">—</td><td colspan="5">Ошибка загрузки</td></tr>';
+        }
+      }
+
+      function setBlocksTab(tabKey) {
+        blocksActiveTab = tabKey;
+
+        if (blocksClientsTableWrap) blocksClientsTableWrap.hidden = tabKey !== 'clients';
+        if (blocksDriversTableWrap) blocksDriversTableWrap.hidden = tabKey !== 'drivers';
+
+        blocksTabClients?.classList.toggle('active', tabKey === 'clients');
+        blocksTabDrivers?.classList.toggle('active', tabKey === 'drivers');
+
+        if (tabKey === 'clients') loadClients();
+        if (tabKey === 'drivers') loadBlockedDrivers();
+      }
+
+
+      blocksTabClients?.addEventListener('click', () => setBlocksTab('clients'));
+      blocksTabDrivers?.addEventListener('click', () => setBlocksTab('drivers'));
+
+      // ─── Верификация водителей ─────────────────────────────────
+      const verifyTabPending = document.getElementById('verifyTabPending');
+      const verifyTabAll = document.getElementById('verifyTabAll');
+      const verifyPendingWrap = document.getElementById('verifyPendingWrap');
+      const verifyAllWrap = document.getElementById('verifyAllWrap');
+      const verifyPendingList = document.getElementById('verifyPendingList');
+      const verifyAllTbody = document.getElementById('verifyAllTbody');
+      let verifyActiveTab = 'pending';
+
+      function setVerifyTab(tabKey) {
+        verifyActiveTab = tabKey;
+        if (verifyPendingWrap) verifyPendingWrap.hidden = tabKey !== 'pending';
+        if (verifyAllWrap) verifyAllWrap.hidden = tabKey !== 'all';
+        verifyTabPending?.classList.toggle('active', tabKey === 'pending');
+        verifyTabAll?.classList.toggle('active', tabKey === 'all');
+      }
+      verifyTabPending?.addEventListener('click', () => { setVerifyTab('pending'); loadVerification(); });
+      verifyTabAll?.addEventListener('click', () => { setVerifyTab('all'); loadVerification(); });
+
+      async function loadVerification() {
+        const isPending = verifyActiveTab === 'pending';
+        if (isPending && verifyPendingList) {
+          verifyPendingList.innerHTML = '<div class="statItem"><span>Загрузка...</span><span></span></div>';
+        }
+        if (!isPending && verifyAllTbody) {
+          verifyAllTbody.innerHTML = '<tr><td class="colN">1</td><td></td><td>Загрузка...</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        }
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/drivers`);
+          const data = await res.json();
+          if (!data || data.ok !== true) throw new Error('bad');
+          const drivers = Array.isArray(data.drivers) ? data.drivers : [];
+
+          if (isPending && verifyPendingList) {
+            const pending = drivers.filter((d) => {
+              const p = d.profile || {};
+              return p.registrationStatus === 'pending';
+            });
+            verifyPendingList.innerHTML = '';
+            if (!pending.length) {
+              verifyPendingList.innerHTML = '<div class="statItem"><span>Нет заявок на верификацию</span><span></span></div>';
+              return;
+            }
+            pending.forEach((d) => {
+              const p = d.profile || {};
+              const avB64 = p.avatarBase64 || p.selfieBase64 || p.passportFrontBase64;
+              const avatarHtml = avB64
+                ? `<img src="data:image/jpeg;base64,${avB64}" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,178,74,.4);flex-shrink:0;" title="Фото водителя">`
+                : '<span style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:20px;line-height:48px;text-align:center;flex-shrink:0;">—</span>';
+              const card = document.createElement('div');
+              card.className = 'statItem';
+              card.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+              card.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;">
+                  ${avatarHtml}
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                      <span style="font-weight:900;font-size:15px;color:#fff;">${p.fullName || '—'}</span>
+                      <span style="font-size:12px;font-weight:800;color:rgba(255,178,74,.90);">${d.phone || '—'}</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px;font-weight:700;color:rgba(255,255,255,.55);">
+                  <span>ИНН: <b style="color:#fff;">${p.inn || '—'}</b></span>
+                  <span>Паспорт: <b style="color:#fff;">${p.passport || '—'}</b></span>
+                  <span>Email: <b style="color:#fff;">${p.email || '—'}</b></span>
+                  <span>Документы: <b style="color:${p.docsSigned ? 'rgba(100,220,140,.9)' : 'rgba(225,27,34,.8)'};">${p.docsSigned ? 'Подписаны' : 'Нет'}</b></span>
+                </div>
+                ${(p.passportFrontBase64 || p.passportRegBase64 || p.selfieBase64) ? `
+                <div style="display:flex;gap:6px;padding:8px 0 4px;">
+                  ${p.passportFrontBase64 ? `<a href="data:image/jpeg;base64,${p.passportFrontBase64}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${p.passportFrontBase64}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Паспорт (главная)"></a>` : ''}
+                  ${p.passportRegBase64 ? `<a href="data:image/jpeg;base64,${p.passportRegBase64}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${p.passportRegBase64}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Вод. удостоверение"></a>` : ''}
+                  ${p.selfieBase64 ? `<a href="data:image/jpeg;base64,${p.selfieBase64}" target="_blank" style="flex:1;"><img src="data:image/jpeg;base64,${p.selfieBase64}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Селфи с паспортом"></a>` : ''}
+                </div>
+                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.35);display:flex;gap:6px;">
+                  ${p.passportFrontBase64 ? '<span style="flex:1;text-align:center;">Паспорт</span>' : ''}
+                  ${p.passportRegBase64 ? '<span style="flex:1;text-align:center;">Вод. удост.</span>' : ''}
+                  ${p.selfieBase64 ? '<span style="flex:1;text-align:center;">Селфи</span>' : ''}
+                </div>
+                ` : '<div style="font-size:11px;color:rgba(255,178,74,.6);font-weight:700;padding:4px 0;">⚠ Фото документов не загружены</div>'}
+                <div style="display:flex;gap:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);">
+                  <button class="btn" data-v-approve="${d.phone}" style="flex:1;">Подтвердить</button>
+                  <button class="btn" data-v-reject="${d.phone}" style="flex:1;background:rgba(225,27,34,.18);color:#e11b22;">Отклонить</button>
+                </div>
+              `;
+              verifyPendingList.appendChild(card);
+            });
+            verifyPendingList.querySelectorAll('button[data-v-approve]').forEach((b) => {
+              b.addEventListener('click', async () => {
+                const phone = b.getAttribute('data-v-approve');
+                if (!phone) return;
+                await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/approve`, { method: 'POST' });
+                loadVerification();
+              });
+            });
+            verifyPendingList.querySelectorAll('button[data-v-reject]').forEach((b) => {
+              b.addEventListener('click', async () => {
+                const phone = b.getAttribute('data-v-reject');
+                if (!phone) return;
+                await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/reject`, { method: 'POST' });
+                loadVerification();
+              });
+            });
+          }
+
+          if (!isPending && verifyAllTbody) {
+            const withReg = drivers.filter((d) => {
+              const p = d.profile || {};
+              return p.registrationStatus && p.registrationStatus !== 'incomplete';
+            });
+            verifyAllTbody.innerHTML = '';
+            if (!withReg.length) {
+              verifyAllTbody.innerHTML = '<tr><td class="colN">—</td><td colspan="8">Нет заявок</td></tr>';
+              return;
+            }
+            withReg.forEach((d, i) => {
+              const p = d.profile || {};
+              const regStatus = p.registrationStatus || '—';
+              const stColor = regStatus === 'completed' ? 'rgba(100,220,140,.9)' : regStatus === 'rejected' ? 'rgba(225,27,34,.8)' : 'rgba(255,178,74,.9)';
+              const stLabel = regStatus === 'completed' ? 'Подтверждён' : regStatus === 'rejected' ? 'Отклонён' : 'Ожидает';
+              const tr = document.createElement('tr');
+              const hasPhotos = p.passportFrontBase64 || p.selfieBase64;
+              const photoBadge = hasPhotos
+                ? '<span style="color:rgba(100,220,140,.9);font-weight:800;font-size:11px;">Есть фото</span>'
+                : '<span style="color:rgba(255,178,74,.7);font-weight:700;font-size:11px;">Нет фото</span>';
+              const avB64 = p.avatarBase64 || p.selfieBase64 || p.passportFrontBase64;
+              const avTd = avB64
+                ? `<td style="vertical-align:middle;"><img src="data:image/jpeg;base64,${avB64}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.12);" title="Фото водителя"></td>`
+                : '<td style="vertical-align:middle;"><span style="display:inline-block;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.35);font-size:18px;line-height:40px;text-align:center;">—</span></td>';
+              tr.innerHTML = `
+                <td class="colN">${i + 1}</td>
+                ${avTd}
+                <td>${p.fullName || '—'}</td>
+                <td>${d.phone || '—'}</td>
+                <td>${p.inn || '—'}</td>
+                <td>${p.passport || '—'}</td>
+                <td>${p.docsSigned ? 'Да' : 'Нет'}<br>${photoBadge}</td>
+                <td style="color:${stColor};font-weight:800;">${stLabel}</td>
+              `;
+              const td = document.createElement('td');
+              if (regStatus === 'pending') {
+                const approveBtn = document.createElement('button');
+                approveBtn.className = 'btn';
+                approveBtn.textContent = 'Подтвердить';
+                approveBtn.addEventListener('click', async () => {
+                  await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/approve`, { method: 'POST' });
+                  loadVerification();
+                });
+                const rejectBtn = document.createElement('button');
+                rejectBtn.className = 'btn';
+                rejectBtn.textContent = 'Отклонить';
+                rejectBtn.style.cssText = 'background:rgba(225,27,34,.18);color:#e11b22;';
+                rejectBtn.addEventListener('click', async () => {
+                  await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(d.phone)}/reject`, { method: 'POST' });
+                  loadVerification();
+                });
+                td.appendChild(approveBtn);
+                td.appendChild(rejectBtn);
+              } else {
+                td.textContent = '—';
+              }
+              tr.appendChild(td);
+              verifyAllTbody.appendChild(tr);
+            });
+          }
+        } catch (_) {
+          if (isPending && verifyPendingList) {
+            verifyPendingList.innerHTML = '<div class="statItem"><span>Ошибка загрузки</span><span></span></div>';
+          }
+          if (!isPending && verifyAllTbody) {
+            verifyAllTbody.innerHTML = '<tr><td class="colN">—</td><td colspan="8">Ошибка загрузки</td></tr>';
+          }
+        }
+      }
+
+      let ordersActiveTab = 'stats';
+
+      function setOrdersTab(tabKey) {
+        ordersActiveTab = tabKey;
+
+        if (ordersStatsWrap) ordersStatsWrap.hidden = tabKey !== 'stats';
+        if (ordersRealListWrap) ordersRealListWrap.hidden = tabKey !== 'stats';
+        if (ordersFeesWrap) ordersFeesWrap.hidden = tabKey !== 'fees';
+
+        ordersTabStats?.classList.toggle('active', tabKey === 'stats');
+        ordersTabFees?.classList.toggle('active', tabKey === 'fees');
+
+        if (tabKey === 'stats') setOrdersPeriod(ordersPeriod);
+        if (tabKey === 'fees') {
+          loadTariffs();
+          loadPayouts();
+        }
+      }
+
+      ordersTabStats?.addEventListener('click', () => setOrdersTab('stats'));
+      ordersTabFees?.addEventListener('click', () => setOrdersTab('fees'));
+      ordersFilterApply?.addEventListener('click', () => loadOrders());
+      ordersFilterReset?.addEventListener('click', () => {
+        if (ordersFilterStatus) ordersFilterStatus.value = '';
+        if (ordersFilterPayment) ordersFilterPayment.value = '';
+        if (ordersFilterClient) ordersFilterClient.value = '';
+        if (ordersFilterDriver) ordersFilterDriver.value = '';
+        if (ordersFilterFrom) ordersFilterFrom.value = '';
+        if (ordersFilterTo) ordersFilterTo.value = '';
+        if (ordersFilterPriceMin) ordersFilterPriceMin.value = '';
+        if (ordersFilterPriceMax) ordersFilterPriceMax.value = '';
+        if (ordersFilterActive) ordersFilterActive.checked = false;
+        if (ordersFilterPreorder) ordersFilterPreorder.checked = false;
+        loadOrders();
+      });
+
+      function renderOrdersBarChart({ labels, series }) {
+        if (!ordersBarChart) return;
+        ordersBarChart.innerHTML = '';
+
+        const safeSeries = Array.isArray(series) ? series.slice(0, 3) : [];
+        const maxValue = Math.max(
+          1,
+          ...safeSeries.flatMap((s) => Array.isArray(s.values) ? s.values : [])
+        );
+
+        for (let i = 0; i < labels.length; i++) {
+          const group = document.createElement('div');
+          group.className = 'group';
+
+          const bars = document.createElement('div');
+          bars.className = 'groupBars';
+
+          safeSeries.forEach((s, idx) => {
+            const v = (Array.isArray(s.values) ? s.values[i] : 0) ?? 0;
+            const pct = Math.max(0, Math.min(100, (v / maxValue) * 100));
+
+            const slot = document.createElement('div');
+            slot.className = 'gbar';
+
+            const fill = document.createElement('div');
+            fill.className = `gbarFill s${idx + 1}`;
+            fill.style.height = `${pct}%`;
+            fill.title = `${s.name}: ${v}`;
+
+            slot.appendChild(fill);
+            bars.appendChild(slot);
+          });
+
+          const label = document.createElement('div');
+          label.className = 'barLabel';
+          label.textContent = labels[i];
+
+          group.appendChild(bars);
+          group.appendChild(label);
+          ordersBarChart.appendChild(group);
+        }
+      }
+
+      function renderOrdersList(items) {
+        if (!ordersStatsList) return;
+        ordersStatsList.innerHTML = '';
+        items.forEach(({ k, v }) => {
+          const row = document.createElement('div');
+          row.className = 'statItem';
+
+          const left = document.createElement('span');
+          left.textContent = k;
+
+          const right = document.createElement('span');
+          right.textContent = v;
+
+          row.appendChild(left);
+          row.appendChild(right);
+          ordersStatsList.appendChild(row);
+        });
+      }
+
+      let ordersPeriod = 'day';
+
+      async function setOrdersPeriod(period) {
+        ordersPeriod = period;
+
+        ordersPeriodHour?.classList.toggle('active', period === 'hour');
+        ordersPeriodDay?.classList.toggle('active', period === 'day');
+        ordersPeriodMonth?.classList.toggle('active', period === 'month');
+        ordersPeriodYear?.classList.toggle('active', period === 'year');
+
+        if (ordersChartTitle) ordersChartTitle.textContent = 'Загрузка…';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/stats/orders?period=${period}&mode=orders`);
+          const data = await res.json();
+          if (data.ok) {
+            if (ordersChartTitle) ordersChartTitle.textContent = data.title;
+            renderOrdersBarChart({ labels: data.labels, series: data.series });
+            renderOrdersList(data.list);
+          } else {
+            if (ordersChartTitle) ordersChartTitle.textContent = 'Ошибка загрузки';
+          }
+        } catch (e) {
+          if (e?.message !== 'NO_ADMIN_TOKEN') {
+            if (ordersChartTitle) ordersChartTitle.textContent = 'Ошибка загрузки';
+          }
+        }
+      }
+
+      ordersPeriodHour?.addEventListener('click', () => setOrdersPeriod('hour'));
+      ordersPeriodDay?.addEventListener('click', () => setOrdersPeriod('day'));
+      ordersPeriodMonth?.addEventListener('click', () => setOrdersPeriod('month'));
+      ordersPeriodYear?.addEventListener('click', () => setOrdersPeriod('year'));
+
+      function renderStatsBarChart({ labels, series }) {
+        if (!statsBarChart) return;
+        statsBarChart.innerHTML = '';
+
+        const safeSeries = Array.isArray(series) ? series.slice(0, 3) : [];
+        const maxValue = Math.max(
+          1,
+          ...safeSeries.flatMap((s) => Array.isArray(s.values) ? s.values : [])
+        );
+
+        for (let i = 0; i < labels.length; i++) {
+          const group = document.createElement('div');
+          group.className = 'group';
+
+          const bars = document.createElement('div');
+          bars.className = 'groupBars';
+
+          safeSeries.forEach((s, idx) => {
+            const v = (Array.isArray(s.values) ? s.values[i] : 0) ?? 0;
+            const pct = Math.max(0, Math.min(100, (v / maxValue) * 100));
+
+            const slot = document.createElement('div');
+            slot.className = 'gbar';
+
+            const fill = document.createElement('div');
+            fill.className = `gbarFill s${idx + 1}`;
+            fill.style.height = `${pct}%`;
+            fill.title = `${s.name}: ${v}`;
+
+            slot.appendChild(fill);
+            bars.appendChild(slot);
+          });
+
+          const label = document.createElement('div');
+          label.className = 'barLabel';
+          label.textContent = labels[i];
+
+          group.appendChild(bars);
+          group.appendChild(label);
+          statsBarChart.appendChild(group);
+        }
+      }
+
+      function renderStatsList(items) {
+        if (!statsList) return;
+        statsList.innerHTML = '';
+        items.forEach(({ k, v }) => {
+          const row = document.createElement('div');
+          row.className = 'statItem';
+
+          const left = document.createElement('span');
+          left.textContent = k;
+
+          const right = document.createElement('span');
+          right.textContent = v;
+
+          row.appendChild(left);
+          row.appendChild(right);
+          statsList.appendChild(row);
+        });
+      }
+
+      let statsPeriod = 'day';
+
+      let statsMode = 'company';
+
+      function setStatsMode(mode) {
+        statsMode = mode;
+        statsModeCompany?.classList.toggle('active', mode === 'company');
+        statsModeDrivers?.classList.toggle('active', mode === 'drivers');
+        setStatsPeriod(statsPeriod);
+      }
+
+      async function setStatsPeriod(period) {
+        statsPeriod = period;
+
+        statsPeriodHour?.classList.toggle('active', period === 'hour');
+        statsPeriodDay?.classList.toggle('active', period === 'day');
+        statsPeriodMonth?.classList.toggle('active', period === 'month');
+        statsPeriodYear?.classList.toggle('active', period === 'year');
+
+        if (statsChartTitle) statsChartTitle.textContent = 'Загрузка…';
+        try {
+          const res = await adminFetch(`${API_BASE}/admin/stats/orders?period=${period}&mode=${statsMode}`);
+          const data = await res.json();
+          if (data.ok) {
+            if (statsChartTitle) statsChartTitle.textContent = data.title;
+            renderStatsBarChart({ labels: data.labels, series: data.series });
+            renderStatsList(data.list);
+          } else {
+            if (statsChartTitle) statsChartTitle.textContent = 'Ошибка загрузки';
+          }
+        } catch (e) {
+          if (e?.message !== 'NO_ADMIN_TOKEN') {
+            if (statsChartTitle) statsChartTitle.textContent = 'Ошибка загрузки';
+          }
+        }
+      }
+
+      statsPeriodHour?.addEventListener('click', () => setStatsPeriod('hour'));
+      statsPeriodDay?.addEventListener('click', () => setStatsPeriod('day'));
+      statsPeriodMonth?.addEventListener('click', () => setStatsPeriod('month'));
+      statsPeriodYear?.addEventListener('click', () => setStatsPeriod('year'));
+
+      statsModeCompany?.addEventListener('click', () => setStatsMode('company'));
+      statsModeDrivers?.addEventListener('click', () => setStatsMode('drivers'));
+
+      function openBlockAddModal() {
+        if (!blockAddModal) return;
+        blockAddModal.hidden = false;
+        document.body.classList.add('modalOpen');
+        if (blockFio) blockFio.value = '';
+        if (blockPhone) blockPhone.value = '';
+        if (blockEmail) blockEmail.value = '';
+        if (blockId) blockId.value = '';
+        if (blockFio) blockFio.focus();
+      }
+
+      function closeBlockAddModal() {
+        if (!blockAddModal) return;
+        blockAddModal.hidden = true;
+        document.body.classList.remove('modalOpen');
+        if (openBlockAddModalBtn) openBlockAddModalBtn.focus();
+      }
+
+      openBlockAddModalBtn?.addEventListener('click', openBlockAddModal);
+      closeBlockAddModalBtn?.addEventListener('click', closeBlockAddModal);
+      cancelBlockAddBtn?.addEventListener('click', closeBlockAddModal);
+
+      blockAddModal?.addEventListener('click', (e) => {
+        if (e.target === blockAddModal) closeBlockAddModal();
+      });
+
+      function openLoginModal() {
+        if (!loginModal) return;
+        loginModal.hidden = false;
+        document.body.classList.add('modalOpen');
+        if (loginEmail) loginEmail.value = '';
+        if (loginPassword) loginPassword.value = '';
+        if (loginEmail) loginEmail.focus();
+      }
+
+      function closeLoginModal() {
+        if (!loginModal) return;
+        loginModal.hidden = true;
+        document.body.classList.remove('modalOpen');
+        if (openLoginModalBtn) openLoginModalBtn.focus();
+      }
+
+      openLoginModalBtn?.addEventListener('click', openLoginModal);
+      closeLoginModalBtn?.addEventListener('click', closeLoginModal);
+      cancelLoginBtn?.addEventListener('click', closeLoginModal);
+
+      loginModal?.addEventListener('click', (e) => {
+        if (e.target === loginModal) closeLoginModal();
+      });
+
+      loginForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const login = (loginEmail?.value || '').trim();
+        const password = (loginPassword?.value || '').trim();
+        if (!login || !password) return;
+        try {
+          const res = await fetch(`${API_BASE}/auth/otp/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ login, password }),
+          });
+          const data = await res.json();
+          if (data?.ok && data?.token) {
+            setAdminToken(data.token);
+            closeLoginModal();
+            loadOrders();
+            loadDrivers();
+            loadClients();
+            loadTariffs();
+            loadPayouts();
+          }
+        } catch (_) {}
+      });
+
+      const editSaveBtn = document.getElementById('editSave');
+      let currentClientId = null;
+      editSaveBtn?.addEventListener('click', async () => {
+        if (!currentEditTr && !currentClientId) return;
+        const phone = (editPhone?.value || '').trim();
+        const fio = (editFio?.value || '').trim();
+        const email = (editEmail?.value || '').trim();
+        if (currentClientId) {
+          await adminFetch(`${API_BASE}/admin/clients`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: currentClientId, fullName: fio, phone, email }),
+          });
+          currentClientId = null;
+          closeEdit();
+          loadClients();
+          return;
+        }
+        if (!phone) return;
+        await adminFetch(`${API_BASE}/admin/drivers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, fullName: fio, email, rating: 5 }),
+        });
+        closeEdit();
+        loadDrivers();
+      });
+
+      blockAddForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fio = (blockFio?.value || '').trim();
+        const phone = (blockPhone?.value || '').trim();
+        const email = (blockEmail?.value || '').trim();
+        const id = (blockId?.value || '').trim();
+
+        if (!fio || !phone || !email || !id) return;
+
+        try {
+          if (blocksActiveTab === 'clients') {
+            await adminFetch(`${API_BASE}/admin/clients/${encodeURIComponent(id)}/block`, { method: 'POST' });
+            loadClients();
+          } else {
+            await adminFetch(`${API_BASE}/admin/drivers/${encodeURIComponent(phone)}/block`, { method: 'POST' });
+            loadDrivers();
+          }
+        } catch (_) {}
+
+        blockAddForm.reset();
+        closeBlockAddModal();
+      });
+
+      // populateBlocksDemoData removed — real data loaded from API
+
+      setPage('drivers');
+
+      editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) closeEdit();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+        if (e.key === 'Escape' && !editModal.hidden) closeEdit();
+        if (e.key === 'Escape' && blockAddModal && !blockAddModal.hidden) closeBlockAddModal();
+        if (e.key === 'Escape' && loginModal && !loginModal.hidden) closeLoginModal();
+      });
+
+      function renderResults(queryRaw) {
+        if (!editResults) return;
+        const tbody = getTbody();
+
+        editResults.innerHTML = '';
+
+        if (!tbody) {
+          const div = document.createElement('div');
+          div.className = 'empty';
+          div.textContent = 'Таблица не найдена.';
+          editResults.appendChild(div);
+          return;
+        }
+
+        const query = (queryRaw || '').trim().toLowerCase();
+
+        if (!query) {
+          return;
+        }
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const matches = rows.filter((tr) => {
+          const tds = tr.querySelectorAll('td');
+          const fio = (tds[1]?.textContent || '').trim();
+          const email = (tds[2]?.textContent || '').trim();
+          const phone = (tds[3]?.textContent || '').trim();
+          const hay = `${fio} ${email} ${phone}`.toLowerCase();
+          return query ? hay.includes(query) : true;
+        });
+
+        if (matches.length === 0) {
+          const div = document.createElement('div');
+          div.className = 'empty';
+          div.textContent = 'Ничего не найдено.';
+          editResults.appendChild(div);
+          return;
+        }
+
+        matches.forEach((tr) => {
+          const tds = tr.querySelectorAll('td');
+          const fio = (tds[1]?.textContent || '').trim();
+          const email = (tds[2]?.textContent || '').trim();
+          const phone = (tds[3]?.textContent || '').trim();
+
+          const item = document.createElement('div');
+          item.className = 'resultItem';
+
+          const main = document.createElement('div');
+          main.className = 'resultMain';
+
+          const name = document.createElement('div');
+          name.className = 'resultName';
+          name.textContent = fio || '(без ФИО)';
+
+          const meta = document.createElement('div');
+          meta.className = 'resultMeta';
+          meta.textContent = `${phone}${phone && email ? ' • ' : ''}${email}`;
+
+          main.appendChild(name);
+          main.appendChild(meta);
+
+          const actions = document.createElement('div');
+          actions.className = 'resultActions';
+
+          const editBtn = document.createElement('button');
+          editBtn.className = 'btn small';
+          editBtn.type = 'button';
+          editBtn.textContent = 'Редактировать';
+          editBtn.addEventListener('click', () => {
+            currentEditTr = tr;
+            if (editPanel) editPanel.hidden = false;
+
+            if (editFio) editFio.value = fio;
+            if (editPhone) editPhone.value = phone;
+            if (editEmail) editEmail.value = email;
+
+            if (editFio) editFio.focus();
+          });
+
+          const del = document.createElement('button');
+          del.className = 'btn small danger';
+          del.type = 'button';
+          del.textContent = 'Удалить';
+          del.addEventListener('click', () => {
+            if (currentEditTr === tr) {
+              currentEditTr = null;
+              if (editPanel) editPanel.hidden = true;
+            }
+            tr.remove();
+            applyTableSearch(driversSearch?.value || '');
+            renderResults(editQuery?.value || '');
+          });
+
+          item.appendChild(main);
+          actions.appendChild(editBtn);
+          actions.appendChild(del);
+          item.appendChild(actions);
+          editResults.appendChild(item);
+        });
+      }
+
+      editQuery?.addEventListener('input', (e) => {
+        renderResults(e.target.value);
+      });
+
+      editCancel?.addEventListener('click', () => {
+        currentEditTr = null;
+        if (editPanel) editPanel.hidden = true;
+      });
+
+      // editSave handler moved to editSaveBtn above (line ~3208)
+
+      // form submit handler already registered above (line ~2064) — removed duplicate
+
+      setBlocksTab('clients');
+      setStatsPeriod('day');
+      setStatsMode('company');
+      // populateBlocksDemoData removed
+
+      // ═══════════════════════════════════════════════════════════
+      // AUTO-REFRESH + TOAST NOTIFICATIONS
+      // ═══════════════════════════════════════════════════════════
+
+      const toastContainer = document.getElementById('toastContainer');
+      function showToast(icon, text) {
+        if (!toastContainer) return;
+        const el = document.createElement('div');
+        el.className = 'admin-toast';
+        const now = new Date();
+        const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        el.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-text">${text}</span><span class="toast-time">${time}</span>`;
+        toastContainer.appendChild(el);
+        setTimeout(() => {
+          el.classList.add('fade-out');
+          setTimeout(() => el.remove(), 400);
+        }, 5000);
+        // Keep max 5 toasts
+        while (toastContainer.children.length > 5) {
+          toastContainer.firstChild.remove();
+        }
+      }
+
+      // Track known order IDs and statuses to detect changes
+      let knownOrders = {};
+      let refreshInterval = null;
+      const AUTO_REFRESH_MS = 15000; // 15 seconds
+
+      function getCurrentPage() {
+        for (const [key, el] of Object.entries(pages)) {
+          if (el && !el.hidden) return key;
+        }
+        return null;
+      }
+
+      async function autoRefreshTick() {
+        if (!adminToken) return;
+        const page = getCurrentPage();
+        try {
+          // Always poll orders for notifications
+          const res = await adminFetch(`${API_BASE}/orders?limit=50`);
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.orders)) {
+            const orders = data.orders;
+            for (const o of orders) {
+              const prev = knownOrders[o.id];
+              if (!prev) {
+                // New order appeared
+                if (Object.keys(knownOrders).length > 0) {
+                  if (o.status === 'searching') {
+                    showToast('🆕', `Новый заказ: ${o.fromAddress || 'Без адреса'} → ${o.toAddress || '…'}`);
+                  } else if (o.status === 'completed') {
+                    showToast('✅', `Заказ завершён: ${o.fromAddress || o.id.slice(0,8)}`);
+                  } else if (o.status === 'canceled') {
+                    showToast('❌', `Заказ отменён: ${o.fromAddress || o.id.slice(0,8)}`);
+                  }
+                }
+              } else if (prev !== o.status) {
+                // Status changed
+                if (o.status === 'accepted') showToast('🚗', `Водитель принял заказ: ${o.fromAddress || o.id.slice(0,8)}`);
+                else if (o.status === 'enroute') showToast('🛣️', `Водитель выехал: ${o.fromAddress || o.id.slice(0,8)}`);
+                else if (o.status === 'arrived') showToast('📍', `Водитель на месте: ${o.fromAddress || o.id.slice(0,8)}`);
+                else if (o.status === 'started') showToast('▶️', `Поездка начата: ${o.fromAddress || o.id.slice(0,8)}`);
+                else if (o.status === 'completed') showToast('✅', `Заказ завершён: ${o.fromAddress || o.id.slice(0,8)}`);
+                else if (o.status === 'canceled') showToast('❌', `Заказ отменён: ${o.fromAddress || o.id.slice(0,8)}`);
+              }
+              knownOrders[o.id] = o.status;
+            }
+          }
+        } catch {}
+
+        // Refresh current page data
+        try {
+          if (page === 'drivers') {
+            await loadDrivers();
+          } else if (page === 'orders') {
+            await loadOrders();
+            await setOrdersPeriod(ordersPeriod);
+          } else if (page === 'stats') {
+            await setStatsPeriod(statsPeriod);
+          } else if (page === 'blocks') {
+            await loadClients();
+            await loadDrivers();
+          } else if (page === 'verification') {
+            await loadVerification();
+          } else if (page === 'promos') {
+            await loadPromos();
+          }
+        } catch {}
+      }
+
+      // Start auto-refresh
+      function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(autoRefreshTick, AUTO_REFRESH_MS);
+        // Initial populate of known orders (silent — no toasts)
+        (async () => {
+          try {
+            const res = await adminFetch(`${API_BASE}/orders?limit=50`);
+            const data = await res.json();
+            if (data.ok && Array.isArray(data.orders)) {
+              data.orders.forEach(o => { knownOrders[o.id] = o.status; });
+            }
+          } catch {}
+        })();
+      }
+
+      // Add indicator to sidebar
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        const indicator = document.createElement('div');
+        indicator.className = 'auto-refresh-indicator';
+        indicator.innerHTML = '<span class="dot"></span> Автообновление 15с';
+        indicator.style.padding = '12px 18px';
+        sidebar.appendChild(indicator);
+      }
+
+      // Always start — autoRefreshTick exits early if no token
+      startAutoRefresh();
+    })();
+
+    // --- Photo lightbox ---
+    document.body.insertAdjacentHTML('beforeend', '<div id="photoLightbox" onclick="this.style.display=\'none\'"><span class="lb-close">&times;</span><img id="lbImg" src=""></div>');
+    document.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.tagName === 'IMG' && t.src && t.src.startsWith('data:image')) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('lbImg').src = t.src;
+        document.getElementById('photoLightbox').style.display = 'flex';
+      }
+      if (t.tagName === 'A' && t.href && t.href.startsWith('data:image')) {
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>

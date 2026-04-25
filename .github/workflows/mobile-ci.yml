@@ -1,0 +1,278 @@
+name: Mobile CI
+
+on:
+  push:
+    paths:
+      - ".github/workflows/mobile-ci.yml"
+      - "app/**"
+      - "prosto_taxi_driver/**"
+  pull_request:
+    paths:
+      - ".github/workflows/mobile-ci.yml"
+      - "app/**"
+      - "prosto_taxi_driver/**"
+  workflow_dispatch:
+
+env:
+  API_BASE_URL: ${{ vars.API_BASE_URL || 'https://api.trezv7777.ru' }}
+
+jobs:
+  build-android:
+    name: Android ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: client
+            app_path: app
+            bundle_id: ru.prostotaxi.client
+            package_name: ru.prostotaxi.client
+          - label: driver
+            app_path: prosto_taxi_driver
+            bundle_id: ru.prostotaxi.driver
+            package_name: ru.prostotaxi.driver
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Restore packages
+        working-directory: ${{ matrix.app_path }}
+        run: flutter pub get
+
+      - name: Prepare Android secrets
+        shell: bash
+        run: |
+          printf 'YANDEX_MAPS_KEY=%s\n' "${{ secrets.YANDEX_MAPS_KEY }}" > "${{ matrix.app_path }}/android/secrets.properties"
+
+      - name: Prepare Android signing files
+        shell: bash
+        env:
+          ANDROID_CLIENT_KEYSTORE_BASE64: ${{ secrets.ANDROID_CLIENT_KEYSTORE_BASE64 }}
+          ANDROID_CLIENT_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_CLIENT_KEYSTORE_PASSWORD }}
+          ANDROID_CLIENT_KEY_ALIAS: ${{ secrets.ANDROID_CLIENT_KEY_ALIAS }}
+          ANDROID_CLIENT_KEY_PASSWORD: ${{ secrets.ANDROID_CLIENT_KEY_PASSWORD }}
+          ANDROID_DRIVER_KEYSTORE_BASE64: ${{ secrets.ANDROID_DRIVER_KEYSTORE_BASE64 }}
+          ANDROID_DRIVER_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_DRIVER_KEYSTORE_PASSWORD }}
+          ANDROID_DRIVER_KEY_ALIAS: ${{ secrets.ANDROID_DRIVER_KEY_ALIAS }}
+          ANDROID_DRIVER_KEY_PASSWORD: ${{ secrets.ANDROID_DRIVER_KEY_PASSWORD }}
+        run: |
+          if [ "${{ matrix.label }}" = "client" ]; then
+            KEYSTORE_BASE64="$ANDROID_CLIENT_KEYSTORE_BASE64"
+            KEYSTORE_PASSWORD="$ANDROID_CLIENT_KEYSTORE_PASSWORD"
+            KEY_ALIAS="$ANDROID_CLIENT_KEY_ALIAS"
+            KEY_PASSWORD="$ANDROID_CLIENT_KEY_PASSWORD"
+          else
+            KEYSTORE_BASE64="$ANDROID_DRIVER_KEYSTORE_BASE64"
+            KEYSTORE_PASSWORD="$ANDROID_DRIVER_KEYSTORE_PASSWORD"
+            KEY_ALIAS="$ANDROID_DRIVER_KEY_ALIAS"
+            KEY_PASSWORD="$ANDROID_DRIVER_KEY_PASSWORD"
+          fi
+
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "${{ matrix.app_path }}/android/release-keystore.jks"
+            printf 'storeFile=release-keystore.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+              "$KEYSTORE_PASSWORD" \
+              "$KEY_ALIAS" \
+              "$KEY_PASSWORD" \
+              > "${{ matrix.app_path }}/android/key.properties"
+            echo "ANDROID_SIGNING_READY=true" >> "$GITHUB_ENV"
+          else
+            echo "ANDROID_SIGNING_READY=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build Android release APK
+        working-directory: ${{ matrix.app_path }}
+        run: flutter build apk --release --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+
+      - name: Build Android release AAB
+        if: env.ANDROID_SIGNING_READY == 'true'
+        working-directory: ${{ matrix.app_path }}
+        run: flutter build appbundle --release --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.label }}-release
+          path: ${{ matrix.app_path }}/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload Android app bundle
+        if: env.ANDROID_SIGNING_READY == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.label }}-aab
+          path: ${{ matrix.app_path }}/build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload AAB to Google Play internal
+        if: env.ANDROID_SIGNING_READY == 'true' && secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ matrix.package_name }}
+          releaseFiles: ${{ matrix.app_path }}/build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+
+  build-ios:
+    name: iOS ${{ matrix.label }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: client
+            app_path: app
+            bundle_id: ru.prostotaxi.client
+          - label: driver
+            app_path: prosto_taxi_driver
+            bundle_id: ru.prostotaxi.driver
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Restore packages
+        working-directory: ${{ matrix.app_path }}
+        run: flutter pub get
+
+      - name: Prepare iOS secrets
+        shell: bash
+        run: |
+          printf 'YANDEX_MAPS_KEY=%s\n' "${{ secrets.YANDEX_MAPS_KEY }}" > "${{ matrix.app_path }}/ios/Flutter/Secrets.xcconfig"
+
+      - name: Prepare iOS signing assets
+        shell: bash
+        env:
+          IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+          IOS_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_CLIENT_PROFILE_BASE64: ${{ secrets.IOS_CLIENT_PROFILE_BASE64 }}
+          IOS_DRIVER_PROFILE_BASE64: ${{ secrets.IOS_DRIVER_PROFILE_BASE64 }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          if [ "${{ matrix.label }}" = "client" ]; then
+            PROFILE_BASE64="$IOS_CLIENT_PROFILE_BASE64"
+          else
+            PROFILE_BASE64="$IOS_DRIVER_PROFILE_BASE64"
+          fi
+
+          if [ -n "$IOS_P12_BASE64" ] && [ -n "$IOS_P12_PASSWORD" ] && [ -n "$IOS_TEAM_ID" ] && [ -n "$PROFILE_BASE64" ]; then
+            KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+            CERT_PATH="$RUNNER_TEMP/dist.p12"
+            PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
+            PROFILE_PLIST="$RUNNER_TEMP/profile.plist"
+
+            echo "$IOS_P12_BASE64" | base64 --decode > "$CERT_PATH"
+            echo "$PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+
+            security create-keychain -p "" "$KEYCHAIN_PATH"
+            security set-keychain-settings "$KEYCHAIN_PATH"
+            security unlock-keychain -p "" "$KEYCHAIN_PATH"
+            security import "$CERT_PATH" -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+            security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+            security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+            PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_PLIST")
+            PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_PLIST")
+
+            mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+            cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+
+            {
+              echo "IOS_SIGNING_READY=true"
+              echo "IOS_TEAM_ID=$IOS_TEAM_ID"
+              echo "IOS_PROFILE_NAME=$PROFILE_NAME"
+              echo "IOS_PROFILE_UUID=$PROFILE_UUID"
+            } >> "$GITHUB_ENV"
+
+            if [ -n "$APP_STORE_CONNECT_API_KEY_BASE64" ] && [ -n "$APP_STORE_CONNECT_KEY_ID" ] && [ -n "$APP_STORE_CONNECT_ISSUER_ID" ]; then
+              mkdir -p "$HOME/private_keys"
+              echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > "$HOME/private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8"
+              echo "IOS_ASC_API_READY=true" >> "$GITHUB_ENV"
+            else
+              echo "IOS_ASC_API_READY=false" >> "$GITHUB_ENV"
+            fi
+          else
+            echo "IOS_SIGNING_READY=false" >> "$GITHUB_ENV"
+            echo "IOS_ASC_API_READY=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install CocoaPods
+        working-directory: ${{ matrix.app_path }}/ios
+        run: pod install
+
+      - name: Build iOS without codesign
+        working-directory: ${{ matrix.app_path }}
+        run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+
+      - name: Archive signed iOS app
+        if: env.IOS_SIGNING_READY == 'true'
+        working-directory: ${{ matrix.app_path }}/ios
+        run: |
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath "$PWD/build/Runner.xcarchive" \
+            -destination generic/platform=iOS \
+            DEVELOPMENT_TEAM="${{ env.IOS_TEAM_ID }}" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="${{ env.IOS_PROFILE_NAME }}" \
+            PRODUCT_BUNDLE_IDENTIFIER="${{ matrix.bundle_id }}" \
+            archive
+
+      - name: Export signed iOS IPA
+        if: env.IOS_SIGNING_READY == 'true'
+        working-directory: ${{ matrix.app_path }}/ios
+        run: |
+          cat > ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>${{ env.IOS_TEAM_ID }}</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${{ matrix.bundle_id }}</key>
+              <string>${{ env.IOS_PROFILE_NAME }}</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$PWD/build/Runner.xcarchive" \
+            -exportPath "$PWD/build/export" \
+            -exportOptionsPlist ExportOptions.plist
+
+      - name: Upload signed iOS IPA
+        if: env.IOS_SIGNING_READY == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ matrix.label }}-ipa
+          path: ${{ matrix.app_path }}/ios/build/export/*.ipa
